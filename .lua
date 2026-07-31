@@ -191,6 +191,13 @@ function library.createWindow(options)
     end
     screenGui.Parent = guiParent
 
+    local window = {
+        visible = true,
+        tabs = {},
+        activeTab = nil,
+        fading = false,
+    }
+
     local main = create("CanvasGroup", {
         Name = "Main",
         Size = size,
