@@ -836,6 +836,7 @@ function library.createWindow(options)
                 BackgroundColor3 = Color3.fromRGB(24, 25, 30),
                 BackgroundTransparency = 0,
                 BorderSizePixel = 0,
+                Active = true,
                 ClipsDescendants = true,
                 Visible = false,
                 ZIndex = 100001,
@@ -850,7 +851,7 @@ function library.createWindow(options)
                     if open and dropHeader:IsDescendantOf(game) then
                         local relPos = getPositionInMain(dropHeader)
                         local absSize = dropHeader.AbsoluteSize
-                        listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y)
+                        listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y - 3)
                         listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22 + 6, 166))
                     end
                 end
@@ -1653,6 +1654,7 @@ function library.createWindow(options)
                         BackgroundColor3 = Color3.fromRGB(20, 20, 24),
                         BackgroundTransparency = 0,
                         BorderSizePixel = 0,
+                        Active = true,
                         Visible = false,
                         ZIndex = 100005,
                         Parent = globalOverlayFrame,
@@ -1709,6 +1711,7 @@ function library.createWindow(options)
                         AnchorPoint = Vector2.new(1, 0),
                         BackgroundColor3 = Color3.fromRGB(24, 25, 30),
                         BorderSizePixel = 0,
+                        Active = true,
                         Text = "",
                         AutoButtonColor = false,
                         ZIndex = 100006,
@@ -1746,6 +1749,7 @@ function library.createWindow(options)
                         BackgroundColor3 = Color3.fromRGB(24, 25, 30),
                         BackgroundTransparency = 0,
                         BorderSizePixel = 0,
+                        Active = true,
                         Visible = false,
                         ZIndex = 100007,
                         Parent = globalOverlayFrame,
@@ -1761,7 +1765,7 @@ function library.createWindow(options)
                         if modeDropOpen then
                             local relBPos = getPositionInMain(modeDropBtn)
                             local bSize = modeDropBtn.AbsoluteSize
-                            modeDropContainer.Position = UDim2.new(0, relBPos.X, 0, relBPos.Y + bSize.Y)
+                            modeDropContainer.Position = UDim2.new(0, relBPos.X, 0, relBPos.Y + bSize.Y - 3)
                             modeDropContainer.Size = UDim2.new(0, bSize.X, 0, 4 * 20 + 6)
                             modeDropContainer.Visible = true
                             modeArrow.Rotation = 0
@@ -2153,6 +2157,7 @@ function library.createWindow(options)
                     BackgroundColor3 = Color3.fromRGB(24, 25, 30),
                     BackgroundTransparency = 0,
                     BorderSizePixel = 0,
+                    Active = true,
                     ClipsDescendants = true,
                     Visible = false,
                     ZIndex = 100001,
@@ -2171,7 +2176,7 @@ function library.createWindow(options)
                     if open and dropHeader:IsDescendantOf(game) then
                         local relPos = getPositionInMain(dropHeader)
                         local absSize = dropHeader.AbsoluteSize
-                        listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y)
+                        listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y - 3)
                         listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22 + 6, 166))
                     end
                 end
