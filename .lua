@@ -1832,23 +1832,25 @@ function library.createWindow(options)
                 local manualInputFrame = create("Frame", {
                     Size = UDim2.new(1, 0, 0, 22),
                     Position = UDim2.new(0, 0, 0, 0),
-                    BackgroundColor3 = Color3.fromRGB(24, 26, 32),
+                    BackgroundColor3 = Color3.fromRGB(20, 22, 28),
                     BorderSizePixel = 0,
                     Visible = false,
+                    ZIndex = 100,
                     Parent = container,
                 })
 
                 create("Frame", {
-                    Size = UDim2.new(1, 0, 0, 2),
-                    Position = UDim2.new(0, 0, 1, -2),
+                    Size = UDim2.new(1, 0, 0, 1.5),
+                    Position = UDim2.new(0, 0, 1, -1.5),
                     BackgroundColor3 = library.theme.accent,
                     BorderSizePixel = 0,
+                    ZIndex = 101,
                     Parent = manualInputFrame,
                 })
 
                 local manualTextBox = create("TextBox", {
                     Size = UDim2.new(1, -10, 1, -2),
-                    Position = UDim2.new(0, 5, 0, 0),
+                    Position = UDim2.new(0, 6, 0, 0),
                     BackgroundTransparency = 1,
                     Text = string.format("%." .. decimals .. "f", value),
                     Font = library.theme.fontBold,
@@ -1856,6 +1858,7 @@ function library.createWindow(options)
                     TextColor3 = library.theme.textBright,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ClearTextOnFocus = false,
+                    ZIndex = 102,
                     Parent = manualInputFrame,
                 })
 
