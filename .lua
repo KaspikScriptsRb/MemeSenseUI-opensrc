@@ -122,6 +122,26 @@ local function makeStroke(parent, color, thickness)
     })
 end
 
+local function setupAutoScrollBar(scrollFrame, maxThickness)
+    maxThickness = maxThickness or 2
+    scrollFrame.ScrollBarThickness = 0
+    scrollFrame.ScrollBarImageTransparency = 1
+
+    local function update()
+        if scrollFrame.AbsoluteCanvasSize.Y > scrollFrame.AbsoluteSize.Y + 2 then
+            scrollFrame.ScrollBarThickness = maxThickness
+            scrollFrame.ScrollBarImageTransparency = 0
+        else
+            scrollFrame.ScrollBarThickness = 0
+            scrollFrame.ScrollBarImageTransparency = 1
+        end
+    end
+
+    scrollFrame:GetPropertyChangedSignal("AbsoluteCanvasSize"):Connect(update)
+    scrollFrame:GetPropertyChangedSignal("AbsoluteSize"):Connect(update)
+    task.defer(update)
+end
+
 local defaultIcons = {
     Legitbot = "rbxassetid://10723415903",
     ["Aim Assist"] = "rbxassetid://10723416040",
@@ -244,11 +264,12 @@ function library.createWindow(options)
         Position = UDim2.new(0, 0, 0, 44),
         BackgroundTransparency = 1,
         BorderSizePixel = 0,
-        ScrollBarThickness = 2,
+        ScrollBarThickness = 0,
         ScrollBarImageColor3 = library.theme.inputBorder,
         AutomaticCanvasSize = Enum.AutomaticSize.Y,
         Parent = sidebar,
     })
+    setupAutoScrollBar(tabScroll, 2)
 
     create("UIListLayout", {
         SortOrder = Enum.SortOrder.LayoutOrder,
@@ -381,8 +402,8 @@ function library.createWindow(options)
             AutomaticSize = Enum.AutomaticSize.X,
             BackgroundTransparency = 1,
             Text = "",
-            LayoutOrder = -1,
-            Parent = headerLeft,
+            LayoutOrder = 1,
+            Parent = headerRight,
         })
 
         create("UIListLayout", {
@@ -455,6 +476,7 @@ function library.createWindow(options)
             Text = "",
             AutoButtonColor = false,
             BorderSizePixel = 0,
+            LayoutOrder = 2,
             Parent = headerRight,
         })
         makeCorner(btn, 4)
@@ -604,6 +626,9 @@ function library.createWindow(options)
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
             Parent = columnsFrame,
         })
+
+        setupAutoScrollBar(colLeft, 2)
+        setupAutoScrollBar(colRight, 2)
 
         create("UIListLayout", {
             SortOrder = Enum.SortOrder.LayoutOrder,
@@ -1760,21 +1785,23 @@ function library.createWindow(options)
                 })
 
                 local track = create("TextButton", {
-                    Size = UDim2.new(1, 0, 0, 3),
-                    Position = UDim2.new(0, 0, 0, 17),
-                    BackgroundColor3 = Color3.fromRGB(30, 30, 34),
+                    Size = UDim2.new(1, 0, 0, 4),
+                    Position = UDim2.new(0, 0, 0, 18),
+                    BackgroundColor3 = Color3.fromRGB(28, 28, 34),
                     BorderSizePixel = 0,
                     Text = "",
                     AutoButtonColor = false,
                     Parent = container,
                 })
+                makeCorner(track, 3)
 
                 local fill = create("Frame", {
-                    Size = UDim2.new((value - min) / (max - min), 0, 1, 0),
+                    Size = UDim2.new(math.clamp((value - min) / (max - min), 0, 1), 0, 1, 0),
                     BackgroundColor3 = library.theme.accent,
                     BorderSizePixel = 0,
                     Parent = track,
                 })
+                makeCorner(fill, 3)
 
                 local function applyValue(val)
                     value = math.clamp(val, min, max)
