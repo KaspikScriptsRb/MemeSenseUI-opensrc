@@ -1471,23 +1471,52 @@ function library.createWindow(options)
                         Size = UDim2.new(0, 18, 0, 16),
                         BackgroundTransparency = 1,
                         Image = "rbxassetid://121332782788896",
-                        ImageColor3 = (currentKey ~= Enum.KeyCode.Unknown) and library.theme.accent or Color3.fromRGB(255, 255, 255),
+                        ImageColor3 = Color3.fromRGB(255, 255, 255),
                         ImageTransparency = 0,
                         BorderSizePixel = 0,
                         Parent = rightControls,
                     })
 
                     local popup = create("Frame", {
-                        Size = UDim2.new(0, 140, 0, 75),
-                        Position = UDim2.new(1, 5, 0, 0),
-                        BackgroundColor3 = Color3.fromRGB(30, 32, 38),
+                        Size = UDim2.new(0, 150, 0, 75),
+                        BackgroundColor3 = Color3.fromRGB(20, 20, 24),
+                        BackgroundTransparency = 0,
                         BorderSizePixel = 0,
                         Visible = false,
-                        ZIndex = 100,
-                        Parent = iconBtn,
+                        ZIndex = 100005,
+                        Parent = globalOverlayFrame,
                     })
-                    makeStroke(popup, library.theme.inputBorder)
-                    create("UIPadding", { PaddingTop = UDim.new(0, 6), PaddingBottom = UDim.new(0, 6), PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8), Parent = popup })
+                    makeCorner(popup, 4)
+                    create("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10), Parent = popup })
+
+                    local bindTrackConn
+                    local function startBindTracking()
+                        if bindTrackConn then bindTrackConn:Disconnect() end
+                        bindTrackConn = runService.RenderStepped:Connect(function()
+                            if not popup.Visible or not iconBtn:IsDescendantOf(game) then
+                                if bindTrackConn then bindTrackConn:Disconnect() end
+                                bindTrackConn = nil
+                                popup.Visible = false
+                                return
+                            end
+                            local absPos = iconBtn.AbsolutePosition
+                            local absSize = iconBtn.AbsoluteSize
+                            popup.Position = UDim2.new(0, absPos.X - 132, 0, absPos.Y + absSize.Y + 4)
+                        end)
+                    end
+
+                    iconBtn.MouseButton1Click:Connect(function()
+                        popup.Visible = not popup.Visible
+                        if popup.Visible then
+                            local absPos = iconBtn.AbsolutePosition
+                            local absSize = iconBtn.AbsoluteSize
+                            popup.Position = UDim2.new(0, absPos.X - 132, 0, absPos.Y + absSize.Y + 4)
+                            startBindTracking()
+                        else
+                            if bindTrackConn then bindTrackConn:Disconnect() end
+                            bindTrackConn = nil
+                        end
+                    end)
 
                     create("TextLabel", {
                         Size = UDim2.new(0.4, 0, 0, 16),
