@@ -301,21 +301,12 @@ function library.createWindow(options)
 
 
     create("Frame", {
-        Size = UDim2.new(1, 0, 0, 1),
-        Position = UDim2.new(0, 0, 0, 44),
-        BackgroundColor3 = Color3.fromRGB(55, 55, 62),
+        Size = UDim2.new(1, 0, 0, 2),
+        Position = UDim2.new(0, 0, 1, -2),
+        BackgroundColor3 = Color3.fromRGB(35, 35, 42),
         BorderSizePixel = 0,
-        ZIndex = 5000,
-        Parent = main,
-    })
-
-    create("Frame", {
-        Size = UDim2.new(0, 1, 1, -44),
-        Position = UDim2.new(0, 165, 0, 44),
-        BackgroundColor3 = Color3.fromRGB(45, 45, 52),
-        BorderSizePixel = 0,
-        ZIndex = 5000,
-        Parent = main,
+        ZIndex = 15,
+        Parent = headerBar,
     })
 
     local headerLeft = create("Frame", {
@@ -1864,53 +1855,85 @@ function library.createWindow(options)
                         Parent = rightControls,
                     })
 
-                    local subContainer = create("Frame", {
-                        Size = UDim2.new(1, 0, 0, 0),
+                    local popup = create("Frame", {
+                        Size = UDim2.new(0, 180, 0, 0),
                         AutomaticSize = Enum.AutomaticSize.Y,
-                        BackgroundTransparency = 1,
+                        BackgroundColor3 = Color3.fromRGB(20, 20, 24),
+                        BackgroundTransparency = 0,
                         BorderSizePixel = 0,
+                        Active = true,
                         Visible = false,
-                        Parent = card,
+                        ZIndex = 100005,
+                        Parent = globalOverlayFrame,
                     })
+                    makeCorner(popup, 4)
+                    create("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8), Parent = popup })
 
                     create("UIListLayout", {
                         SortOrder = Enum.SortOrder.LayoutOrder,
-                        Padding = UDim.new(0, 4),
-                        Parent = subContainer,
+                        Padding = UDim.new(0, 6),
+                        Parent = popup,
                     })
 
-                    create("UIPadding", {
-                        PaddingLeft = UDim.new(0, 10),
-                        PaddingRight = UDim.new(0, 0),
-                        Parent = subContainer,
-                    })
+                    local popTrackConn
+                    local function startTracking()
+                        if popTrackConn then popTrackConn:Disconnect() end
+                        popTrackConn = runService.RenderStepped:Connect(function()
+                            if not popup.Visible or not iconBtn:IsDescendantOf(game) or not isInsideView(iconBtn) then
+                                if popTrackConn then popTrackConn:Disconnect() end
+                                popTrackConn = nil
+                                popup.Visible = false
+                                return
+                            end
+                            local relPos = getPositionInMain(iconBtn)
+                            local iconAbsSize = iconBtn.AbsoluteSize
+                            popup.Position = UDim2.new(0, relPos.X + iconAbsSize.X + 4, 0, relPos.Y + iconAbsSize.Y + 4)
+                        end)
+                    end
 
                     iconBtn.InputBegan:Connect(function(input)
                         if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                            subContainer.Visible = not subContainer.Visible
-                            iconBtn.ImageColor3 = subContainer.Visible and library.theme.accent or Color3.fromRGB(255, 255, 255)
+                            local wasVisible = popup.Visible
+                            closeGlobalOverlays()
+                            popup.Visible = not wasVisible
+                            iconBtn.ImageColor3 = popup.Visible and library.theme.accent or Color3.fromRGB(255, 255, 255)
+                            if popup.Visible then
+                                local relPos = getPositionInMain(iconBtn)
+                                local iconAbsSize = iconBtn.AbsoluteSize
+                                popup.Position = UDim2.new(0, relPos.X + iconAbsSize.X + 4, 0, relPos.Y + iconAbsSize.Y + 4)
+                                startTracking()
+                                table.insert(activeOverlays, function()
+                                    popup.Visible = false
+                                    iconBtn.ImageColor3 = Color3.fromRGB(255, 255, 255)
+                                    if popTrackConn then popTrackConn:Disconnect() end
+                                    popTrackConn = nil
+                                end)
+                            else
+                                if popTrackConn then popTrackConn:Disconnect() end
+                                popTrackConn = nil
+                            end
                         end
                     end)
 
                     local popObj = {
-                        popup = subContainer,
-                        card = subContainer,
+                        popup = popup,
+                        card = popup,
                     }
 
-                    local function withSubCard(fn)
+                    local function withPopupCard(fn)
                         return function(self, cfg)
                             local origCard = card
-                            card = subContainer
+                            card = popup
                             local result = fn(self, cfg)
                             card = origCard
                             return result
                         end
                     end
 
-                    popObj.createToggle = withSubCard(section.createToggle)
-                    popObj.createSlider = withSubCard(section.createSlider)
-                    popObj.createDropdown = withSubCard(section.createDropdown)
-                    popObj.createColorpicker = withSubCard(section.createColorpicker)
+                    popObj.createToggle = withPopupCard(section.createToggle)
+                    popObj.createSlider = withPopupCard(section.createSlider)
+                    popObj.createDropdown = withPopupCard(section.createDropdown)
+                    popObj.createColorpicker = withPopupCard(section.createColorpicker)
 
                     if typeof(builder) == "function" then
                         pcall(builder, popObj)
