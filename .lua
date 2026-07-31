@@ -191,30 +191,6 @@ function library.createWindow(options)
     end
     screenGui.Parent = guiParent
 
-    local globalOverlayFrame = create("Frame", {
-        Name = "GlobalOverlay",
-        Size = UDim2.new(1, 0, 1, 0),
-        BackgroundTransparency = 1,
-        ZIndex = 100000,
-        Parent = screenGui,
-    })
-
-    local window = {
-        visible = true,
-        tabs = {},
-        activeTab = nil,
-        dragging = false,
-        fading = false,
-    }
-
-    local function closeGlobalOverlays()
-        for _, child in globalOverlayFrame:GetChildren() do
-            if child:IsA("Frame") then
-                child.Visible = false
-            end
-        end
-    end
-
     local main = create("CanvasGroup", {
         Name = "Main",
         Size = size,
@@ -225,6 +201,20 @@ function library.createWindow(options)
         Parent = screenGui,
     })
     local mainStroke = makeStroke(main, Color3.fromRGB(32, 32, 36), 1)
+
+    local globalOverlayFrame = create("Frame", {
+        Name = "GlobalOverlay",
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        ZIndex = 100000,
+        Parent = main,
+    })
+
+    local function getPositionInMain(elem)
+        local elemAbs = elem.AbsolutePosition
+        local mainAbs = main.AbsolutePosition
+        return Vector2.new(elemAbs.X - mainAbs.X, elemAbs.Y - mainAbs.Y)
+    end
 
     local topBar = create("Frame", {
         Size = UDim2.new(1, 0, 0, 2),
@@ -848,9 +838,9 @@ function library.createWindow(options)
                         arrow.Rotation = 180
                         return
                     end
-                    local absPos = dropHeader.AbsolutePosition
+                    local relPos = getPositionInMain(dropHeader)
                     local absSize = dropHeader.AbsoluteSize
-                    listContainer.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y)
+                    listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y)
                     listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22, 160))
                 end)
             end
@@ -861,9 +851,9 @@ function library.createWindow(options)
                     for _, child in listContainer:GetChildren() do
                         if child:IsA("TextButton") then child:Destroy() end
                     end
-                    local absPos = dropHeader.AbsolutePosition
+                    local relPos = getPositionInMain(dropHeader)
                     local absSize = dropHeader.AbsoluteSize
-                    listContainer.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y)
+                    listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y)
                     listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22, 160))
 
                     for _, opt in options do
@@ -1025,24 +1015,26 @@ function library.createWindow(options)
             local function startPopoverTracking()
                 if popTrackConn then popTrackConn:Disconnect() end
                 popTrackConn = runService.RenderStepped:Connect(function()
-                    if not popoverFrame.Visible or not btn:IsDescendantOf(game) then
+                    if not popoverFrame.Visible or not btn:IsDescendantOf(game) or not isInsideView(btn) then
                         if popTrackConn then popTrackConn:Disconnect() end
                         popTrackConn = nil
                         popoverFrame.Visible = false
                         return
                     end
-                    local btnAbsPos = btn.AbsolutePosition
+                    local relPos = getPositionInMain(btn)
                     local btnAbsSize = btn.AbsoluteSize
-                    popoverFrame.Position = UDim2.new(0, btnAbsPos.X + btnAbsSize.X - width, 0, btnAbsPos.Y + btnAbsSize.Y + 4)
+                    popoverFrame.Position = UDim2.new(0, relPos.X + btnAbsSize.X - width, 0, relPos.Y + btnAbsSize.Y + 4)
                 end)
             end
 
             btn.MouseButton1Click:Connect(function()
-                popoverFrame.Visible = not popoverFrame.Visible
+                local wasVisible = popoverFrame.Visible
+                closeGlobalOverlays()
+                popoverFrame.Visible = not wasVisible
                 if popoverFrame.Visible then
-                    local btnAbsPos = btn.AbsolutePosition
+                    local relPos = getPositionInMain(btn)
                     local btnAbsSize = btn.AbsoluteSize
-                    popoverFrame.Position = UDim2.new(0, btnAbsPos.X + btnAbsSize.X - width, 0, btnAbsPos.Y + btnAbsSize.Y + 4)
+                    popoverFrame.Position = UDim2.new(0, relPos.X + btnAbsSize.X - width, 0, relPos.Y + btnAbsSize.Y + 4)
                     startPopoverTracking()
                 else
                     if popTrackConn then popTrackConn:Disconnect() end
@@ -1646,9 +1638,9 @@ function library.createWindow(options)
                                 popup.Visible = false
                                 return
                             end
-                            local iconAbsPos = iconBtn.AbsolutePosition
+                            local relPos = getPositionInMain(iconBtn)
                             local iconAbsSize = iconBtn.AbsoluteSize
-                            popup.Position = UDim2.new(0, iconAbsPos.X + iconAbsSize.X + 4, 0, iconAbsPos.Y + iconAbsSize.Y + 4)
+                            popup.Position = UDim2.new(0, relPos.X + iconAbsSize.X + 4, 0, relPos.Y + iconAbsSize.Y + 4)
                         end)
                     end
 
@@ -1656,9 +1648,9 @@ function library.createWindow(options)
                         if input.UserInputType == Enum.UserInputType.MouseButton1 then
                             popup.Visible = not popup.Visible
                             if popup.Visible then
-                                local iconAbsPos = iconBtn.AbsolutePosition
+                                local relPos = getPositionInMain(iconBtn)
                                 local iconAbsSize = iconBtn.AbsoluteSize
-                                popup.Position = UDim2.new(0, iconAbsPos.X + iconAbsSize.X + 4, 0, iconAbsPos.Y + iconAbsSize.Y + 4)
+                                popup.Position = UDim2.new(0, relPos.X + iconAbsSize.X + 4, 0, relPos.Y + iconAbsSize.Y + 4)
                                 startBindTracking()
                             else
                                 if bindTrackConn then bindTrackConn:Disconnect() end
@@ -1708,9 +1700,9 @@ function library.createWindow(options)
                     modeDropBtn.MouseButton1Click:Connect(function()
                         modeDropOpen = not modeDropOpen
                         if modeDropOpen then
-                            local bPos = modeDropBtn.AbsolutePosition
+                            local relBPos = getPositionInMain(modeDropBtn)
                             local bSize = modeDropBtn.AbsoluteSize
-                            modeDropContainer.Position = UDim2.new(0, bPos.X, 0, bPos.Y + bSize.Y)
+                            modeDropContainer.Position = UDim2.new(0, relBPos.X, 0, relBPos.Y + bSize.Y)
                             modeDropContainer.Size = UDim2.new(0, bSize.X, 0, 4 * 20)
                             modeDropContainer.Visible = true
                         else
@@ -2103,9 +2095,9 @@ function library.createWindow(options)
                             arrow.Rotation = 180
                             return
                         end
-                        local absPos = dropHeader.AbsolutePosition
+                        local relPos = getPositionInMain(dropHeader)
                         local absSize = dropHeader.AbsoluteSize
-                        listContainer.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y)
+                        listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y)
                         listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22, 160))
                     end)
                 end
@@ -2170,9 +2162,9 @@ function library.createWindow(options)
                     closeGlobalOverlays()
                     open = not wasOpen
                     if open then
-                        local absPos = dropHeader.AbsolutePosition
+                        local relPos = getPositionInMain(dropHeader)
                         local absSize = dropHeader.AbsoluteSize
-                        listContainer.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y)
+                        listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y)
                         listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22, 160))
                         populateOptions()
                         listContainer.Visible = true
