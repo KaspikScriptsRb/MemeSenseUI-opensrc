@@ -126,20 +126,23 @@ local function setupAutoScrollBar(scrollFrame, maxThickness)
     maxThickness = maxThickness or 2
     scrollFrame.ScrollBarThickness = 0
     scrollFrame.ScrollBarImageTransparency = 1
+    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 
     local function update()
-        if scrollFrame.AbsoluteCanvasSize.Y > scrollFrame.AbsoluteSize.Y + 2 then
-            scrollFrame.ScrollBarThickness = maxThickness
-            scrollFrame.ScrollBarImageTransparency = 0
-        else
-            scrollFrame.ScrollBarThickness = 0
-            scrollFrame.ScrollBarImageTransparency = 1
-        end
+        task.defer(function()
+            if scrollFrame.AbsoluteCanvasSize.Y > scrollFrame.AbsoluteSize.Y + 4 then
+                scrollFrame.ScrollBarThickness = maxThickness
+                scrollFrame.ScrollBarImageTransparency = 0
+            else
+                scrollFrame.ScrollBarThickness = 0
+                scrollFrame.ScrollBarImageTransparency = 1
+            end
+        end)
     end
 
     scrollFrame:GetPropertyChangedSignal("AbsoluteCanvasSize"):Connect(update)
     scrollFrame:GetPropertyChangedSignal("AbsoluteSize"):Connect(update)
-    task.defer(update)
+    update()
 end
 
 local defaultIcons = {
@@ -939,9 +942,11 @@ function library.createWindow(options)
             })
 
             local function updatePopoverPos()
-                local absPos = btn.AbsolutePosition
-                local absSize = btn.AbsoluteSize
-                popoverFrame.Position = UDim2.new(0, absPos.X + absSize.X - width, 0, absPos.Y + absSize.Y + 4)
+                local mainAbsPos = main.AbsolutePosition
+                local mainAbsSize = main.AbsoluteSize
+                local btnAbsPos = btn.AbsolutePosition
+                local btnAbsSize = btn.AbsoluteSize
+                popoverFrame.Position = UDim2.new(0, mainAbsPos.X + mainAbsSize.X - width - 12, 0, btnAbsPos.Y + btnAbsSize.Y + 4)
             end
 
             btn.MouseButton1Click:Connect(function()
@@ -1547,9 +1552,11 @@ function library.createWindow(options)
                                 popup.Visible = false
                                 return
                             end
-                            local absPos = iconBtn.AbsolutePosition
-                            local absSize = iconBtn.AbsoluteSize
-                            popup.Position = UDim2.new(0, absPos.X - 132, 0, absPos.Y + absSize.Y + 4)
+                            local mainAbsPos = main.AbsolutePosition
+                            local mainAbsSize = main.AbsoluteSize
+                            local iconAbsPos = iconBtn.AbsolutePosition
+                            local iconAbsSize = iconBtn.AbsoluteSize
+                            popup.Position = UDim2.new(0, mainAbsPos.X + mainAbsSize.X - 162, 0, iconAbsPos.Y + iconAbsSize.Y + 4)
                         end)
                     end
 
@@ -1557,9 +1564,11 @@ function library.createWindow(options)
                         if input.UserInputType == Enum.UserInputType.MouseButton1 then
                             popup.Visible = not popup.Visible
                             if popup.Visible then
-                                local absPos = iconBtn.AbsolutePosition
-                                local absSize = iconBtn.AbsoluteSize
-                                popup.Position = UDim2.new(0, absPos.X - 132, 0, absPos.Y + absSize.Y + 4)
+                                local mainAbsPos = main.AbsolutePosition
+                                local mainAbsSize = main.AbsoluteSize
+                                local iconAbsPos = iconBtn.AbsolutePosition
+                                local iconAbsSize = iconBtn.AbsoluteSize
+                                popup.Position = UDim2.new(0, mainAbsPos.X + mainAbsSize.X - 162, 0, iconAbsPos.Y + iconAbsSize.Y + 4)
                                 startBindTracking()
                             else
                                 if bindTrackConn then bindTrackConn:Disconnect() end
@@ -2098,7 +2107,11 @@ function library.createWindow(options)
                 local folderFiles = library.getFolderConfigs()
                 local configsList = config.list or folderFiles
 
-                local activeConfigName = config.active or (configsList[1] and configsList[1].name) or ""
+                if #configsList == 0 then
+                    table.insert(configsList, { name = ".", icon = "knife", modified = os.date("%Y/%m/%d %H:%M:%S") })
+                end
+
+                local activeConfigName = config.active or (configsList[1] and configsList[1].name) or "."
                 local onSave = config.onSave or function() end
                 local onLoad = config.onLoad or function() end
                 local onDelete = config.onDelete or function() end
@@ -2117,44 +2130,6 @@ function library.createWindow(options)
                     Padding = UDim.new(0, 6),
                     Parent = container,
                 })
-
-                -- New Config creation input
-                local createRow = create("Frame", {
-                    Size = UDim2.new(1, 0, 0, 26),
-                    BackgroundTransparency = 1,
-                    Parent = container,
-                })
-
-                local newConfigBox = create("TextBox", {
-                    Size = UDim2.new(1, -75, 1, 0),
-                    BackgroundColor3 = library.theme.inputBg,
-                    Text = "",
-                    PlaceholderText = "New config name...",
-                    PlaceholderColor3 = library.theme.textMuted,
-                    Font = library.theme.fontBold,
-                    TextSize = 12,
-                    TextColor3 = library.theme.textBright,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    BorderSizePixel = 0,
-                    Parent = createRow,
-                })
-                makeCorner(newConfigBox, 3)
-                makeStroke(newConfigBox, library.theme.inputBorder)
-                create("UIPadding", { PaddingLeft = UDim.new(0, 8), Parent = newConfigBox })
-
-                local createBtn = create("TextButton", {
-                    Size = UDim2.new(0, 68, 1, 0),
-                    Position = UDim2.new(1, 0, 0, 0),
-                    AnchorPoint = Vector2.new(1, 0),
-                    BackgroundColor3 = Color3.fromRGB(38, 38, 46),
-                    Text = "Create",
-                    Font = library.theme.fontBold,
-                    TextSize = 12,
-                    TextColor3 = library.theme.textBright,
-                    BorderSizePixel = 0,
-                    Parent = createRow,
-                })
-                makeCorner(createBtn, 3)
 
                 local listFrame = create("Frame", {
                     Size = UDim2.new(1, 0, 0, 0),
