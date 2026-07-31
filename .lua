@@ -1534,16 +1534,18 @@ function library.createWindow(options)
                         end)
                     end
 
-                    iconBtn.MouseButton1Click:Connect(function()
-                        popup.Visible = not popup.Visible
-                        if popup.Visible then
-                            local absPos = iconBtn.AbsolutePosition
-                            local absSize = iconBtn.AbsoluteSize
-                            popup.Position = UDim2.new(0, absPos.X - 132, 0, absPos.Y + absSize.Y + 4)
-                            startBindTracking()
-                        else
-                            if bindTrackConn then bindTrackConn:Disconnect() end
-                            bindTrackConn = nil
+                    iconBtn.InputBegan:Connect(function(input)
+                        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                            popup.Visible = not popup.Visible
+                            if popup.Visible then
+                                local absPos = iconBtn.AbsolutePosition
+                                local absSize = iconBtn.AbsoluteSize
+                                popup.Position = UDim2.new(0, absPos.X - 132, 0, absPos.Y + absSize.Y + 4)
+                                startBindTracking()
+                            else
+                                if bindTrackConn then bindTrackConn:Disconnect() end
+                                bindTrackConn = nil
+                            end
                         end
                     end)
 
@@ -1555,7 +1557,7 @@ function library.createWindow(options)
                         TextColor3 = library.theme.textBright,
                         TextXAlignment = Enum.TextXAlignment.Left,
                         BackgroundTransparency = 1,
-                        ZIndex = 101,
+                        ZIndex = 100006,
                         Parent = popup,
                     })
 
@@ -1563,68 +1565,89 @@ function library.createWindow(options)
                         Size = UDim2.new(0.55, 0, 0, 18),
                         Position = UDim2.new(1, 0, 0, 0),
                         AnchorPoint = Vector2.new(1, 0),
-                        BackgroundColor3 = Color3.fromRGB(42, 46, 56),
+                        BackgroundColor3 = Color3.fromRGB(24, 25, 30),
+                        BorderSizePixel = 0,
                         Text = keyMode,
                         Font = library.theme.fontBold,
                         TextSize = 11,
                         TextColor3 = library.theme.textBright,
-                        ZIndex = 101,
+                        ZIndex = 100006,
                         Parent = popup,
                     })
-                    makeStroke(modeDropBtn, library.theme.inputBorder)
 
                     local modeDropContainer = create("Frame", {
-                        Size = UDim2.new(1, 0, 0, 0),
-                        Position = UDim2.new(0, 0, 1, 2),
-                        BackgroundColor3 = Color3.fromRGB(30, 32, 38),
+                        Size = UDim2.new(0, 85, 0, 0),
+                        BackgroundColor3 = Color3.fromRGB(24, 25, 30),
+                        BackgroundTransparency = 0,
                         BorderSizePixel = 0,
                         Visible = false,
-                        ZIndex = 105,
-                        Parent = modeDropBtn,
+                        ZIndex = 100007,
+                        Parent = globalOverlayFrame,
                     })
-                    makeStroke(modeDropContainer, library.theme.inputBorder)
-                    create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Parent = modeDropContainer })
+                    create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 0), Parent = modeDropContainer })
+
+                    local modeDropOpen = false
+                    modeDropBtn.MouseButton1Click:Connect(function()
+                        modeDropOpen = not modeDropOpen
+                        if modeDropOpen then
+                            local bPos = modeDropBtn.AbsolutePosition
+                            local bSize = modeDropBtn.AbsoluteSize
+                            modeDropContainer.Position = UDim2.new(0, bPos.X, 0, bPos.Y + bSize.Y)
+                            modeDropContainer.Size = UDim2.new(0, bSize.X, 0, 4 * 20)
+                            modeDropContainer.Visible = true
+                        else
+                            modeDropContainer.Visible = false
+                        end
+                    end)
 
                     local modeOptions = {"Always on", "On key down", "Toggle", "Disabled"}
                     for _, mOpt in modeOptions do
+                        local isSel = (mOpt == keyMode)
                         local mBtn = create("TextButton", {
-                            Size = UDim2.new(1, 0, 0, 18),
-                            BackgroundColor3 = (mOpt == keyMode) and Color3.fromRGB(42, 46, 56) or Color3.fromRGB(30, 32, 38),
+                            Size = UDim2.new(1, 0, 0, 20),
+                            BackgroundColor3 = Color3.fromRGB(24, 25, 30),
+                            BackgroundTransparency = 1,
+                            BorderSizePixel = 0,
                             Text = mOpt,
                             Font = library.theme.fontBold,
                             TextSize = 11,
-                            TextColor3 = library.theme.textBright,
-                            ZIndex = 106,
+                            TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 155, 165),
+                            ZIndex = 100008,
                             Parent = modeDropContainer,
                         })
+                        create("UIPadding", { PaddingLeft = UDim.new(0, 6), Parent = mBtn })
+
+                        mBtn.MouseEnter:Connect(function()
+                            mBtn.BackgroundColor3 = Color3.fromRGB(36, 38, 46)
+                            mBtn.BackgroundTransparency = 0
+                        end)
+                        mBtn.MouseLeave:Connect(function()
+                            mBtn.BackgroundColor3 = Color3.fromRGB(24, 25, 30)
+                            mBtn.BackgroundTransparency = 1
+                        end)
+
                         mBtn.MouseButton1Click:Connect(function()
                             keyMode = mOpt
                             modeDropBtn.Text = keyMode
+                            modeDropOpen = false
                             modeDropContainer.Visible = false
+                            pcall(keyCallback, currentKey, keyMode)
                         end)
                     end
-                    modeDropContainer.Size = UDim2.new(1, 0, 0, #modeOptions * 18)
-
-                    modeDropBtn.MouseButton1Click:Connect(function()
-                        modeDropContainer.Visible = not modeDropContainer.Visible
-                    end)
 
                     local keyBox = create("TextButton", {
                         Size = UDim2.new(1, 0, 0, 22),
                         Position = UDim2.new(0, 0, 0, 28),
                         BackgroundColor3 = Color3.fromRGB(20, 22, 26),
+                        BorderSizePixel = 0,
                         Text = "[" .. (currentKey == Enum.KeyCode.Unknown and "none" or currentKey.Name:lower()) .. "]",
                         Font = library.theme.fontBold,
                         TextSize = 12,
                         TextColor3 = library.theme.textBright,
-                        ZIndex = 101,
+                        ZIndex = 100006,
                         Parent = popup,
                     })
-                    makeStroke(keyBox, library.theme.inputBorder)
-
-                    iconBtn.MouseButton1Click:Connect(function()
-                        popup.Visible = not popup.Visible
-                    end)
+                    makeCorner(keyBox, 3)
 
                     keyBox.MouseButton1Click:Connect(function()
                         binding = true
