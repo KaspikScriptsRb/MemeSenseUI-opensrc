@@ -841,17 +841,17 @@ function library.createWindow(options)
                 ZIndex = 100001,
                 Parent = globalOverlayFrame,
             })
-            makeCorner(listContainer, 3)
+            makeCorner(listContainer, 4)
 
             create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 0), Parent = listContainer })
-            create("UIPadding", { PaddingTop = UDim.new(0, 2), PaddingBottom = UDim.new(0, 2), PaddingLeft = UDim.new(0, 0), PaddingRight = UDim.new(0, 0), Parent = listContainer })
+            create("UIPadding", { PaddingTop = UDim.new(0, 3), PaddingBottom = UDim.new(0, 3), PaddingLeft = UDim.new(0, 0), PaddingRight = UDim.new(0, 0), Parent = listContainer })
 
                 local function updateHeaderDropdownPos()
                     if open and dropHeader:IsDescendantOf(game) then
                         local relPos = getPositionInMain(dropHeader)
                         local absSize = dropHeader.AbsoluteSize
-                        listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y)
-                        listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22, 160))
+                        listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y + 2)
+                        listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22 + 6, 166))
                     end
                 end
 
@@ -1750,10 +1750,10 @@ function library.createWindow(options)
                         ZIndex = 100007,
                         Parent = globalOverlayFrame,
                     })
-                    makeCorner(modeDropContainer, 3)
+                    makeCorner(modeDropContainer, 4)
 
                     create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 0), Parent = modeDropContainer })
-                    create("UIPadding", { PaddingTop = UDim.new(0, 2), PaddingBottom = UDim.new(0, 2), Parent = modeDropContainer })
+                    create("UIPadding", { PaddingTop = UDim.new(0, 3), PaddingBottom = UDim.new(0, 3), Parent = modeDropContainer })
 
                     local modeDropOpen = false
                     modeDropBtn.MouseButton1Click:Connect(function()
@@ -1761,8 +1761,8 @@ function library.createWindow(options)
                         if modeDropOpen then
                             local relBPos = getPositionInMain(modeDropBtn)
                             local bSize = modeDropBtn.AbsoluteSize
-                            modeDropContainer.Position = UDim2.new(0, relBPos.X, 0, relBPos.Y + bSize.Y)
-                            modeDropContainer.Size = UDim2.new(0, bSize.X, 0, 4 * 20 + 4)
+                            modeDropContainer.Position = UDim2.new(0, relBPos.X, 0, relBPos.Y + bSize.Y + 2)
+                            modeDropContainer.Size = UDim2.new(0, bSize.X, 0, 4 * 20 + 6)
                             modeDropContainer.Visible = true
                             modeArrow.Rotation = 0
                         else
@@ -2158,21 +2158,21 @@ function library.createWindow(options)
                     ZIndex = 100001,
                     Parent = globalOverlayFrame,
                 })
-                makeCorner(listContainer, 3)
+                makeCorner(listContainer, 4)
 
                 create("UIListLayout", {
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     Padding = UDim.new(0, 0),
                     Parent = listContainer,
                 })
-                create("UIPadding", { PaddingTop = UDim.new(0, 2), PaddingBottom = UDim.new(0, 2), PaddingLeft = UDim.new(0, 0), PaddingRight = UDim.new(0, 0), Parent = listContainer })
+                create("UIPadding", { PaddingTop = UDim.new(0, 3), PaddingBottom = UDim.new(0, 3), PaddingLeft = UDim.new(0, 0), PaddingRight = UDim.new(0, 0), Parent = listContainer })
 
                 local function updateDropdownPosition()
                     if open and dropHeader:IsDescendantOf(game) then
                         local relPos = getPositionInMain(dropHeader)
                         local absSize = dropHeader.AbsoluteSize
-                        listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y)
-                        listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22, 160))
+                        listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y + 2)
+                        listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22 + 6, 166))
                     end
                 end
 
