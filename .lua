@@ -1977,15 +1977,10 @@ function library.createWindow(options)
 
             function section.createConfigSystem(self, config)
                 config = config or {}
-                local configsList = config.list or {
-                    { name = "LEGIT", modified = "2025/11/10 19:34:38" },
-                    { name = "REDLEGIT", modified = "2025/12/07 13:45:38" },
-                    { name = "PURPLE", modified = "2025/11/10 19:30:58" },
-                    { name = "full semirage", modified = "2026/03/22 17:29:05" },
-                    { name = "semi_reaction time", modified = "2026/03/22 17:33:42" },
-                    { name = "Clean Config", modified = "2026/07/16 08:49:30" },
-                }
-                local activeConfigName = config.active or "PURPLE"
+                local folderFiles = library.getFolderConfigs()
+                local configsList = config.list or folderFiles
+
+                local activeConfigName = config.active or (configsList[1] and configsList[1].name) or ""
                 local onSave = config.onSave or function() end
                 local onLoad = config.onLoad or function() end
                 local onDelete = config.onDelete or function() end
@@ -2064,6 +2059,9 @@ function library.createWindow(options)
                     end
 
                     for idx, item in configsList do
+                        if not item.modified or item.modified == "" then
+                            item.modified = os.date("%Y/%m/%d %H:%M:%S")
+                        end
                         local isActive = (item.name == activeConfigName)
                         local cardItem = create("Frame", {
                             Size = UDim2.new(1, 0, 0, 48),
@@ -2073,11 +2071,12 @@ function library.createWindow(options)
                         })
                         makeCorner(cardItem, 4)
 
+                        local iconAsset = (item.name == "." or item.icon == "brush") and "rbxassetid://15330618083" or "rbxassetid://10723425624"
                         create("ImageLabel", {
                             Size = UDim2.new(0, 16, 0, 16),
                             Position = UDim2.new(0, 12, 0, 10),
                             BackgroundTransparency = 1,
-                            Image = "rbxassetid://15330618083",
+                            Image = iconAsset,
                             ImageColor3 = Color3.fromRGB(255, 255, 255),
                             Parent = cardItem,
                         })
