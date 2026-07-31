@@ -11,13 +11,13 @@ local library = {
         headerBg = Color3.fromRGB(16, 16, 18),
         accent = Color3.fromRGB(235, 42, 60),
         accentDark = Color3.fromRGB(175, 28, 42),
-        textBright = Color3.fromRGB(250, 250, 255),
+        textBright = Color3.fromRGB(255, 255, 255),
         textDim = Color3.fromRGB(180, 180, 190),
         textMuted = Color3.fromRGB(130, 130, 140),
         inputBg = Color3.fromRGB(26, 26, 30),
         inputBorder = Color3.fromRGB(44, 44, 52),
-        fontBold = Enum.Font.GothamBold,
-        fontMedium = Enum.Font.GothamMedium,
+        fontBold = Enum.Font.GothamMedium,
+        fontMedium = Enum.Font.Gotham,
     }
 }
 
@@ -93,7 +93,7 @@ function library.createWindow(options)
         BackgroundColor3 = library.theme.mainBg,
         BorderSizePixel = 0,
         GroupTransparency = 0,
-        ClipsDescendants = true,
+        ClipsDescendants = false,
         Parent = screenGui,
     })
     makeCorner(main, 3)
@@ -157,7 +157,7 @@ function library.createWindow(options)
     })
 
     local senseLabel = create("TextLabel", {
-        Position = UDim2.new(0, 16 + memeLabel.AbsoluteSize.X, 0.5, 0),
+        Position = UDim2.new(0, 20 + memeLabel.AbsoluteSize.X, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
         Text = "Sense",
         Font = library.theme.fontBold,
@@ -169,7 +169,7 @@ function library.createWindow(options)
     })
 
     memeLabel:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-        senseLabel.Position = UDim2.new(0, 16 + memeLabel.AbsoluteSize.X, 0.5, 0)
+        senseLabel.Position = UDim2.new(0, 20 + memeLabel.AbsoluteSize.X, 0.5, 0)
     end)
 
     local tabScroll = create("ScrollingFrame", {
@@ -393,10 +393,11 @@ function library.createWindow(options)
 
         if icon ~= "" then
             create("ImageLabel", {
-                Size = UDim2.new(0, 15, 0, 15),
+                Size = UDim2.new(0, 16, 0, 16),
                 BackgroundTransparency = 1,
                 Image = icon,
                 ImageColor3 = Color3.fromRGB(255, 255, 255),
+                ImageTransparency = 0,
                 Parent = btn,
             })
         end
@@ -462,7 +463,8 @@ function library.createWindow(options)
             Size = UDim2.new(0, 16, 0, 16),
             BackgroundTransparency = 1,
             Image = icon,
-            ImageColor3 = library.theme.textBright,
+            ImageColor3 = Color3.fromRGB(255, 255, 255),
+            ImageTransparency = 0,
             Parent = layoutFrame,
         })
 
@@ -480,6 +482,7 @@ function library.createWindow(options)
             Size = UDim2.new(1, 0, 1, 0),
             BackgroundTransparency = 1,
             Visible = false,
+            ClipsDescendants = false,
             Parent = contentArea,
         })
 
@@ -487,6 +490,7 @@ function library.createWindow(options)
             Size = UDim2.new(1, 0, 1, 0),
             Position = UDim2.new(0, 0, 0, 0),
             BackgroundTransparency = 1,
+            ClipsDescendants = false,
             Parent = view,
         })
 
@@ -548,7 +552,7 @@ function library.createWindow(options)
         function tab.deactivate()
             view.Visible = false
             activeBar.BackgroundTransparency = 1
-            tabIcon.ImageColor3 = library.theme.textBright
+            tabIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
             tabLabel.TextColor3 = library.theme.textDim
             btn.BackgroundTransparency = 1
         end
@@ -563,6 +567,7 @@ function library.createWindow(options)
                 AutomaticSize = Enum.AutomaticSize.Y,
                 BackgroundTransparency = 1,
                 BorderSizePixel = 0,
+                ClipsDescendants = false,
                 Parent = parentCol,
             })
 
@@ -655,6 +660,7 @@ function library.createWindow(options)
                 local row = create("Frame", {
                     Size = UDim2.new(1, 0, 0, 20),
                     BackgroundTransparency = 1,
+                    ClipsDescendants = false,
                     Parent = card,
                 })
 
@@ -704,6 +710,7 @@ function library.createWindow(options)
                     Position = UDim2.new(1, 0, 0, 0),
                     AnchorPoint = Vector2.new(1, 0),
                     BackgroundTransparency = 1,
+                    ClipsDescendants = false,
                     Parent = row,
                 })
 
@@ -749,7 +756,8 @@ function library.createWindow(options)
                         Size = UDim2.new(0, 18, 0, 16),
                         BackgroundTransparency = 1,
                         Image = "rbxassetid://121332782788896",
-                        ImageColor3 = (currentKey ~= Enum.KeyCode.Unknown) and library.theme.accent or Color3.fromRGB(240, 240, 245),
+                        ImageColor3 = (currentKey ~= Enum.KeyCode.Unknown) and library.theme.accent or Color3.fromRGB(255, 255, 255),
+                        ImageTransparency = 0,
                         BorderSizePixel = 0,
                         Parent = rightControls,
                     })
@@ -760,10 +768,9 @@ function library.createWindow(options)
                         BackgroundColor3 = Color3.fromRGB(30, 32, 38),
                         BorderSizePixel = 0,
                         Visible = false,
-                        ZIndex = 25,
+                        ZIndex = 100,
                         Parent = iconBtn,
                     })
-                    makeCorner(popup, 3)
                     makeStroke(popup, library.theme.inputBorder)
                     create("UIPadding", { PaddingTop = UDim.new(0, 6), PaddingBottom = UDim.new(0, 6), PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8), Parent = popup })
 
@@ -775,7 +782,7 @@ function library.createWindow(options)
                         TextColor3 = library.theme.textBright,
                         TextXAlignment = Enum.TextXAlignment.Left,
                         BackgroundTransparency = 1,
-                        ZIndex = 26,
+                        ZIndex = 101,
                         Parent = popup,
                     })
 
@@ -788,11 +795,46 @@ function library.createWindow(options)
                         Font = library.theme.fontBold,
                         TextSize = 11,
                         TextColor3 = library.theme.textBright,
-                        ZIndex = 26,
+                        ZIndex = 101,
                         Parent = popup,
                     })
-                    makeCorner(modeDropBtn, 3)
                     makeStroke(modeDropBtn, library.theme.inputBorder)
+
+                    local modeDropContainer = create("Frame", {
+                        Size = UDim2.new(1, 0, 0, 0),
+                        Position = UDim2.new(0, 0, 1, 2),
+                        BackgroundColor3 = Color3.fromRGB(30, 32, 38),
+                        BorderSizePixel = 0,
+                        Visible = false,
+                        ZIndex = 105,
+                        Parent = modeDropBtn,
+                    })
+                    makeStroke(modeDropContainer, library.theme.inputBorder)
+                    create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Parent = modeDropContainer })
+
+                    local modeOptions = {"Always on", "On key down", "Toggle", "Disabled"}
+                    for _, mOpt in modeOptions do
+                        local mBtn = create("TextButton", {
+                            Size = UDim2.new(1, 0, 0, 18),
+                            BackgroundColor3 = (mOpt == keyMode) and Color3.fromRGB(42, 46, 56) or Color3.fromRGB(30, 32, 38),
+                            Text = mOpt,
+                            Font = library.theme.fontBold,
+                            TextSize = 11,
+                            TextColor3 = library.theme.textBright,
+                            ZIndex = 106,
+                            Parent = modeDropContainer,
+                        })
+                        mBtn.MouseButton1Click:Connect(function()
+                            keyMode = mOpt
+                            modeDropBtn.Text = keyMode
+                            modeDropContainer.Visible = false
+                        end)
+                    end
+                    modeDropContainer.Size = UDim2.new(1, 0, 0, #modeOptions * 18)
+
+                    modeDropBtn.MouseButton1Click:Connect(function()
+                        modeDropContainer.Visible = not modeDropContainer.Visible
+                    end)
 
                     local keyBox = create("TextButton", {
                         Size = UDim2.new(1, 0, 0, 22),
@@ -802,10 +844,9 @@ function library.createWindow(options)
                         Font = library.theme.fontBold,
                         TextSize = 12,
                         TextColor3 = library.theme.textBright,
-                        ZIndex = 26,
+                        ZIndex = 101,
                         Parent = popup,
                     })
-                    makeCorner(keyBox, 3)
                     makeStroke(keyBox, library.theme.inputBorder)
 
                     iconBtn.MouseButton1Click:Connect(function()
@@ -823,7 +864,7 @@ function library.createWindow(options)
                                 currentKey = input.KeyCode
                                 binding = false
                                 keyBox.Text = "[" .. (currentKey == Enum.KeyCode.Unknown and "none" or currentKey.Name:lower()) .. "]"
-                                iconBtn.ImageColor3 = (currentKey ~= Enum.KeyCode.Unknown) and library.theme.accent or Color3.fromRGB(240, 240, 245)
+                                iconBtn.ImageColor3 = (currentKey ~= Enum.KeyCode.Unknown) and library.theme.accent or Color3.fromRGB(255, 255, 255)
                                 pcall(keyCallback, currentKey)
                             end
                         elseif not gpe and input.KeyCode == currentKey and currentKey ~= Enum.KeyCode.Unknown then
@@ -837,6 +878,7 @@ function library.createWindow(options)
                 return toggleObj
             end
 
+            -- Highly Flexible Slider (Integers, Decimals, minText "Disabled", maxText "∞", custom format)
             function section.createSlider(self, config)
                 config = config or {}
                 local name = config.name or "Slider"
@@ -845,6 +887,9 @@ function library.createWindow(options)
                 local default = config.default or min
                 local decimals = config.decimals or 0
                 local suffix = config.suffix or ""
+                local minText = config.minText
+                local maxText = config.maxText
+                local customFormat = config.format
                 local flag = config.flag
                 local callback = config.callback or function() end
 
@@ -868,17 +913,60 @@ function library.createWindow(options)
                     Parent = container,
                 })
 
-                local valLabel = create("TextLabel", {
-                    Size = UDim2.new(0.4, 0, 0, 14),
+                local function getFormattedValue(val)
+                    if customFormat then
+                        return customFormat(val)
+                    end
+                    if minText and val == min then
+                        return minText
+                    end
+                    if maxText and val == max then
+                        return maxText
+                    end
+                    return string.format("%." .. decimals .. "f", val) .. suffix
+                end
+
+                local valButton = create("TextButton", {
+                    Size = UDim2.new(0.35, 0, 0, 14),
                     Position = UDim2.new(1, 0, 0, 0),
                     AnchorPoint = Vector2.new(1, 0),
-                    Text = string.format("%." .. decimals .. "f", value) .. suffix,
+                    BackgroundTransparency = 1,
+                    Text = getFormattedValue(value),
                     Font = library.theme.fontBold,
                     TextSize = 13,
                     TextColor3 = library.theme.textBright,
                     TextXAlignment = Enum.TextXAlignment.Right,
-                    BackgroundTransparency = 1,
                     Parent = container,
+                })
+
+                local manualInputFrame = create("Frame", {
+                    Size = UDim2.new(1, 0, 0, 22),
+                    Position = UDim2.new(0, 0, 0, 0),
+                    BackgroundColor3 = Color3.fromRGB(24, 26, 32),
+                    BorderSizePixel = 0,
+                    Visible = false,
+                    Parent = container,
+                })
+
+                local redUnderline = create("Frame", {
+                    Size = UDim2.new(1, 0, 0, 2),
+                    Position = UDim2.new(0, 0, 1, -2),
+                    BackgroundColor3 = library.theme.accent,
+                    BorderSizePixel = 0,
+                    Parent = manualInputFrame,
+                })
+
+                local manualTextBox = create("TextBox", {
+                    Size = UDim2.new(1, -10, 1, -2),
+                    Position = UDim2.new(0, 5, 0, 0),
+                    BackgroundTransparency = 1,
+                    Text = string.format("%." .. decimals .. "f", value),
+                    Font = library.theme.fontBold,
+                    TextSize = 13,
+                    TextColor3 = library.theme.textBright,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    ClearTextOnFocus = false,
+                    Parent = manualInputFrame,
                 })
 
                 local track = create("TextButton", {
@@ -898,16 +986,36 @@ function library.createWindow(options)
                     Parent = track,
                 })
 
+                local function applyValue(val)
+                    value = math.clamp(val, min, max)
+                    local percent = (value - min) / (max - min)
+                    fill.Size = UDim2.new(percent, 0, 1, 0)
+                    valButton.Text = getFormattedValue(value)
+                    if flag then library.flags[flag] = value end
+                    pcall(callback, value)
+                end
+
                 local dragging = false
                 local function updateSlider(input)
                     local percent = math.clamp((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
                     local rawVal = min + (max - min) * percent
-                    value = math.floor(rawVal * (10 ^ decimals) + 0.5) / (10 ^ decimals)
-                    if flag then library.flags[flag] = value end
-                    fill.Size = UDim2.new(percent, 0, 1, 0)
-                    valLabel.Text = string.format("%." .. decimals .. "f", value) .. suffix
-                    pcall(callback, value)
+                    local rounded = math.floor(rawVal * (10 ^ decimals) + 0.5) / (10 ^ decimals)
+                    applyValue(rounded)
                 end
+
+                valButton.MouseButton1Click:Connect(function()
+                    manualInputFrame.Visible = true
+                    manualTextBox.Text = string.format("%." .. decimals .. "f", value)
+                    manualTextBox:CaptureFocus()
+                end)
+
+                manualTextBox.FocusLost:Connect(function()
+                    manualInputFrame.Visible = false
+                    local num = tonumber(manualTextBox.Text)
+                    if num then
+                        applyValue(num)
+                    end
+                end)
 
                 track.InputBegan:Connect(function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -929,14 +1037,7 @@ function library.createWindow(options)
                 end)
 
                 return {
-                    set = function(val)
-                        value = math.clamp(val, min, max)
-                        local percent = (value - min) / (max - min)
-                        fill.Size = UDim2.new(percent, 0, 1, 0)
-                        valLabel.Text = string.format("%." .. decimals .. "f", value) .. suffix
-                        if flag then library.flags[flag] = value end
-                        pcall(callback, value)
-                    end,
+                    set = applyValue,
                     get = function() return value end,
                 }
             end
@@ -945,7 +1046,11 @@ function library.createWindow(options)
                 config = config or {}
                 local name = config.name or "Dropdown"
                 local options = config.options or {}
-                local selected = config.default or options[1] or ""
+                local isMulti = config.multi or false
+                local showIcon = config.icon
+                if showIcon == nil then showIcon = true end
+
+                local selected = isMulti and (config.default or {}) or (config.default or options[1] or "")
                 local flag = config.flag
                 local callback = config.callback or function() end
                 local open = false
@@ -955,6 +1060,7 @@ function library.createWindow(options)
                 local container = create("Frame", {
                     Size = UDim2.new(1, 0, 0, 24),
                     BackgroundTransparency = 1,
+                    ClipsDescendants = false,
                     Parent = card,
                 })
 
@@ -975,6 +1081,7 @@ function library.createWindow(options)
                     Position = UDim2.new(1, 0, 0, 0),
                     AnchorPoint = Vector2.new(1, 0),
                     BackgroundTransparency = 1,
+                    ClipsDescendants = false,
                     Parent = container,
                 })
 
@@ -986,13 +1093,16 @@ function library.createWindow(options)
                     Parent = rightGroup,
                 })
 
-                create("ImageLabel", {
-                    Size = UDim2.new(0, 16, 0, 14),
-                    BackgroundTransparency = 1,
-                    Image = "rbxassetid://120242544565484",
-                    ImageColor3 = Color3.fromRGB(240, 240, 245),
-                    Parent = rightGroup,
-                })
+                if showIcon then
+                    create("ImageLabel", {
+                        Size = UDim2.new(0, 18, 0, 16),
+                        BackgroundTransparency = 1,
+                        Image = "rbxassetid://120242544565484",
+                        ImageColor3 = Color3.fromRGB(255, 255, 255),
+                        ImageTransparency = 0,
+                        Parent = rightGroup,
+                    })
+                end
 
                 local dropHeader = create("TextButton", {
                     Size = UDim2.new(0, 115, 0, 20),
@@ -1002,13 +1112,25 @@ function library.createWindow(options)
                     BorderSizePixel = 0,
                     Parent = rightGroup,
                 })
-                makeCorner(dropHeader, 3)
                 makeStroke(dropHeader, library.theme.inputBorder)
+
+                local function getDisplayText()
+                    if isMulti then
+                        local activeList = {}
+                        for opt, val in selected do
+                            if val then table.insert(activeList, opt) end
+                        end
+                        if #activeList == 0 then return "None" end
+                        return table.concat(activeList, ", ")
+                    else
+                        return tostring(selected)
+                    end
+                end
 
                 local selectedLabel = create("TextLabel", {
                     Size = UDim2.new(1, -16, 1, 0),
                     Position = UDim2.new(0, 6, 0, 0),
-                    Text = tostring(selected),
+                    Text = getDisplayText(),
                     Font = library.theme.fontBold,
                     TextSize = 12,
                     TextColor3 = library.theme.textBright,
@@ -1024,7 +1146,9 @@ function library.createWindow(options)
                     AnchorPoint = Vector2.new(1, 0.5),
                     BackgroundTransparency = 1,
                     Image = "rbxassetid://10709791523",
-                    ImageColor3 = Color3.fromRGB(240, 240, 245),
+                    ImageColor3 = Color3.fromRGB(255, 255, 255),
+                    ImageTransparency = 0,
+                    Rotation = 180,
                     Parent = dropHeader,
                 })
 
@@ -1035,10 +1159,9 @@ function library.createWindow(options)
                     BorderSizePixel = 0,
                     ClipsDescendants = true,
                     Visible = false,
-                    ZIndex = 15,
+                    ZIndex = 100,
                     Parent = dropHeader,
                 })
-                makeCorner(listContainer, 3)
                 makeStroke(listContainer, library.theme.inputBorder)
 
                 create("UIListLayout", {
@@ -1060,20 +1183,19 @@ function library.createWindow(options)
                         if child:IsA("TextButton") then child:Destroy() end
                     end
                     for _, opt in options do
-                        local isSelected = opt == selected
+                        local isSel = isMulti and selected[opt] or (opt == selected)
                         local optBtn = create("TextButton", {
                             Size = UDim2.new(1, 0, 0, 18),
-                            BackgroundColor3 = isSelected and Color3.fromRGB(34, 34, 40) or library.theme.inputBg,
-                            BackgroundTransparency = isSelected and 0 or 1,
+                            BackgroundColor3 = isSel and Color3.fromRGB(34, 34, 40) or library.theme.inputBg,
+                            BackgroundTransparency = isSel and 0 or 1,
                             Text = opt,
                             Font = library.theme.fontBold,
                             TextSize = 12,
-                            TextColor3 = isSelected and library.theme.accent or library.theme.textBright,
+                            TextColor3 = isSel and library.theme.accent or library.theme.textBright,
                             TextXAlignment = Enum.TextXAlignment.Left,
-                            ZIndex = 16,
+                            ZIndex = 101,
                             Parent = listContainer,
                         })
-                        makeCorner(optBtn, 2)
                         create("UIPadding", {
                             PaddingLeft = UDim.new(0, 5),
                             PaddingRight = UDim.new(0, 5),
@@ -1081,12 +1203,20 @@ function library.createWindow(options)
                         })
 
                         optBtn.MouseButton1Click:Connect(function()
-                            selected = opt
-                            selectedLabel.Text = opt
+                            if isMulti then
+                                selected[opt] = not selected[opt]
+                                isSel = selected[opt]
+                                optBtn.BackgroundColor3 = isSel and Color3.fromRGB(34, 34, 40) or library.theme.inputBg,
+                                optBtn.BackgroundTransparency = isSel and 0 or 1
+                                optBtn.TextColor3 = isSel and library.theme.accent or library.theme.textBright
+                            else
+                                selected = opt
+                                open = false
+                                listContainer.Visible = false
+                                arrow.Rotation = 180
+                            end
+                            selectedLabel.Text = getDisplayText()
                             if flag then library.flags[flag] = selected end
-                            open = false
-                            listContainer.Visible = false
-                            arrow.Rotation = 0
                             pcall(callback, selected)
                         end)
                     end
@@ -1098,17 +1228,17 @@ function library.createWindow(options)
                     if open then
                         populateOptions()
                         listContainer.Visible = true
-                        arrow.Rotation = 180
+                        arrow.Rotation = 0
                     else
                         listContainer.Visible = false
-                        arrow.Rotation = 0
+                        arrow.Rotation = 180
                     end
                 end)
 
                 return {
                     set = function(val)
                         selected = val
-                        selectedLabel.Text = tostring(val)
+                        selectedLabel.Text = getDisplayText()
                         if flag then library.flags[flag] = selected end
                         pcall(callback, selected)
                     end,
