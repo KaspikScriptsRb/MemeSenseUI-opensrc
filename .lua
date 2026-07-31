@@ -2,7 +2,6 @@ local tweenService = game:GetService("TweenService")
 local userInputService = game:GetService("UserInputService")
 local runService = game:GetService("RunService")
 local coreGui = game:GetService("CoreGui")
-
 local httpService = game:GetService("HttpService")
 
 local library = {
@@ -47,12 +46,14 @@ function library.loadConfig(nameOrData)
     ensureFolder()
     local data = nameOrData
     local path = folderName .. "/" .. nameOrData .. ".json"
-    if typeof(readfile) == "function" and typeof(isfile) == "function" and isfile(path) then
-        local ok, fileContent = pcall(readfile, path)
-        if ok and fileContent then data = fileContent end
-    elseif typeof(readfile) == "function" and typeof(isfile) == "function" and isfile("MemeSense_" .. nameOrData .. ".json") then
-        local ok, fileContent = pcall(readfile, "MemeSense_" .. nameOrData .. ".json")
-        if ok and fileContent then data = fileContent end
+    if typeof(readfile) == "function" and typeof(isfile) == "function" then
+        if isfile(path) then
+            local ok, content = pcall(readfile, path)
+            if ok and content then data = content end
+        elseif isfile("MemeSense_" .. nameOrData .. ".json") then
+            local ok, content = pcall(readfile, "MemeSense_" .. nameOrData .. ".json")
+            if ok and content then data = content end
+        end
     end
 
     local success, decoded = pcall(function()
@@ -167,8 +168,6 @@ function library.createWindow(options)
         tabs = {},
         activeTab = nil,
         dragging = false,
-        dragStart = nil,
-        startPos = nil,
         fading = false,
     }
 
@@ -181,7 +180,6 @@ function library.createWindow(options)
         GroupTransparency = 0,
         Parent = screenGui,
     })
-    makeCorner(main, 0)
     local mainStroke = makeStroke(main, Color3.fromRGB(32, 32, 36), 1)
 
     local topBar = create("Frame", {
@@ -216,58 +214,38 @@ function library.createWindow(options)
     end)
 
     local sidebar = create("Frame", {
-        Size = UDim2.new(0, 155, 1, -2),
-        Position = UDim2.new(0, 0, 0, 2),
+        Size = UDim2.new(0, 165, 1, 0),
         BackgroundColor3 = library.theme.sidebarBg,
         BorderSizePixel = 0,
         Parent = main,
     })
 
     local logoFrame = create("Frame", {
-        Size = UDim2.new(1, 0, 0, 42),
+        Size = UDim2.new(1, 0, 0, 44),
         BackgroundTransparency = 1,
         Parent = sidebar,
     })
 
-    local memeLabel = create("TextLabel", {
-        Position = UDim2.new(0, 16, 0.5, 0),
-        AnchorPoint = Vector2.new(0, 0.5),
-        Text = "Meme",
+    create("TextLabel", {
+        Position = UDim2.new(0, 16, 0, 0),
+        Size = UDim2.new(1, -16, 1, 0),
+        Text = '<font color="rgb(235,42,60)">Meme</font> Sense',
+        RichText = true,
         Font = library.theme.fontBold,
-        TextSize = 19,
-        TextColor3 = library.theme.accent,
-        AutomaticSize = Enum.AutomaticSize.X,
-        BackgroundTransparency = 1,
-        Parent = logoFrame,
-    })
-
-    local senseLabel = create("TextLabel", {
-        Position = UDim2.new(0, 20 + memeLabel.AbsoluteSize.X, 0.5, 0),
-        AnchorPoint = Vector2.new(0, 0.5),
-        Text = "Sense",
-        Font = library.theme.fontBold,
-        TextSize = 19,
+        TextSize = 18,
         TextColor3 = library.theme.textBright,
-        AutomaticSize = Enum.AutomaticSize.X,
+        TextXAlignment = Enum.TextXAlignment.Left,
         BackgroundTransparency = 1,
         Parent = logoFrame,
-    })
-
-    local sidebar = create("Frame", {
-        Size = UDim2.new(0, 165, 1, -44),
-        Position = UDim2.new(0, 0, 0, 44),
-        BackgroundColor3 = library.theme.sidebarBg,
-        BorderSizePixel = 0,
-        Parent = main,
     })
 
     local tabScroll = create("ScrollingFrame", {
-        Size = UDim2.new(1, 0, 1, 0),
+        Size = UDim2.new(1, 0, 1, -44),
+        Position = UDim2.new(0, 0, 0, 44),
         BackgroundTransparency = 1,
         BorderSizePixel = 0,
         ScrollBarThickness = 2,
         ScrollBarImageColor3 = library.theme.inputBorder,
-        CanvasSize = UDim2.new(0, 0, 0, 0),
         AutomaticCanvasSize = Enum.AutomaticSize.Y,
         Parent = sidebar,
     })
@@ -324,11 +302,13 @@ function library.createWindow(options)
         Parent = main,
     })
 
+    local dragStart, dragOrigin
+
     local function startDragging(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             window.dragging = true
-            window.dragStart = input.Position
-            window.startPos = main.Position
+            dragStart = input.Position
+            dragOrigin = main.Position
         end
     end
 
@@ -345,12 +325,12 @@ function library.createWindow(options)
 
     userInputService.InputChanged:Connect(function(input)
         if window.dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - window.dragStart
+            local delta = input.Position - dragStart
             main.Position = UDim2.new(
-                window.startPos.X.Scale,
-                window.startPos.X.Offset + delta.X,
-                window.startPos.Y.Scale,
-                window.startPos.Y.Offset + delta.Y
+                dragOrigin.X.Scale,
+                dragOrigin.X.Offset + delta.X,
+                dragOrigin.Y.Scale,
+                dragOrigin.Y.Offset + delta.Y
             )
         end
     end)
@@ -363,12 +343,17 @@ function library.createWindow(options)
         local tweenInfo = TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
         if window.visible then
+            globalOverlayFrame.Visible = true
             main.Visible = true
             local t = tweenService:Create(main, tweenInfo, { GroupTransparency = 0 })
             tweenService:Create(mainStroke, tweenInfo, { Transparency = 0 }):Play()
             t:Play()
             t.Completed:Connect(function() window.fading = false end)
         else
+            globalOverlayFrame.Visible = false
+            for _, child in globalOverlayFrame:GetChildren() do
+                if child:IsA("Frame") then child.Visible = false end
+            end
             local t = tweenService:Create(main, tweenInfo, { GroupTransparency = 1 })
             tweenService:Create(mainStroke, tweenInfo, { Transparency = 1 }):Play()
             t:Play()
@@ -396,7 +381,7 @@ function library.createWindow(options)
             AutomaticSize = Enum.AutomaticSize.X,
             BackgroundTransparency = 1,
             Text = "",
-            LayoutOrder = -100,
+            LayoutOrder = -1,
             Parent = headerLeft,
         })
 
@@ -725,7 +710,7 @@ function library.createWindow(options)
                 Image = "rbxassetid://10709791523",
                 ImageColor3 = Color3.fromRGB(255, 255, 255),
                 ZIndex = 21,
-                Rotation = 180,
+                Rotation = 0,
                 Parent = dropHeader,
             })
 
@@ -752,12 +737,13 @@ function library.createWindow(options)
                         if trackConn then trackConn:Disconnect() end
                         trackConn = nil
                         listContainer.Visible = false
-                        arrow.Rotation = 180
+                        arrow.Rotation = 0
                         return
                     end
                     local absPos = dropHeader.AbsolutePosition
                     local absSize = dropHeader.AbsoluteSize
                     listContainer.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y)
+                    listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22, 160))
                 end)
             end
 
@@ -770,7 +756,7 @@ function library.createWindow(options)
                     local absPos = dropHeader.AbsolutePosition
                     local absSize = dropHeader.AbsoluteSize
                     listContainer.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y)
-                    listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22 + 4, 160))
+                    listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22, 160))
 
                     for _, opt in options do
                         local isSel = (opt == selected)
@@ -805,18 +791,18 @@ function library.createWindow(options)
                             if trackConn then trackConn:Disconnect() end
                             trackConn = nil
                             listContainer.Visible = false
-                            arrow.Rotation = 180
+                            arrow.Rotation = 0
                             pcall(callback, selected)
                         end)
                     end
                     listContainer.Visible = true
-                    arrow.Rotation = 0
+                    arrow.Rotation = 180
                     startTracking()
                 else
                     if trackConn then trackConn:Disconnect() end
                     trackConn = nil
                     listContainer.Visible = false
-                    arrow.Rotation = 180
+                    arrow.Rotation = 0
                 end
             end)
 
@@ -1041,7 +1027,7 @@ function library.createWindow(options)
                     Parent = box,
                 })
 
-                create("TextLabel", {
+                local nameLabel = create("TextLabel", {
                     Position = UDim2.new(0, 22, 0, 0),
                     Size = UDim2.new(1, -22, 1, 0),
                     Text = name,
@@ -1059,6 +1045,7 @@ function library.createWindow(options)
                     if flag then library.flags[flag] = state end
                     box.BackgroundColor3 = state and library.theme.accent or Color3.fromRGB(28, 28, 34)
                     checkIcon.Visible = state
+                    nameLabel.TextColor3 = state and library.theme.textBright or library.theme.textDim
                     pcall(callback, state)
                 end)
             end
@@ -1751,7 +1738,7 @@ function library.createWindow(options)
                     Parent = container,
                 })
 
-                local redUnderline = create("Frame", {
+                create("Frame", {
                     Size = UDim2.new(1, 0, 0, 2),
                     Position = UDim2.new(0, 0, 1, -2),
                     BackgroundColor3 = library.theme.accent,
@@ -1953,7 +1940,7 @@ function library.createWindow(options)
                     Image = "rbxassetid://10709791523",
                     ImageColor3 = Color3.fromRGB(255, 255, 255),
                     ImageTransparency = 0,
-                    Rotation = 180,
+                    Rotation = 0,
                     Parent = dropHeader,
                 })
 
@@ -1982,7 +1969,7 @@ function library.createWindow(options)
                             if trackConn then trackConn:Disconnect() end
                             trackConn = nil
                             listContainer.Visible = false
-                            arrow.Rotation = 180
+                            arrow.Rotation = 0
                             return
                         end
                         local absPos = dropHeader.AbsolutePosition
@@ -1997,19 +1984,12 @@ function library.createWindow(options)
                         if child:IsA("TextButton") then child:Destroy() end
                     end
                     for _, opt in options do
-                        local isSel = false
-                        if isMulti then
-                            isSel = selected[opt] == true
-                        else
-                            isSel = (opt == selected)
-                        end
-
-                        local optBtnColor = Color3.fromRGB(24, 25, 30)
+                        local isSel = if isMulti then selected[opt] == true else opt == selected end
                         local optTextColor = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 155, 165)
 
                         local optBtn = create("TextButton", {
                             Size = UDim2.new(1, 0, 0, 22),
-                            BackgroundColor3 = optBtnColor,
+                            BackgroundColor3 = Color3.fromRGB(24, 25, 30),
                             BackgroundTransparency = 1,
                             BorderSizePixel = 0,
                             Text = opt,
@@ -2038,15 +2018,14 @@ function library.createWindow(options)
                         optBtn.MouseButton1Click:Connect(function()
                             if isMulti then
                                 selected[opt] = not selected[opt]
-                                local selState = selected[opt]
-                                optBtn.TextColor3 = selState and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 155, 165)
+                                optBtn.TextColor3 = selected[opt] and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 155, 165)
                             else
                                 selected = opt
                                 open = false
                                 if trackConn then trackConn:Disconnect() end
                                 trackConn = nil
                                 listContainer.Visible = false
-                                arrow.Rotation = 180
+                                arrow.Rotation = 0
                             end
                             selectedLabel.Text = getDisplayText()
                             if flag then library.flags[flag] = selected end
@@ -2060,17 +2039,17 @@ function library.createWindow(options)
                     if open then
                         local absPos = dropHeader.AbsolutePosition
                         local absSize = dropHeader.AbsoluteSize
-                        listContainer.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y + 2)
-                        listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 19 + 4, 140))
+                        listContainer.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y)
+                        listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22, 160))
                         populateOptions()
                         listContainer.Visible = true
-                        arrow.Rotation = 0
+                        arrow.Rotation = 180
                         startTracking()
                     else
                         if trackConn then trackConn:Disconnect() end
                         trackConn = nil
                         listContainer.Visible = false
-                        arrow.Rotation = 180
+                        arrow.Rotation = 0
                     end
                 end)
 
@@ -2163,9 +2142,7 @@ function library.createWindow(options)
                     Parent = listFrame,
                 })
 
-                local renderList
-
-                renderList = function()
+                local function renderList()
                     for _, child in listFrame:GetChildren() do
                         if child:IsA("Frame") then child:Destroy() end
                     end
