@@ -858,9 +858,10 @@ function library.createWindow(options)
                 local function updateHeaderDropdownPos()
                     if open and dropHeader:IsDescendantOf(game) then
                         local relPos = getPositionInMain(dropHeader)
-                        local absSize = dropHeader.AbsoluteSize
-                        listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y - 2)
-                        listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22 + 6, 166))
+                        local absWidth = math.round(dropHeader.AbsoluteSize.X)
+                        local absHeight = dropHeader.AbsoluteSize.Y
+                        listContainer.Position = UDim2.new(0, math.round(relPos.X), 0, math.round(relPos.Y + absHeight - 2))
+                        listContainer.Size = UDim2.new(0, absWidth, 0, math.min(#options * 22 + 6, 166))
                     end
                 end
 
@@ -1781,9 +1782,10 @@ function library.createWindow(options)
                         modeDropOpen = not modeDropOpen
                         if modeDropOpen then
                             local relBPos = getPositionInMain(modeDropBtn)
-                            local bSize = modeDropBtn.AbsoluteSize
-                            modeDropContainer.Position = UDim2.new(0, relBPos.X, 0, relBPos.Y + bSize.Y - 2)
-                            modeDropContainer.Size = UDim2.new(0, bSize.X, 0, 4 * 20 + 6)
+                            local bWidth = math.round(modeDropBtn.AbsoluteSize.X)
+                            local bHeight = modeDropBtn.AbsoluteSize.Y
+                            modeDropContainer.Position = UDim2.new(0, math.round(relBPos.X), 0, math.round(relBPos.Y + bHeight - 2))
+                            modeDropContainer.Size = UDim2.new(0, bWidth, 0, 4 * 20 + 6)
                             modeDropContainer.Visible = true
                             modeArrow.Rotation = 0
                         else
@@ -2199,9 +2201,10 @@ function library.createWindow(options)
                 local function updateDropdownPosition()
                     if open and dropHeader:IsDescendantOf(game) then
                         local relPos = getPositionInMain(dropHeader)
-                        local absSize = dropHeader.AbsoluteSize
-                        listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y - 2)
-                        listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22 + 6, 166))
+                        local absWidth = math.round(dropHeader.AbsoluteSize.X)
+                        local absHeight = dropHeader.AbsoluteSize.Y
+                        listContainer.Position = UDim2.new(0, math.round(relPos.X), 0, math.round(relPos.Y + absHeight - 2))
+                        listContainer.Size = UDim2.new(0, absWidth, 0, math.min(#options * 22 + 6, 166))
                     end
                 end
 
