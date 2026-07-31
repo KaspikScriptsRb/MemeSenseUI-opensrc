@@ -818,7 +818,7 @@ function library.createWindow(options)
                 Image = "rbxassetid://10709791523",
                 ImageColor3 = Color3.fromRGB(255, 255, 255),
                 ZIndex = 21,
-                Rotation = 0,
+                Rotation = 180,
                 Parent = dropHeader,
             })
 
@@ -845,7 +845,7 @@ function library.createWindow(options)
                         if trackConn then trackConn:Disconnect() end
                         trackConn = nil
                         listContainer.Visible = false
-                        arrow.Rotation = 0
+                        arrow.Rotation = 180
                         return
                     end
                     local absPos = dropHeader.AbsolutePosition
@@ -876,7 +876,7 @@ function library.createWindow(options)
                             Text = opt,
                             Font = library.theme.fontBold,
                             TextSize = 12,
-                            TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 155, 165),
+                            TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145),
                             TextXAlignment = Enum.TextXAlignment.Left,
                             ZIndex = 100002,
                             Parent = listContainer,
@@ -884,12 +884,10 @@ function library.createWindow(options)
                         create("UIPadding", { PaddingLeft = UDim.new(0, 8), Parent = optBtn })
 
                         optBtn.MouseEnter:Connect(function()
-                            if not isSel then
-                                optBtn.TextColor3 = Color3.fromRGB(210, 215, 225)
-                            end
+                            if not isSel then optBtn.TextColor3 = Color3.fromRGB(255, 255, 255) end
                         end)
                         optBtn.MouseLeave:Connect(function()
-                            optBtn.TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 155, 165)
+                            optBtn.TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145)
                         end)
 
                         optBtn.MouseButton1Click:Connect(function()
@@ -899,18 +897,19 @@ function library.createWindow(options)
                             if trackConn then trackConn:Disconnect() end
                             trackConn = nil
                             listContainer.Visible = false
-                            arrow.Rotation = 0
+                            arrow.Rotation = 180
+                            if flag then library.flags[flag] = selected end
                             pcall(callback, selected)
                         end)
                     end
                     listContainer.Visible = true
-                    arrow.Rotation = 180
+                    arrow.Rotation = 0
                     startTracking()
                 else
                     if trackConn then trackConn:Disconnect() end
                     trackConn = nil
                     listContainer.Visible = false
-                    arrow.Rotation = 0
+                    arrow.Rotation = 180
                 end
             end)
 
@@ -918,6 +917,7 @@ function library.createWindow(options)
                 set = function(val)
                     selected = val
                     selectedLabel.Text = tostring(selected)
+                    if flag then library.flags[flag] = selected end
                     pcall(callback, selected)
                 end,
                 get = function() return selected end
@@ -2071,7 +2071,7 @@ function library.createWindow(options)
                     Image = "rbxassetid://10709791523",
                     ImageColor3 = Color3.fromRGB(255, 255, 255),
                     ImageTransparency = 0,
-                    Rotation = 0,
+                    Rotation = 180,
                     Parent = dropHeader,
                 })
 
@@ -2100,7 +2100,7 @@ function library.createWindow(options)
                             if trackConn then trackConn:Disconnect() end
                             trackConn = nil
                             listContainer.Visible = false
-                            arrow.Rotation = 0
+                            arrow.Rotation = 180
                             return
                         end
                         local absPos = dropHeader.AbsolutePosition
@@ -2156,7 +2156,7 @@ function library.createWindow(options)
                                 if trackConn then trackConn:Disconnect() end
                                 trackConn = nil
                                 listContainer.Visible = false
-                                arrow.Rotation = 0
+                                arrow.Rotation = 180
                             end
                             selectedLabel.Text = getDisplayText()
                             if flag then library.flags[flag] = selected end
@@ -2176,13 +2176,13 @@ function library.createWindow(options)
                         listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22, 160))
                         populateOptions()
                         listContainer.Visible = true
-                        arrow.Rotation = 180
+                        arrow.Rotation = 0
                         startTracking()
                     else
                         if trackConn then trackConn:Disconnect() end
                         trackConn = nil
                         listContainer.Visible = false
-                        arrow.Rotation = 0
+                        arrow.Rotation = 180
                     end
                 end)
 
@@ -2221,6 +2221,7 @@ function library.createWindow(options)
                 end
 
                 local activeConfigName = config.active or (configsList[1] and configsList[1].name) or "."
+                library.activeConfigName = activeConfigName
                 local onSave = config.onSave or function() end
                 local onLoad = config.onLoad or function() end
                 local onDelete = config.onDelete or function() end
