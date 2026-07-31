@@ -123,7 +123,6 @@ function library.createWindow(options)
     makeCorner(main, 2)
     makeStroke(main, Color3.fromRGB(32, 32, 36), 1)
 
-    -- Full Rainbow Animated Top Bar
     local topBar = create("Frame", {
         Size = UDim2.new(1, 0, 0, 2),
         BackgroundColor3 = Color3.fromRGB(255, 255, 255),
@@ -444,7 +443,6 @@ function library.createWindow(options)
             Parent = tabScroll,
         })
 
-        -- Leftmost vertical accent bar (Image 2 replica)
         local activeBar = create("Frame", {
             Size = UDim2.new(0, 4, 1, 0),
             Position = UDim2.new(0, 0, 0, 0),
