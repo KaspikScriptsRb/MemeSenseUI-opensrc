@@ -845,82 +845,85 @@ function library.createWindow(options)
             create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 0), Parent = listContainer })
             create("UIPadding", { PaddingTop = UDim.new(0, 2), PaddingBottom = UDim.new(0, 2), PaddingLeft = UDim.new(0, 0), PaddingRight = UDim.new(0, 0), Parent = listContainer })
 
-            local open = false
-            local trackConn
-            local function startTracking()
-                if trackConn then trackConn:Disconnect() end
-                trackConn = runService.RenderStepped:Connect(function()
-                    if not open or not dropHeader:IsDescendantOf(game) then
-                        if trackConn then trackConn:Disconnect() end
-                        trackConn = nil
-                        listContainer.Visible = false
-                        arrow.Rotation = 180
-                        return
+                local function updateHeaderDropdownPos()
+                    if open and dropHeader:IsDescendantOf(game) then
+                        local relPos = getPositionInMain(dropHeader)
+                        local absSize = dropHeader.AbsoluteSize
+                        listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y)
+                        listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22, 160))
                     end
-                    local relPos = getPositionInMain(dropHeader)
-                    local absSize = dropHeader.AbsoluteSize
-                    listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y)
-                    listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22, 160))
-                end)
-            end
+                end
 
-            dropHeader.MouseButton1Click:Connect(function()
-                open = not open
-                if open then
-                    for _, child in listContainer:GetChildren() do
-                        if child:IsA("TextButton") then child:Destroy() end
-                    end
-                    local relPos = getPositionInMain(dropHeader)
-                    local absSize = dropHeader.AbsoluteSize
-                    listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y)
-                    listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22, 160))
-
-                    for _, opt in options do
-                        local isSel = (opt == selected)
-                        local optBtn = create("TextButton", {
-                            Size = UDim2.new(1, 0, 0, 22),
-                            BackgroundColor3 = Color3.fromRGB(24, 25, 30),
-                            BackgroundTransparency = 1,
-                            BorderSizePixel = 0,
-                            Text = opt,
-                            Font = library.theme.fontBold,
-                            TextSize = 12,
-                            TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145),
-                            TextXAlignment = Enum.TextXAlignment.Left,
-                            ZIndex = 100002,
-                            Parent = listContainer,
-                        })
-                        create("UIPadding", { PaddingLeft = UDim.new(0, 8), Parent = optBtn })
-
-                        optBtn.MouseEnter:Connect(function()
-                            if not isSel then optBtn.TextColor3 = Color3.fromRGB(255, 255, 255) end
-                        end)
-                        optBtn.MouseLeave:Connect(function()
-                            optBtn.TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145)
-                        end)
-
-                        optBtn.MouseButton1Click:Connect(function()
-                            selected = opt
-                            selectedLabel.Text = selected
-                            open = false
+                local trackConn
+                local function startTracking()
+                    if trackConn then trackConn:Disconnect() end
+                    trackConn = runService.RenderStepped:Connect(function()
+                        if not open or not dropHeader:IsDescendantOf(game) then
                             if trackConn then trackConn:Disconnect() end
                             trackConn = nil
                             listContainer.Visible = false
                             arrow.Rotation = 180
-                            if flag then library.flags[flag] = selected end
-                            pcall(callback, selected)
-                        end)
-                    end
-                    listContainer.Visible = true
-                    arrow.Rotation = 0
-                    startTracking()
-                else
-                    if trackConn then trackConn:Disconnect() end
-                    trackConn = nil
-                    listContainer.Visible = false
-                    arrow.Rotation = 180
+                            return
+                        end
+                        updateHeaderDropdownPos()
+                    end)
                 end
-            end)
+
+                dropHeader.MouseButton1Click:Connect(function()
+                    open = not open
+                    if open then
+                        for _, child in listContainer:GetChildren() do
+                            if child:IsA("TextButton") then child:Destroy() end
+                        end
+                        updateHeaderDropdownPos()
+                        task.defer(updateHeaderDropdownPos)
+
+                        for _, opt in options do
+                            local isSel = (opt == selected)
+                            local optBtn = create("TextButton", {
+                                Size = UDim2.new(1, 0, 0, 22),
+                                BackgroundColor3 = Color3.fromRGB(24, 25, 30),
+                                BackgroundTransparency = 1,
+                                BorderSizePixel = 0,
+                                Text = opt,
+                                Font = library.theme.fontBold,
+                                TextSize = 12,
+                                TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145),
+                                TextXAlignment = Enum.TextXAlignment.Left,
+                                ZIndex = 100002,
+                                Parent = listContainer,
+                            })
+                            create("UIPadding", { PaddingLeft = UDim.new(0, 8), Parent = optBtn })
+
+                            optBtn.MouseEnter:Connect(function()
+                                if not isSel then optBtn.TextColor3 = Color3.fromRGB(255, 255, 255) end
+                            end)
+                            optBtn.MouseLeave:Connect(function()
+                                optBtn.TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145)
+                            end)
+
+                            optBtn.MouseButton1Click:Connect(function()
+                                selected = opt
+                                selectedLabel.Text = selected
+                                open = false
+                                if trackConn then trackConn:Disconnect() end
+                                trackConn = nil
+                                listContainer.Visible = false
+                                arrow.Rotation = 180
+                                if flag then library.flags[flag] = selected end
+                                pcall(callback, selected)
+                            end)
+                        end
+                        listContainer.Visible = true
+                        arrow.Rotation = 0
+                        startTracking()
+                    else
+                        if trackConn then trackConn:Disconnect() end
+                        trackConn = nil
+                        listContainer.Visible = false
+                        arrow.Rotation = 180
+                    end
+                end)
 
             return {
                 set = function(val)
@@ -1030,6 +1033,18 @@ function library.createWindow(options)
                 Parent = popoverFrame,
             })
 
+            local function updatePopoverPos()
+                if popoverFrame.Visible and btn:IsDescendantOf(game) then
+                    local relPos = getPositionInMain(btn)
+                    local btnAbsSize = btn.AbsoluteSize
+                    if config.side == "Left" then
+                        popoverFrame.Position = UDim2.new(0, relPos.X, 0, relPos.Y + btnAbsSize.Y + 4)
+                    else
+                        popoverFrame.Position = UDim2.new(0, relPos.X + btnAbsSize.X - width, 0, relPos.Y + btnAbsSize.Y + 4)
+                    end
+                end
+            end
+
             local popTrackConn
             local function startPopoverTracking()
                 if popTrackConn then popTrackConn:Disconnect() end
@@ -1040,9 +1055,7 @@ function library.createWindow(options)
                         popoverFrame.Visible = false
                         return
                     end
-                    local relPos = getPositionInMain(btn)
-                    local btnAbsSize = btn.AbsoluteSize
-                    popoverFrame.Position = UDim2.new(0, relPos.X + btnAbsSize.X - width, 0, relPos.Y + btnAbsSize.Y + 4)
+                    updatePopoverPos()
                 end)
             end
 
@@ -1051,9 +1064,8 @@ function library.createWindow(options)
                 closeGlobalOverlays()
                 popoverFrame.Visible = not wasVisible
                 if popoverFrame.Visible then
-                    local relPos = getPositionInMain(btn)
-                    local btnAbsSize = btn.AbsoluteSize
-                    popoverFrame.Position = UDim2.new(0, relPos.X + btnAbsSize.X - width, 0, relPos.Y + btnAbsSize.Y + 4)
+                    updatePopoverPos()
+                    task.defer(updatePopoverPos)
                     startPopoverTracking()
                 else
                     if popTrackConn then popTrackConn:Disconnect() end
@@ -2103,6 +2115,15 @@ function library.createWindow(options)
                     Parent = listContainer,
                 })
 
+                local function updateDropdownPosition()
+                    if open and dropHeader:IsDescendantOf(game) then
+                        local relPos = getPositionInMain(dropHeader)
+                        local absSize = dropHeader.AbsoluteSize
+                        listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y)
+                        listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22, 160))
+                    end
+                end
+
                 local trackConn
                 local function startTracking()
                     if trackConn then trackConn:Disconnect() end
@@ -2114,10 +2135,7 @@ function library.createWindow(options)
                             arrow.Rotation = 180
                             return
                         end
-                        local relPos = getPositionInMain(dropHeader)
-                        local absSize = dropHeader.AbsoluteSize
-                        listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y)
-                        listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22, 160))
+                        updateDropdownPosition()
                     end)
                 end
 
@@ -2182,10 +2200,8 @@ function library.createWindow(options)
                     open = not wasOpen
                     if open then
                         populateOptions()
-                        local relPos = getPositionInMain(dropHeader)
-                        local absSize = dropHeader.AbsoluteSize
-                        listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y)
-                        listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22, 160))
+                        updateDropdownPosition()
+                        task.defer(updateDropdownPosition)
                         listContainer.Visible = true
                         arrow.Rotation = 0
                         startTracking()
