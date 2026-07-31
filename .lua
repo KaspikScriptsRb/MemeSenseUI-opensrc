@@ -1984,7 +1984,7 @@ function library.createWindow(options)
                         if child:IsA("TextButton") then child:Destroy() end
                     end
                     for _, opt in options do
-                        local isSel = if isMulti then selected[opt] == true else opt == selected end
+                        local isSel = (isMulti and selected[opt] == true) or (not isMulti and opt == selected)
                         local optTextColor = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 155, 165)
 
                         local optBtn = create("TextButton", {
