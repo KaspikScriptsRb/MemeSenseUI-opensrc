@@ -2190,15 +2190,30 @@ function library.createWindow(options)
 
                         optBtn.MouseButton1Click:Connect(function()
                             if isMulti then
+                                if type(selected) ~= "table" then selected = {} end
                                 selected[opt] = not selected[opt]
                                 optBtn.TextColor3 = selected[opt] and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 155, 165)
                             else
                                 selected = opt
-                                closeDropdown()
+                                if typeof(closeDropdown) == "function" then
+                                    closeDropdown()
+                                else
+                                    open = false
+                                    listContainer.Visible = false
+                                    arrow.Rotation = 180
+                                    container.ZIndex = 1
+                                    rightGroup.ZIndex = 1
+                                    dropHeader.ZIndex = 1
+                                    if card then card.ZIndex = 1 end
+                                end
                             end
-                            selectedLabel.Text = getDisplayText()
+                            if selectedLabel and typeof(getDisplayText) == "function" then
+                                selectedLabel.Text = getDisplayText()
+                            end
                             if flag then library.flags[flag] = selected end
-                            pcall(callback, selected)
+                            if typeof(callback) == "function" then
+                                pcall(callback, selected)
+                            end
                         end)
                     end
                 end
