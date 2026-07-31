@@ -281,9 +281,22 @@ function library.createWindow(options)
         Parent = main,
     })
 
+    create("UIPadding", {
+        PaddingLeft = UDim.new(0, 12),
+        PaddingRight = UDim.new(0, 12),
+        Parent = headerBar,
+    })
+
+    create("UIListLayout", {
+        FillDirection = Enum.FillDirection.Horizontal,
+        VerticalAlignment = Enum.VerticalAlignment.Center,
+        Padding = UDim.new(0, 8),
+        Parent = headerBar,
+    })
+
     local headerLeft = create("Frame", {
-        Size = UDim2.new(0.65, 0, 1, 0),
-        Position = UDim2.new(0, 20, 0, 0),
+        Size = UDim2.new(0, 0, 1, 0),
+        AutomaticSize = Enum.AutomaticSize.X,
         BackgroundTransparency = 1,
         Parent = headerBar,
     })
@@ -291,23 +304,21 @@ function library.createWindow(options)
     create("UIListLayout", {
         FillDirection = Enum.FillDirection.Horizontal,
         VerticalAlignment = Enum.VerticalAlignment.Center,
-        Padding = UDim.new(0, 10),
+        Padding = UDim.new(0, 8),
         Parent = headerLeft,
     })
 
     local headerRight = create("Frame", {
-        Size = UDim2.new(0.35, 0, 1, 0),
-        Position = UDim2.new(1, -20, 0, 0),
-        AnchorPoint = Vector2.new(1, 0),
+        Size = UDim2.new(0, 0, 1, 0),
+        AutomaticSize = Enum.AutomaticSize.X,
         BackgroundTransparency = 1,
         Parent = headerBar,
     })
 
     create("UIListLayout", {
         FillDirection = Enum.FillDirection.Horizontal,
-        HorizontalAlignment = Enum.HorizontalAlignment.Right,
         VerticalAlignment = Enum.VerticalAlignment.Center,
-        Padding = UDim.new(0, 10),
+        Padding = UDim.new(0, 8),
         Parent = headerRight,
     })
 
@@ -1833,21 +1844,22 @@ function library.createWindow(options)
                 end
 
                 local selectedLabel = create("TextLabel", {
-                    Size = UDim2.new(1, -16, 1, 0),
+                    Size = UDim2.new(1, -22, 1, 0),
                     Position = UDim2.new(0, 6, 0, 0),
                     Text = getDisplayText(),
                     Font = library.theme.fontBold,
                     TextSize = 12,
                     TextColor3 = library.theme.textBright,
                     TextXAlignment = Enum.TextXAlignment.Left,
+                    TextTruncate = Enum.TextTruncate.AtEnd,
                     BackgroundTransparency = 1,
                     ClipsDescendants = true,
                     Parent = dropHeader,
                 })
 
                 local arrow = create("ImageLabel", {
-                    Size = UDim2.new(0, 9, 0, 9),
-                    Position = UDim2.new(1, -5, 0.5, 0),
+                    Size = UDim2.new(0, 10, 0, 10),
+                    Position = UDim2.new(1, -6, 0.5, 0),
                     AnchorPoint = Vector2.new(1, 0.5),
                     BackgroundTransparency = 1,
                     Image = "rbxassetid://10709791523",
@@ -1881,6 +1893,23 @@ function library.createWindow(options)
                     PaddingRight = UDim.new(0, 2),
                     Parent = listContainer,
                 })
+
+                local trackConn
+                local function startTracking()
+                    if trackConn then trackConn:Disconnect() end
+                    trackConn = runService.RenderStepped:Connect(function()
+                        if not open or not dropHeader:IsDescendantOf(game) then
+                            if trackConn then trackConn:Disconnect() end
+                            trackConn = nil
+                            listContainer.Visible = false
+                            arrow.Rotation = 180
+                            return
+                        end
+                        local absPos = dropHeader.AbsolutePosition
+                        local absSize = dropHeader.AbsoluteSize
+                        listContainer.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y + 2)
+                    end)
+                end
 
                 local function populateOptions()
                     for _, child in listContainer:GetChildren() do
@@ -1937,6 +1966,8 @@ function library.createWindow(options)
                             else
                                 selected = opt
                                 open = false
+                                if trackConn then trackConn:Disconnect() end
+                                trackConn = nil
                                 listContainer.Visible = false
                                 arrow.Rotation = 180
                             end
@@ -1957,7 +1988,10 @@ function library.createWindow(options)
                         populateOptions()
                         listContainer.Visible = true
                         arrow.Rotation = 0
+                        startTracking()
                     else
+                        if trackConn then trackConn:Disconnect() end
+                        trackConn = nil
                         listContainer.Visible = false
                         arrow.Rotation = 180
                     end
