@@ -391,11 +391,18 @@ function library.createWindow(options)
         end
     end
 
-    userInputService.InputBegan:Connect(function(input, gpe)
-        if not gpe and input.KeyCode == toggleKey then
-            window.toggle()
+    local function isInsideView(element)
+        if not element or not element:IsDescendantOf(game) then return false end
+        local mainAbsPos = main.AbsolutePosition
+        local mainAbsSize = main.AbsoluteSize
+        local elemAbsPos = element.AbsolutePosition
+        local elemAbsSize = element.AbsoluteSize
+
+        if (elemAbsPos.Y + elemAbsSize.Y) < (mainAbsPos.Y + 45) or elemAbsPos.Y > (mainAbsPos.Y + mainAbsSize.Y - 10) then
+            return false
         end
-    end)
+        return true
+    end
 
     function window.createHeaderToggle(config)
         local targetTab = window.activeTab or window.tabs[1]
@@ -1616,7 +1623,7 @@ function library.createWindow(options)
                     local function startBindTracking()
                         if bindTrackConn then bindTrackConn:Disconnect() end
                         bindTrackConn = runService.RenderStepped:Connect(function()
-                            if not popup.Visible or not iconBtn:IsDescendantOf(game) then
+                            if not popup.Visible or not iconBtn:IsDescendantOf(game) or not isInsideView(iconBtn) then
                                 if bindTrackConn then bindTrackConn:Disconnect() end
                                 bindTrackConn = nil
                                 popup.Visible = false
@@ -1624,7 +1631,7 @@ function library.createWindow(options)
                             end
                             local iconAbsPos = iconBtn.AbsolutePosition
                             local iconAbsSize = iconBtn.AbsoluteSize
-                            popup.Position = UDim2.new(0, iconAbsPos.X + iconAbsSize.X + 8, 0, iconAbsPos.Y - 6)
+                            popup.Position = UDim2.new(0, iconAbsPos.X + iconAbsSize.X - 150, 0, iconAbsPos.Y + iconAbsSize.Y + 4)
                         end)
                     end
 
@@ -1634,7 +1641,7 @@ function library.createWindow(options)
                             if popup.Visible then
                                 local iconAbsPos = iconBtn.AbsolutePosition
                                 local iconAbsSize = iconBtn.AbsoluteSize
-                                popup.Position = UDim2.new(0, iconAbsPos.X + iconAbsSize.X + 8, 0, iconAbsPos.Y - 6)
+                                popup.Position = UDim2.new(0, iconAbsPos.X + iconAbsSize.X - 150, 0, iconAbsPos.Y + iconAbsSize.Y + 4)
                                 startBindTracking()
                             else
                                 if bindTrackConn then bindTrackConn:Disconnect() end
@@ -1834,18 +1841,19 @@ function library.createWindow(options)
                     Position = UDim2.new(0, 0, 0, 0),
                     BackgroundColor3 = Color3.fromRGB(20, 22, 28),
                     BorderSizePixel = 0,
+                    ClipsDescendants = false,
                     Visible = false,
                     ZIndex = 100010,
                     Parent = globalOverlayFrame,
                 })
-                makeCorner(manualInputFrame, 3)
+                makeCorner(manualInputFrame, 4)
 
                 create("Frame", {
-                    Size = UDim2.new(1, 0, 0, 2),
-                    Position = UDim2.new(0, 0, 1, -2),
+                    Size = UDim2.new(1, -4, 0, 2),
+                    Position = UDim2.new(0, 2, 1, -2),
                     BackgroundColor3 = library.theme.accent,
                     BorderSizePixel = 0,
-                    ZIndex = 100011,
+                    ZIndex = 100015,
                     Parent = manualInputFrame,
                 })
 
@@ -1903,7 +1911,7 @@ function library.createWindow(options)
                 local function startManualTracking()
                     if manualTrackConn then manualTrackConn:Disconnect() end
                     manualTrackConn = runService.RenderStepped:Connect(function()
-                        if not manualInputFrame.Visible or not container:IsDescendantOf(game) then
+                        if not manualInputFrame.Visible or not container:IsDescendantOf(game) or not isInsideView(container) then
                             if manualTrackConn then manualTrackConn:Disconnect() end
                             manualTrackConn = nil
                             manualInputFrame.Visible = false
@@ -2096,7 +2104,7 @@ function library.createWindow(options)
                 local function startTracking()
                     if trackConn then trackConn:Disconnect() end
                     trackConn = runService.RenderStepped:Connect(function()
-                        if not open or not dropHeader:IsDescendantOf(game) then
+                        if not open or not dropHeader:IsDescendantOf(game) or not isInsideView(dropHeader) then
                             if trackConn then trackConn:Disconnect() end
                             trackConn = nil
                             listContainer.Visible = false
