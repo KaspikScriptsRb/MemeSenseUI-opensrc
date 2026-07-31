@@ -1183,15 +1183,30 @@ function library.createWindow(options)
                         if child:IsA("TextButton") then child:Destroy() end
                     end
                     for _, opt in options do
-                        local isSel = isMulti and selected[opt] or (opt == selected)
+                        local isSel = false
+                        if isMulti then
+                            isSel = selected[opt] == true
+                        else
+                            isSel = (opt == selected)
+                        end
+
+                        local optBtnColor = library.theme.inputBg
+                        local optBtnTrans = 1
+                        local optTextColor = library.theme.textBright
+                        if isSel then
+                            optBtnColor = Color3.fromRGB(34, 34, 40)
+                            optBtnTrans = 0
+                            optTextColor = library.theme.accent
+                        end
+
                         local optBtn = create("TextButton", {
                             Size = UDim2.new(1, 0, 0, 18),
-                            BackgroundColor3 = isSel and Color3.fromRGB(34, 34, 40) or library.theme.inputBg,
-                            BackgroundTransparency = isSel and 0 or 1,
+                            BackgroundColor3 = optBtnColor,
+                            BackgroundTransparency = optBtnTrans,
                             Text = opt,
                             Font = library.theme.fontBold,
                             TextSize = 12,
-                            TextColor3 = isSel and library.theme.accent or library.theme.textBright,
+                            TextColor3 = optTextColor,
                             TextXAlignment = Enum.TextXAlignment.Left,
                             ZIndex = 101,
                             Parent = listContainer,
@@ -1205,10 +1220,16 @@ function library.createWindow(options)
                         optBtn.MouseButton1Click:Connect(function()
                             if isMulti then
                                 selected[opt] = not selected[opt]
-                                isSel = selected[opt]
-                                optBtn.BackgroundColor3 = isSel and Color3.fromRGB(34, 34, 40) or library.theme.inputBg
-                                optBtn.BackgroundTransparency = isSel and 0 or 1
-                                optBtn.TextColor3 = isSel and library.theme.accent or library.theme.textBright
+                                local selState = selected[opt]
+                                if selState then
+                                    optBtn.BackgroundColor3 = Color3.fromRGB(34, 34, 40)
+                                    optBtn.BackgroundTransparency = 0
+                                    optBtn.TextColor3 = library.theme.accent
+                                else
+                                    optBtn.BackgroundColor3 = library.theme.inputBg
+                                    optBtn.BackgroundTransparency = 1
+                                    optBtn.TextColor3 = library.theme.textBright
+                                end
                             else
                                 selected = opt
                                 open = false
