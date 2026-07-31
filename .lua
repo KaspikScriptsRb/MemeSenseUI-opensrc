@@ -108,6 +108,14 @@ if typeof(gethui) == "function" then
 end
 screenGui.Parent = guiParent
 
+local globalOverlayFrame = create("Frame", {
+    Name = "GlobalOverlay",
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundTransparency = 1,
+    ZIndex = 100000,
+    Parent = screenGui,
+})
+
 local function create(className, props)
     local inst = Instance.new(className)
     for k, v in props do
@@ -846,16 +854,16 @@ function library.createWindow(options)
 
             local popoverFrame = create("Frame", {
                 Size = UDim2.new(0, width, 0, 0),
-                Position = UDim2.new(0, 0, 1, 6),
-                BackgroundColor3 = Color3.fromRGB(18, 18, 22),
+                AutomaticSize = Enum.AutomaticSize.Y,
+                BackgroundColor3 = Color3.fromRGB(20, 20, 24),
+                BackgroundTransparency = 0,
                 BorderSizePixel = 0,
                 Visible = false,
-                ZIndex = 300,
+                ZIndex = 100000,
                 ClipsDescendants = false,
-                Parent = btn,
+                Parent = globalOverlayFrame,
             })
             makeCorner(popoverFrame, 4)
-            makeStroke(popoverFrame, Color3.fromRGB(36, 36, 44), 1)
 
             create("UIPadding", {
                 PaddingTop = UDim.new(0, 10),
@@ -871,8 +879,17 @@ function library.createWindow(options)
                 Parent = popoverFrame,
             })
 
+            local function updatePopoverPos()
+                local absPos = btn.AbsolutePosition
+                local absSize = btn.AbsoluteSize
+                popoverFrame.Position = UDim2.new(0, absPos.X + absSize.X - width, 0, absPos.Y + absSize.Y + 4)
+            end
+
             btn.MouseButton1Click:Connect(function()
                 popoverFrame.Visible = not popoverFrame.Visible
+                if popoverFrame.Visible then
+                    updatePopoverPos()
+                end
             end)
 
             local popObj = {
@@ -1840,16 +1857,15 @@ function library.createWindow(options)
                 })
 
                 local listContainer = create("Frame", {
-                    Size = UDim2.new(1, 0, 0, 0),
-                    Position = UDim2.new(0, 0, 1, 2),
-                    BackgroundColor3 = library.theme.inputBg,
+                    Size = UDim2.new(0, 115, 0, 0),
+                    BackgroundColor3 = Color3.fromRGB(24, 24, 28),
+                    BackgroundTransparency = 0,
                     BorderSizePixel = 0,
                     ClipsDescendants = true,
                     Visible = false,
-                    ZIndex = 100,
-                    Parent = dropHeader,
+                    ZIndex = 100001,
+                    Parent = globalOverlayFrame,
                 })
-                makeStroke(listContainer, library.theme.inputBorder)
 
                 create("UIListLayout", {
                     SortOrder = Enum.SortOrder.LayoutOrder,
@@ -1877,7 +1893,7 @@ function library.createWindow(options)
                             isSel = (opt == selected)
                         end
 
-                        local optBtnColor = library.theme.inputBg
+                        local optBtnColor = Color3.fromRGB(24, 24, 28)
                         local optBtnTrans = 1
                         local optTextColor = library.theme.textBright
                         if isSel then
@@ -1895,7 +1911,7 @@ function library.createWindow(options)
                             TextSize = 12,
                             TextColor3 = optTextColor,
                             TextXAlignment = Enum.TextXAlignment.Left,
-                            ZIndex = 101,
+                            ZIndex = 100002,
                             Parent = listContainer,
                         })
                         create("UIPadding", {
@@ -1913,7 +1929,7 @@ function library.createWindow(options)
                                     optBtn.BackgroundTransparency = 0
                                     optBtn.TextColor3 = library.theme.accent
                                 else
-                                    optBtn.BackgroundColor3 = library.theme.inputBg
+                                    optBtn.BackgroundColor3 = Color3.fromRGB(24, 24, 28)
                                     optBtn.BackgroundTransparency = 1
                                     optBtn.TextColor3 = library.theme.textBright
                                 end
@@ -1928,12 +1944,15 @@ function library.createWindow(options)
                             pcall(callback, selected)
                         end)
                     end
-                    listContainer.Size = UDim2.new(1, 0, 0, math.min(#options * 19 + 4, 120))
                 end
 
                 dropHeader.MouseButton1Click:Connect(function()
                     open = not open
                     if open then
+                        local absPos = dropHeader.AbsolutePosition
+                        local absSize = dropHeader.AbsoluteSize
+                        listContainer.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y + 2)
+                        listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 19 + 4, 140))
                         populateOptions()
                         listContainer.Visible = true
                         arrow.Rotation = 0
@@ -2058,7 +2077,7 @@ function library.createWindow(options)
                             Size = UDim2.new(0, 16, 0, 16),
                             Position = UDim2.new(0, 12, 0, 10),
                             BackgroundTransparency = 1,
-                            Image = isActive and "rbxassetid://10723346959" or "rbxassetid://10723346959",
+                            Image = isActive and "rbxassetid://10723415903" or "rbxassetid://10723425624",
                             ImageColor3 = Color3.fromRGB(255, 255, 255),
                             Parent = cardItem,
                         })
