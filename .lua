@@ -97,17 +97,6 @@ function library.getFolderConfigs()
     return found
 end
 
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "MemeSenseGui"
-screenGui.ResetOnSpawn = false
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-local guiParent = coreGui
-if typeof(gethui) == "function" then
-    guiParent = gethui()
-end
-screenGui.Parent = guiParent
-
 local function create(className, props)
     local inst = Instance.new(className)
     for k, v in props do
@@ -115,14 +104,6 @@ local function create(className, props)
     end
     return inst
 end
-
-local globalOverlayFrame = create("Frame", {
-    Name = "GlobalOverlay",
-    Size = UDim2.new(1, 0, 1, 0),
-    BackgroundTransparency = 1,
-    ZIndex = 100000,
-    Parent = screenGui,
-})
 
 local function makeCorner(parent, radius)
     return create("UICorner", {
@@ -159,6 +140,26 @@ function library.createWindow(options)
     options = options or {}
     local size = options.size or UDim2.new(0, 690, 0, 510)
     local toggleKey = options.toggleKey or Enum.KeyCode.RightShift
+
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "MemeSenseGui"
+    screenGui.ResetOnSpawn = false
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+    local guiParent = coreGui
+    if typeof(gethui) == "function" then
+        local ok, res = pcall(gethui)
+        if ok and res then guiParent = res end
+    end
+    screenGui.Parent = guiParent
+
+    local globalOverlayFrame = create("Frame", {
+        Name = "GlobalOverlay",
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        ZIndex = 100000,
+        Parent = screenGui,
+    })
 
     local window = {
         visible = true,
