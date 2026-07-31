@@ -686,7 +686,7 @@ function library.createWindow(options)
 
             local dropHeader = create("TextButton", {
                 Size = UDim2.new(0, config.width or 110, 0, 24),
-                BackgroundColor3 = Color3.fromRGB(26, 26, 32),
+                BackgroundColor3 = Color3.fromRGB(24, 25, 30),
                 Text = "",
                 AutoButtonColor = false,
                 BorderSizePixel = 0,
@@ -702,7 +702,7 @@ function library.createWindow(options)
                 Text = tostring(selected),
                 Font = library.theme.fontBold,
                 TextSize = 12,
-                TextColor3 = library.theme.textBright,
+                TextColor3 = Color3.fromRGB(255, 255, 255),
                 TextXAlignment = Enum.TextXAlignment.Left,
                 TextTruncate = Enum.TextTruncate.AtEnd,
                 BackgroundTransparency = 1,
@@ -724,7 +724,7 @@ function library.createWindow(options)
 
             local listContainer = create("Frame", {
                 Size = UDim2.new(0, config.width or 110, 0, 0),
-                BackgroundColor3 = Color3.fromRGB(20, 20, 24),
+                BackgroundColor3 = Color3.fromRGB(24, 25, 30),
                 BackgroundTransparency = 0,
                 BorderSizePixel = 0,
                 ClipsDescendants = true,
@@ -733,8 +733,8 @@ function library.createWindow(options)
                 Parent = globalOverlayFrame,
             })
 
-            create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 1), Parent = listContainer })
-            create("UIPadding", { PaddingTop = UDim.new(0, 2), PaddingBottom = UDim.new(0, 2), PaddingLeft = UDim.new(0, 2), PaddingRight = UDim.new(0, 2), Parent = listContainer })
+            create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 0), Parent = listContainer })
+            create("UIPadding", { PaddingTop = UDim.new(0, 2), PaddingBottom = UDim.new(0, 2), PaddingLeft = UDim.new(0, 0), PaddingRight = UDim.new(0, 0), Parent = listContainer })
 
             local open = false
             local trackConn
@@ -763,30 +763,32 @@ function library.createWindow(options)
                     local absPos = dropHeader.AbsolutePosition
                     local absSize = dropHeader.AbsoluteSize
                     listContainer.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y)
-                    listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 20 + 4, 150))
+                    listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22 + 4, 160))
 
                     for _, opt in options do
                         local isSel = (opt == selected)
                         local optBtn = create("TextButton", {
-                            Size = UDim2.new(1, 0, 0, 20),
-                            BackgroundColor3 = isSel and Color3.fromRGB(32, 32, 40) or Color3.fromRGB(24, 24, 28),
-                            BackgroundTransparency = 0,
+                            Size = UDim2.new(1, 0, 0, 22),
+                            BackgroundColor3 = Color3.fromRGB(24, 25, 30),
+                            BackgroundTransparency = 1,
                             BorderSizePixel = 0,
                             Text = opt,
                             Font = library.theme.fontBold,
                             TextSize = 12,
-                            TextColor3 = isSel and library.theme.accent or library.theme.textBright,
+                            TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 155, 165),
                             TextXAlignment = Enum.TextXAlignment.Left,
                             ZIndex = 100002,
                             Parent = listContainer,
                         })
-                        create("UIPadding", { PaddingLeft = UDim.new(0, 6), Parent = optBtn })
+                        create("UIPadding", { PaddingLeft = UDim.new(0, 8), Parent = optBtn })
 
                         optBtn.MouseEnter:Connect(function()
-                            optBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 48)
+                            optBtn.BackgroundColor3 = Color3.fromRGB(36, 38, 46)
+                            optBtn.BackgroundTransparency = 0
                         end)
                         optBtn.MouseLeave:Connect(function()
-                            optBtn.BackgroundColor3 = isSel and Color3.fromRGB(32, 32, 40) or Color3.fromRGB(24, 24, 28)
+                            optBtn.BackgroundColor3 = Color3.fromRGB(24, 25, 30)
+                            optBtn.BackgroundTransparency = 1
                         end)
 
                         optBtn.MouseButton1Click:Connect(function()
@@ -1979,14 +1981,13 @@ function library.createWindow(options)
                             isSel = (opt == selected)
                         end
 
-                        local optBtnColor = isSel and Color3.fromRGB(34, 34, 40) or Color3.fromRGB(24, 24, 28)
-                        local optBtnTrans = isSel and 0 or 0
-                        local optTextColor = isSel and library.theme.accent or library.theme.textBright
+                        local optBtnColor = Color3.fromRGB(24, 25, 30)
+                        local optTextColor = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 155, 165)
 
                         local optBtn = create("TextButton", {
-                            Size = UDim2.new(1, 0, 0, 18),
+                            Size = UDim2.new(1, 0, 0, 22),
                             BackgroundColor3 = optBtnColor,
-                            BackgroundTransparency = optBtnTrans,
+                            BackgroundTransparency = 1,
                             BorderSizePixel = 0,
                             Text = opt,
                             Font = library.theme.fontBold,
@@ -1997,31 +1998,25 @@ function library.createWindow(options)
                             Parent = listContainer,
                         })
                         create("UIPadding", {
-                            PaddingLeft = UDim.new(0, 5),
-                            PaddingRight = UDim.new(0, 5),
+                            PaddingLeft = UDim.new(0, 8),
+                            PaddingRight = UDim.new(0, 8),
                             Parent = optBtn,
                         })
 
                         optBtn.MouseEnter:Connect(function()
-                            optBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 48)
+                            optBtn.BackgroundColor3 = Color3.fromRGB(36, 38, 46)
+                            optBtn.BackgroundTransparency = 0
                         end)
                         optBtn.MouseLeave:Connect(function()
-                            optBtn.BackgroundColor3 = isSel and Color3.fromRGB(34, 34, 40) or Color3.fromRGB(24, 24, 28)
+                            optBtn.BackgroundColor3 = Color3.fromRGB(24, 25, 30)
+                            optBtn.BackgroundTransparency = 1
                         end)
 
                         optBtn.MouseButton1Click:Connect(function()
                             if isMulti then
                                 selected[opt] = not selected[opt]
                                 local selState = selected[opt]
-                                if selState then
-                                    optBtn.BackgroundColor3 = Color3.fromRGB(34, 34, 40)
-                                    optBtn.BackgroundTransparency = 0
-                                    optBtn.TextColor3 = library.theme.accent
-                                else
-                                    optBtn.BackgroundColor3 = Color3.fromRGB(24, 24, 28)
-                                    optBtn.BackgroundTransparency = 1
-                                    optBtn.TextColor3 = library.theme.textBright
-                                end
+                                optBtn.TextColor3 = selState and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 155, 165)
                             else
                                 selected = opt
                                 open = false
