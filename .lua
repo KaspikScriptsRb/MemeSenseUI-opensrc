@@ -841,6 +841,7 @@ function library.createWindow(options)
                 ZIndex = 100001,
                 Parent = globalOverlayFrame,
             })
+            makeCorner(listContainer, 3)
 
             create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 0), Parent = listContainer })
             create("UIPadding", { PaddingTop = UDim.new(0, 2), PaddingBottom = UDim.new(0, 2), PaddingLeft = UDim.new(0, 0), PaddingRight = UDim.new(0, 0), Parent = listContainer })
@@ -1772,6 +1773,11 @@ function library.createWindow(options)
                             modeDropBtn.Text = keyMode
                             modeDropOpen = false
                             modeDropContainer.Visible = false
+                            if keyMode == "Always on" then
+                                toggleObj.set(true)
+                            elseif keyMode == "Disabled" or keyMode == "On key down" then
+                                toggleObj.set(false)
+                            end
                             pcall(keyCallback, currentKey, keyMode)
                         end)
                     end
@@ -1802,10 +1808,24 @@ function library.createWindow(options)
                                 binding = false
                                 keyBox.Text = "[" .. (currentKey == Enum.KeyCode.Unknown and "none" or currentKey.Name:lower()) .. "]"
                                 iconBtn.ImageColor3 = (currentKey ~= Enum.KeyCode.Unknown) and library.theme.accent or Color3.fromRGB(255, 255, 255)
-                                pcall(keyCallback, currentKey)
+                                pcall(keyCallback, currentKey, keyMode)
                             end
                         elseif not gpe and input.KeyCode == currentKey and currentKey ~= Enum.KeyCode.Unknown then
-                            toggleObj.set(not state)
+                            if keyMode == "Toggle" then
+                                toggleObj.set(not state)
+                            elseif keyMode == "On key down" then
+                                toggleObj.set(true)
+                            elseif keyMode == "Always on" then
+                                toggleObj.set(true)
+                            end
+                        end
+                    end)
+
+                    userInputService.InputEnded:Connect(function(input, gpe)
+                        if not gpe and input.KeyCode == currentKey and currentKey ~= Enum.KeyCode.Unknown then
+                            if keyMode == "On key down" then
+                                toggleObj.set(false)
+                            end
                         end
                     end)
 
@@ -2058,6 +2078,7 @@ function library.createWindow(options)
                     BorderSizePixel = 0,
                     Parent = rightGroup,
                 })
+                makeCorner(dropHeader, 3)
 
                 local function getDisplayText()
                     if isMulti then
@@ -2108,6 +2129,7 @@ function library.createWindow(options)
                     ZIndex = 100001,
                     Parent = globalOverlayFrame,
                 })
+                makeCorner(listContainer, 3)
 
                 create("UIListLayout", {
                     SortOrder = Enum.SortOrder.LayoutOrder,
