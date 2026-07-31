@@ -1709,12 +1709,36 @@ function library.createWindow(options)
                         AnchorPoint = Vector2.new(1, 0),
                         BackgroundColor3 = Color3.fromRGB(24, 25, 30),
                         BorderSizePixel = 0,
+                        Text = "",
+                        AutoButtonColor = false,
+                        ZIndex = 100006,
+                        Parent = popup,
+                    })
+                    makeCorner(modeDropBtn, 3)
+
+                    local modeLabel = create("TextLabel", {
+                        Size = UDim2.new(1, -14, 1, 0),
+                        Position = UDim2.new(0, 5, 0, 0),
                         Text = keyMode,
                         Font = library.theme.fontBold,
                         TextSize = 11,
                         TextColor3 = library.theme.textBright,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        BackgroundTransparency = 1,
                         ZIndex = 100006,
-                        Parent = popup,
+                        Parent = modeDropBtn,
+                    })
+
+                    local modeArrow = create("ImageLabel", {
+                        Size = UDim2.new(0, 8, 0, 8),
+                        Position = UDim2.new(1, -4, 0.5, 0),
+                        AnchorPoint = Vector2.new(1, 0.5),
+                        BackgroundTransparency = 1,
+                        Image = "rbxassetid://10709791523",
+                        ImageColor3 = Color3.fromRGB(255, 255, 255),
+                        ZIndex = 100006,
+                        Rotation = 180,
+                        Parent = modeDropBtn,
                     })
 
                     local modeDropContainer = create("Frame", {
@@ -1726,7 +1750,10 @@ function library.createWindow(options)
                         ZIndex = 100007,
                         Parent = globalOverlayFrame,
                     })
+                    makeCorner(modeDropContainer, 3)
+
                     create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 0), Parent = modeDropContainer })
+                    create("UIPadding", { PaddingTop = UDim.new(0, 2), PaddingBottom = UDim.new(0, 2), Parent = modeDropContainer })
 
                     local modeDropOpen = false
                     modeDropBtn.MouseButton1Click:Connect(function()
@@ -1735,10 +1762,12 @@ function library.createWindow(options)
                             local relBPos = getPositionInMain(modeDropBtn)
                             local bSize = modeDropBtn.AbsoluteSize
                             modeDropContainer.Position = UDim2.new(0, relBPos.X, 0, relBPos.Y + bSize.Y)
-                            modeDropContainer.Size = UDim2.new(0, bSize.X, 0, 4 * 20)
+                            modeDropContainer.Size = UDim2.new(0, bSize.X, 0, 4 * 20 + 4)
                             modeDropContainer.Visible = true
+                            modeArrow.Rotation = 0
                         else
                             modeDropContainer.Visible = false
+                            modeArrow.Rotation = 180
                         end
                     end)
 
@@ -1753,26 +1782,26 @@ function library.createWindow(options)
                             Text = mOpt,
                             Font = library.theme.fontBold,
                             TextSize = 11,
-                            TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 155, 165),
+                            TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145),
+                            TextXAlignment = Enum.TextXAlignment.Left,
                             ZIndex = 100008,
                             Parent = modeDropContainer,
                         })
                         create("UIPadding", { PaddingLeft = UDim.new(0, 6), Parent = mBtn })
 
                         mBtn.MouseEnter:Connect(function()
-                            mBtn.BackgroundColor3 = Color3.fromRGB(36, 38, 46)
-                            mBtn.BackgroundTransparency = 0
+                            if not isSel then mBtn.TextColor3 = Color3.fromRGB(255, 255, 255) end
                         end)
                         mBtn.MouseLeave:Connect(function()
-                            mBtn.BackgroundColor3 = Color3.fromRGB(24, 25, 30)
-                            mBtn.BackgroundTransparency = 1
+                            mBtn.TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145)
                         end)
 
                         mBtn.MouseButton1Click:Connect(function()
                             keyMode = mOpt
-                            modeDropBtn.Text = keyMode
+                            modeLabel.Text = keyMode
                             modeDropOpen = false
                             modeDropContainer.Visible = false
+                            modeArrow.Rotation = 180
                             if keyMode == "Always on" then
                                 toggleObj.set(true)
                             elseif keyMode == "Disabled" or keyMode == "On key down" then
