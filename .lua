@@ -20,7 +20,7 @@ local library = {
         inputBg = Color3.fromRGB(27, 27, 31),
         inputBorder = Color3.fromRGB(42, 42, 48),
         
-        fontBold = Enum.Font.RobotoBold,
+        fontBold = Enum.Font.Roboto,
         fontMedium = Enum.Font.Roboto,
         fontRegular = Enum.Font.Roboto,
     }
