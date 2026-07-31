@@ -178,7 +178,6 @@ function library.createWindow(options)
         BackgroundColor3 = library.theme.mainBg,
         BorderSizePixel = 0,
         GroupTransparency = 0,
-        ClipsDescendants = false,
         Parent = screenGui,
     })
     makeCorner(main, 0)
@@ -281,22 +280,9 @@ function library.createWindow(options)
         Parent = main,
     })
 
-    create("UIPadding", {
-        PaddingLeft = UDim.new(0, 12),
-        PaddingRight = UDim.new(0, 12),
-        Parent = headerBar,
-    })
-
-    create("UIListLayout", {
-        FillDirection = Enum.FillDirection.Horizontal,
-        VerticalAlignment = Enum.VerticalAlignment.Center,
-        Padding = UDim.new(0, 8),
-        Parent = headerBar,
-    })
-
     local headerLeft = create("Frame", {
-        Size = UDim2.new(0, 0, 1, 0),
-        AutomaticSize = Enum.AutomaticSize.X,
+        Size = UDim2.new(0.6, -15, 1, 0),
+        Position = UDim2.new(0, 15, 0, 0),
         BackgroundTransparency = 1,
         Parent = headerBar,
     })
@@ -309,14 +295,16 @@ function library.createWindow(options)
     })
 
     local headerRight = create("Frame", {
-        Size = UDim2.new(0, 0, 1, 0),
-        AutomaticSize = Enum.AutomaticSize.X,
+        Size = UDim2.new(0.4, -15, 1, 0),
+        Position = UDim2.new(1, -15, 0, 0),
+        AnchorPoint = Vector2.new(1, 0),
         BackgroundTransparency = 1,
         Parent = headerBar,
     })
 
     create("UIListLayout", {
         FillDirection = Enum.FillDirection.Horizontal,
+        HorizontalAlignment = Enum.HorizontalAlignment.Right,
         VerticalAlignment = Enum.VerticalAlignment.Center,
         Padding = UDim.new(0, 8),
         Parent = headerRight,
@@ -402,7 +390,7 @@ function library.createWindow(options)
             AutomaticSize = Enum.AutomaticSize.X,
             BackgroundTransparency = 1,
             Text = "",
-            Parent = headerLeft,
+            Parent = headerRight,
         })
 
         create("UIListLayout", {
@@ -709,13 +697,14 @@ function library.createWindow(options)
 
             local selected = default
             local selectedLabel = create("TextLabel", {
-                Size = UDim2.new(1, -16, 1, 0),
+                Size = UDim2.new(1, -20, 1, 0),
                 Position = UDim2.new(0, 8, 0, 0),
                 Text = tostring(selected),
                 Font = library.theme.fontBold,
                 TextSize = 12,
                 TextColor3 = library.theme.textBright,
                 TextXAlignment = Enum.TextXAlignment.Left,
+                TextTruncate = Enum.TextTruncate.AtEnd,
                 BackgroundTransparency = 1,
                 ZIndex = 21,
                 Parent = dropHeader,
@@ -734,51 +723,89 @@ function library.createWindow(options)
             })
 
             local listContainer = create("Frame", {
-                Size = UDim2.new(1, 0, 0, 0),
-                Position = UDim2.new(0, 0, 1, 2),
-                BackgroundColor3 = Color3.fromRGB(26, 26, 32),
+                Size = UDim2.new(0, config.width or 110, 0, 0),
+                BackgroundColor3 = Color3.fromRGB(20, 20, 24),
+                BackgroundTransparency = 0,
                 BorderSizePixel = 0,
+                ClipsDescendants = true,
                 Visible = false,
-                ZIndex = 100,
-                Parent = dropHeader,
+                ZIndex = 100001,
+                Parent = globalOverlayFrame,
             })
 
             create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 1), Parent = listContainer })
             create("UIPadding", { PaddingTop = UDim.new(0, 2), PaddingBottom = UDim.new(0, 2), PaddingLeft = UDim.new(0, 2), PaddingRight = UDim.new(0, 2), Parent = listContainer })
 
             local open = false
+            local trackConn
+            local function startTracking()
+                if trackConn then trackConn:Disconnect() end
+                trackConn = runService.RenderStepped:Connect(function()
+                    if not open or not dropHeader:IsDescendantOf(game) then
+                        if trackConn then trackConn:Disconnect() end
+                        trackConn = nil
+                        listContainer.Visible = false
+                        arrow.Rotation = 180
+                        return
+                    end
+                    local absPos = dropHeader.AbsolutePosition
+                    local absSize = dropHeader.AbsoluteSize
+                    listContainer.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y)
+                end)
+            end
+
             dropHeader.MouseButton1Click:Connect(function()
                 open = not open
                 if open then
                     for _, child in listContainer:GetChildren() do
                         if child:IsA("TextButton") then child:Destroy() end
                     end
+                    local absPos = dropHeader.AbsolutePosition
+                    local absSize = dropHeader.AbsoluteSize
+                    listContainer.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y)
+                    listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 20 + 4, 150))
+
                     for _, opt in options do
+                        local isSel = (opt == selected)
                         local optBtn = create("TextButton", {
                             Size = UDim2.new(1, 0, 0, 20),
-                            BackgroundColor3 = (opt == selected) and Color3.fromRGB(34, 34, 40) or Color3.fromRGB(26, 26, 32),
+                            BackgroundColor3 = isSel and Color3.fromRGB(32, 32, 40) or Color3.fromRGB(24, 24, 28),
+                            BackgroundTransparency = 0,
+                            BorderSizePixel = 0,
                             Text = opt,
                             Font = library.theme.fontBold,
                             TextSize = 12,
-                            TextColor3 = (opt == selected) and library.theme.accent or library.theme.textBright,
+                            TextColor3 = isSel and library.theme.accent or library.theme.textBright,
                             TextXAlignment = Enum.TextXAlignment.Left,
-                            ZIndex = 101,
+                            ZIndex = 100002,
                             Parent = listContainer,
                         })
                         create("UIPadding", { PaddingLeft = UDim.new(0, 6), Parent = optBtn })
+
+                        optBtn.MouseEnter:Connect(function()
+                            optBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 48)
+                        end)
+                        optBtn.MouseLeave:Connect(function()
+                            optBtn.BackgroundColor3 = isSel and Color3.fromRGB(32, 32, 40) or Color3.fromRGB(24, 24, 28)
+                        end)
+
                         optBtn.MouseButton1Click:Connect(function()
                             selected = opt
                             selectedLabel.Text = selected
                             open = false
+                            if trackConn then trackConn:Disconnect() end
+                            trackConn = nil
                             listContainer.Visible = false
                             arrow.Rotation = 180
                             pcall(callback, selected)
                         end)
                     end
-                    listContainer.Size = UDim2.new(1, 0, 0, #options * 21 + 4)
                     listContainer.Visible = true
                     arrow.Rotation = 0
+                    startTracking()
                 else
+                    if trackConn then trackConn:Disconnect() end
+                    trackConn = nil
                     listContainer.Visible = false
                     arrow.Rotation = 180
                 end
@@ -1936,7 +1963,7 @@ function library.createWindow(options)
                         end
                         local absPos = dropHeader.AbsolutePosition
                         local absSize = dropHeader.AbsoluteSize
-                        listContainer.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y + 2)
+                        listContainer.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y)
                     end)
                 end
 
@@ -1952,19 +1979,15 @@ function library.createWindow(options)
                             isSel = (opt == selected)
                         end
 
-                        local optBtnColor = Color3.fromRGB(24, 24, 28)
-                        local optBtnTrans = 1
-                        local optTextColor = library.theme.textBright
-                        if isSel then
-                            optBtnColor = Color3.fromRGB(34, 34, 40)
-                            optBtnTrans = 0
-                            optTextColor = library.theme.accent
-                        end
+                        local optBtnColor = isSel and Color3.fromRGB(34, 34, 40) or Color3.fromRGB(24, 24, 28)
+                        local optBtnTrans = isSel and 0 or 0
+                        local optTextColor = isSel and library.theme.accent or library.theme.textBright
 
                         local optBtn = create("TextButton", {
                             Size = UDim2.new(1, 0, 0, 18),
                             BackgroundColor3 = optBtnColor,
                             BackgroundTransparency = optBtnTrans,
+                            BorderSizePixel = 0,
                             Text = opt,
                             Font = library.theme.fontBold,
                             TextSize = 12,
@@ -1978,6 +2001,13 @@ function library.createWindow(options)
                             PaddingRight = UDim.new(0, 5),
                             Parent = optBtn,
                         })
+
+                        optBtn.MouseEnter:Connect(function()
+                            optBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 48)
+                        end)
+                        optBtn.MouseLeave:Connect(function()
+                            optBtn.BackgroundColor3 = isSel and Color3.fromRGB(34, 34, 40) or Color3.fromRGB(24, 24, 28)
+                        end)
 
                         optBtn.MouseButton1Click:Connect(function()
                             if isMulti then
