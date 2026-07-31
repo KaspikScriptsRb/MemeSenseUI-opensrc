@@ -794,7 +794,7 @@ function library.createWindow(options)
             local callback = config.callback or function() end
 
             local dropHeader = create("TextButton", {
-                Size = UDim2.new(0, config.width or 110, 0, 24),
+                Size = UDim2.new(0, config.width or 135, 0, 24),
                 BackgroundColor3 = Color3.fromRGB(24, 25, 30),
                 Text = "",
                 AutoButtonColor = false,
@@ -2106,7 +2106,7 @@ function library.createWindow(options)
                 end
 
                 local dropHeader = create("TextButton", {
-                    Size = UDim2.new(0, config.width or 115, 0, 24),
+                    Size = UDim2.new(0, config.width or 135, 0, 24),
                     BackgroundColor3 = library.theme.inputBg,
                     Text = "",
                     AutoButtonColor = false,
