@@ -108,14 +108,6 @@ if typeof(gethui) == "function" then
 end
 screenGui.Parent = guiParent
 
-local globalOverlayFrame = create("Frame", {
-    Name = "GlobalOverlay",
-    Size = UDim2.new(1, 0, 1, 0),
-    BackgroundTransparency = 1,
-    ZIndex = 100000,
-    Parent = screenGui,
-})
-
 local function create(className, props)
     local inst = Instance.new(className)
     for k, v in props do
@@ -123,6 +115,14 @@ local function create(className, props)
     end
     return inst
 end
+
+local globalOverlayFrame = create("Frame", {
+    Name = "GlobalOverlay",
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundTransparency = 1,
+    ZIndex = 100000,
+    Parent = screenGui,
+})
 
 local function makeCorner(parent, radius)
     return create("UICorner", {
