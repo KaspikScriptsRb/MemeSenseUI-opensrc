@@ -299,6 +299,26 @@ function library.createWindow(options)
         Parent = main,
     })
 
+
+    create("Frame", {
+        Size = UDim2.new(1, 0, 0, 1),
+        Position = UDim2.new(0, 0, 0, 44),
+        BackgroundColor3 = Color3.fromRGB(32, 32, 36),
+        BorderSizePixel = 0,
+        ZIndex = 15,
+        Parent = main,
+    })
+
+
+    create("Frame", {
+        Size = UDim2.new(0, 1, 1, -44),
+        Position = UDim2.new(0, 165, 0, 44),
+        BackgroundColor3 = Color3.fromRGB(28, 28, 32),
+        BorderSizePixel = 0,
+        ZIndex = 15,
+        Parent = main,
+    })
+
     local headerLeft = create("Frame", {
         Size = UDim2.new(0.65, -15, 1, 0),
         Position = UDim2.new(0, 15, 0, 0),
@@ -1857,7 +1877,6 @@ function library.createWindow(options)
                         Parent = globalOverlayFrame,
                     })
                     makeCorner(popup, 4)
-                    makeStroke(popup, library.theme.inputBorder)
                     create("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8), Parent = popup })
 
                     create("UIListLayout", {
@@ -1900,12 +1919,22 @@ function library.createWindow(options)
                     local popObj = {
                         popup = popup,
                         card = popup,
-                        createToggle = section.createToggle,
-                        createSlider = section.createSlider,
-                        createDropdown = section.createDropdown,
-                        createColorpicker = section.createColorpicker,
-                        createKeybind = section.addKeybind,
                     }
+
+                    local function withPopupCard(fn)
+                        return function(self, cfg)
+                            local origCard = card
+                            card = popup
+                            local result = fn(self, cfg)
+                            card = origCard
+                            return result
+                        end
+                    end
+
+                    popObj.createToggle = withPopupCard(section.createToggle)
+                    popObj.createSlider = withPopupCard(section.createSlider)
+                    popObj.createDropdown = withPopupCard(section.createDropdown)
+                    popObj.createColorpicker = withPopupCard(section.createColorpicker)
 
                     if typeof(builder) == "function" then
                         pcall(builder, popObj)
