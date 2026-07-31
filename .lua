@@ -1034,7 +1034,7 @@ function library.createWindow(options)
             local function startPopoverTracking()
                 if popTrackConn then popTrackConn:Disconnect() end
                 popTrackConn = runService.RenderStepped:Connect(function()
-                    if not popoverFrame.Visible or not btn:IsDescendantOf(game) or not isInsideView(btn) then
+                    if not popoverFrame.Visible or not btn:IsDescendantOf(game) then
                         if popTrackConn then popTrackConn:Disconnect() end
                         popTrackConn = nil
                         popoverFrame.Visible = false
@@ -2181,11 +2181,11 @@ function library.createWindow(options)
                     closeGlobalOverlays()
                     open = not wasOpen
                     if open then
+                        populateOptions()
                         local relPos = getPositionInMain(dropHeader)
                         local absSize = dropHeader.AbsoluteSize
                         listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y)
                         listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22, 160))
-                        populateOptions()
                         listContainer.Visible = true
                         arrow.Rotation = 0
                         startTracking()
