@@ -1206,7 +1206,7 @@ function library.createWindow(options)
                             if isMulti then
                                 selected[opt] = not selected[opt]
                                 isSel = selected[opt]
-                                optBtn.BackgroundColor3 = isSel and Color3.fromRGB(34, 34, 40) or library.theme.inputBg,
+                                optBtn.BackgroundColor3 = isSel and Color3.fromRGB(34, 34, 40) or library.theme.inputBg
                                 optBtn.BackgroundTransparency = isSel and 0 or 1
                                 optBtn.TextColor3 = isSel and library.theme.accent or library.theme.textBright
                             else
