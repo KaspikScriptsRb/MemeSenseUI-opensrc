@@ -814,7 +814,6 @@ function library.createWindow(options)
                 ZIndex = 100001,
                 Parent = globalOverlayFrame,
             })
-            makeCorner(listContainer, 3)
 
             create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 0), Parent = listContainer })
             create("UIPadding", { PaddingTop = UDim.new(0, 2), PaddingBottom = UDim.new(0, 2), PaddingLeft = UDim.new(0, 0), PaddingRight = UDim.new(0, 0), Parent = listContainer })
@@ -1631,7 +1630,7 @@ function library.createWindow(options)
                             end
                             local iconAbsPos = iconBtn.AbsolutePosition
                             local iconAbsSize = iconBtn.AbsoluteSize
-                            popup.Position = UDim2.new(0, iconAbsPos.X + iconAbsSize.X - 150, 0, iconAbsPos.Y + iconAbsSize.Y + 4)
+                            popup.Position = UDim2.new(0, iconAbsPos.X + iconAbsSize.X + 4, 0, iconAbsPos.Y + iconAbsSize.Y + 4)
                         end)
                     end
 
@@ -1641,7 +1640,7 @@ function library.createWindow(options)
                             if popup.Visible then
                                 local iconAbsPos = iconBtn.AbsolutePosition
                                 local iconAbsSize = iconBtn.AbsoluteSize
-                                popup.Position = UDim2.new(0, iconAbsPos.X + iconAbsSize.X - 150, 0, iconAbsPos.Y + iconAbsSize.Y + 4)
+                                popup.Position = UDim2.new(0, iconAbsPos.X + iconAbsSize.X + 4, 0, iconAbsPos.Y + iconAbsSize.Y + 4)
                                 startBindTracking()
                             else
                                 if bindTrackConn then bindTrackConn:Disconnect() end
@@ -1911,24 +1910,24 @@ function library.createWindow(options)
                 local function startManualTracking()
                     if manualTrackConn then manualTrackConn:Disconnect() end
                     manualTrackConn = runService.RenderStepped:Connect(function()
-                        if not manualInputFrame.Visible or not container:IsDescendantOf(game) or not isInsideView(container) then
+                        if not manualInputFrame.Visible or not track:IsDescendantOf(game) or not isInsideView(track) then
                             if manualTrackConn then manualTrackConn:Disconnect() end
                             manualTrackConn = nil
                             manualInputFrame.Visible = false
                             return
                         end
-                        local absPos = container.AbsolutePosition
-                        local absSize = container.AbsoluteSize
-                        manualInputFrame.Position = UDim2.new(0, absPos.X, 0, absPos.Y)
-                        manualInputFrame.Size = UDim2.new(0, absSize.X, 0, 22)
+                        local absPos = track.AbsolutePosition
+                        local absSize = track.AbsoluteSize
+                        manualInputFrame.Position = UDim2.new(0, absPos.X, 0, absPos.Y - 12)
+                        manualInputFrame.Size = UDim2.new(0, absSize.X, 0, 20)
                     end)
                 end
 
                 valButton.MouseButton1Click:Connect(function()
-                    local absPos = container.AbsolutePosition
-                    local absSize = container.AbsoluteSize
-                    manualInputFrame.Position = UDim2.new(0, absPos.X, 0, absPos.Y)
-                    manualInputFrame.Size = UDim2.new(0, absSize.X, 0, 22)
+                    local absPos = track.AbsolutePosition
+                    local absSize = track.AbsoluteSize
+                    manualInputFrame.Position = UDim2.new(0, absPos.X, 0, absPos.Y - 12)
+                    manualInputFrame.Size = UDim2.new(0, absSize.X, 0, 20)
                     manualInputFrame.Visible = true
                     manualTextBox.Text = string.format("%." .. decimals .. "f", value)
                     startManualTracking()
@@ -2092,7 +2091,6 @@ function library.createWindow(options)
                     ZIndex = 100001,
                     Parent = globalOverlayFrame,
                 })
-                makeCorner(listContainer, 3)
 
                 create("UIListLayout", {
                     SortOrder = Enum.SortOrder.LayoutOrder,
