@@ -337,11 +337,12 @@ function library.createWindow(options)
         Parent = main,
     })
 
+    local isDragging = false
     local dragStart, dragOrigin
 
     local function startDragging(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            window.dragging = true
+            isDragging = true
             dragStart = input.Position
             dragOrigin = main.Position
         end
@@ -349,7 +350,7 @@ function library.createWindow(options)
 
     local function stopDragging(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            window.dragging = false
+            isDragging = false
         end
     end
 
@@ -358,8 +359,13 @@ function library.createWindow(options)
     headerBar.InputBegan:Connect(startDragging)
     headerBar.InputEnded:Connect(stopDragging)
 
-    userInputService.InputChanged:Connect(function(input)
-        if window.dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+    local dragConn
+    dragConn = userInputService.InputChanged:Connect(function(input)
+        if isDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            if not main:IsDescendantOf(game) then
+                if dragConn then dragConn:Disconnect() end
+                return
+            end
             local delta = input.Position - dragStart
             main.Position = UDim2.new(
                 dragOrigin.X.Scale,
@@ -367,6 +373,12 @@ function library.createWindow(options)
                 dragOrigin.Y.Scale,
                 dragOrigin.Y.Offset + delta.Y
             )
+        end
+    end)
+
+    userInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            isDragging = false
         end
     end)
 
