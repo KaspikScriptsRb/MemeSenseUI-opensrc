@@ -226,32 +226,24 @@ function library.createWindow(options)
     local topBar = create("Frame", {
         Size = UDim2.new(1, 0, 0, 2),
         BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel = 0,
-        ZIndex = 10,
         Parent = main,
     })
 
     local gradient = create("UIGradient", {
-        Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0.00, Color3.fromRGB(235, 50, 50)),
-            ColorSequenceKeypoint.new(0.16, Color3.fromRGB(235, 150, 50)),
-            ColorSequenceKeypoint.new(0.33, Color3.fromRGB(235, 235, 50)),
-            ColorSequenceKeypoint.new(0.50, Color3.fromRGB(50, 235, 100)),
-            ColorSequenceKeypoint.new(0.66, Color3.fromRGB(50, 150, 235)),
-            ColorSequenceKeypoint.new(0.83, Color3.fromRGB(180, 50, 235)),
-            ColorSequenceKeypoint.new(1.00, Color3.fromRGB(235, 50, 50)),
-        }),
-        Offset = Vector2.new(-1, 0),
         Parent = topBar,
     })
 
-    local gradientOffset = -1
+    local hue = 0
     runService.RenderStepped:Connect(function(dt)
-        gradientOffset += dt * 0.35
-        if gradientOffset >= 1 then
-            gradientOffset = -1
-        end
-        gradient.Offset = Vector2.new(gradientOffset, 0)
+        hue = (hue + dt * 0.25) % 1
+        gradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0.00, Color3.fromHSV((hue + 0.00) % 1, 0.85, 0.95)),
+            ColorSequenceKeypoint.new(0.20, Color3.fromHSV((hue + 0.20) % 1, 0.85, 0.95)),
+            ColorSequenceKeypoint.new(0.40, Color3.fromHSV((hue + 0.40) % 1, 0.85, 0.95)),
+            ColorSequenceKeypoint.new(0.60, Color3.fromHSV((hue + 0.60) % 1, 0.85, 0.95)),
+            ColorSequenceKeypoint.new(0.80, Color3.fromHSV((hue + 0.80) % 1, 0.85, 0.95)),
+            ColorSequenceKeypoint.new(1.00, Color3.fromHSV((hue + 1.00) % 1, 0.85, 0.95)),
+        })
     end)
 
     local sidebar = create("Frame", {
@@ -884,7 +876,8 @@ function library.createWindow(options)
                         for _, opt in options do
                             local isSel = (opt == selected)
                             local optBtn = create("TextButton", {
-                                Size = UDim2.new(1, 0, 0, 22),
+                                Size = UDim2.new(1, -16, 0, 22),
+                                Position = UDim2.new(0, 8, 0, 0),
                                 BackgroundColor3 = Color3.fromRGB(24, 25, 30),
                                 BackgroundTransparency = 1,
                                 BorderSizePixel = 0,
@@ -896,7 +889,6 @@ function library.createWindow(options)
                                 ZIndex = 100002,
                                 Parent = listContainer,
                             })
-                            create("UIPadding", { PaddingLeft = UDim.new(0, 8), Parent = optBtn })
 
                             optBtn.MouseEnter:Connect(function()
                                 if not isSel then optBtn.TextColor3 = Color3.fromRGB(255, 255, 255) end
@@ -2208,7 +2200,8 @@ function library.createWindow(options)
                         local optTextColor = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145)
 
                         local optBtn = create("TextButton", {
-                            Size = UDim2.new(1, 0, 0, 22),
+                            Size = UDim2.new(1, -12, 0, 22),
+                            Position = UDim2.new(0, 6, 0, 0),
                             BackgroundColor3 = Color3.fromRGB(24, 25, 30),
                             BackgroundTransparency = 1,
                             BorderSizePixel = 0,
@@ -2219,11 +2212,6 @@ function library.createWindow(options)
                             TextXAlignment = Enum.TextXAlignment.Left,
                             ZIndex = 100002,
                             Parent = listContainer,
-                        })
-                        create("UIPadding", {
-                            PaddingLeft = UDim.new(0, 6),
-                            PaddingRight = UDim.new(0, 6),
-                            Parent = optBtn,
                         })
 
                         optBtn.MouseEnter:Connect(function()
