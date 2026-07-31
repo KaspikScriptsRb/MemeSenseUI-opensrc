@@ -2202,7 +2202,10 @@ function library.createWindow(options)
                     open = false
                     listContainer.Visible = false
                     arrow.Rotation = 180
-                    container.Size = UDim2.new(1, 0, 0, 24)
+                    container.ZIndex = 1
+                    rightGroup.ZIndex = 1
+                    dropHeader.ZIndex = 1
+                    if card then card.ZIndex = 1 end
                 end
 
                 dropHeader.MouseButton1Click:Connect(function()
@@ -2215,7 +2218,10 @@ function library.createWindow(options)
                         listContainer.Size = UDim2.new(1, 0, 0, listH)
                         listContainer.Visible = true
                         arrow.Rotation = 0
-                        container.Size = UDim2.new(1, 0, 0, 24 + listH - 3)
+                        container.ZIndex = 1000
+                        rightGroup.ZIndex = 1000
+                        dropHeader.ZIndex = 1000
+                        if card then card.ZIndex = 1000 end
                         table.insert(activeOverlays, closeDropdown)
                     else
                         closeDropdown()
