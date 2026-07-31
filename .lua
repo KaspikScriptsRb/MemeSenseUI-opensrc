@@ -126,6 +126,7 @@ local function setupAutoScrollBar(scrollFrame, maxThickness)
     maxThickness = maxThickness or 2
     scrollFrame.ScrollBarThickness = 0
     scrollFrame.ScrollBarImageTransparency = 1
+    scrollFrame.ScrollBarImageColor3 = library.theme.inputBorder
     scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
     scrollFrame.BorderSizePixel = 0
     scrollFrame.BackgroundTransparency = 1
@@ -410,6 +411,7 @@ function library.createWindow(options)
             LayoutOrder = -10000,
             Parent = headerLeft,
         })
+        window.masterToggleContainer = container
 
         create("UIListLayout", {
             FillDirection = Enum.FillDirection.Horizontal,
@@ -594,6 +596,33 @@ function library.createWindow(options)
             Parent = contentArea,
         })
 
+        local fullScroll = create("ScrollingFrame", {
+            Size = UDim2.new(1, 0, 1, 0),
+            Position = UDim2.new(0, 0, 0, 0),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            ScrollBarThickness = 0,
+            ScrollBarImageTransparency = 1,
+            ScrollBarImageColor3 = library.theme.inputBorder,
+            ClipsDescendants = false,
+            AutomaticCanvasSize = Enum.AutomaticSize.Y,
+            Parent = view,
+        })
+
+        create("UIPadding", {
+            PaddingTop = UDim.new(0, 10),
+            PaddingBottom = UDim.new(0, 10),
+            PaddingLeft = UDim.new(0, 20),
+            PaddingRight = UDim.new(0, 20),
+            Parent = fullScroll,
+        })
+
+        create("UIListLayout", {
+            SortOrder = Enum.SortOrder.LayoutOrder,
+            Padding = UDim.new(0, 10),
+            Parent = fullScroll,
+        })
+
         local columnsFrame = create("Frame", {
             Size = UDim2.new(1, 0, 1, 0),
             Position = UDim2.new(0, 0, 0, 0),
@@ -616,6 +645,8 @@ function library.createWindow(options)
             BackgroundTransparency = 1,
             BorderSizePixel = 0,
             ScrollBarThickness = 0,
+            ScrollBarImageTransparency = 1,
+            ScrollBarImageColor3 = library.theme.inputBorder,
             ClipsDescendants = false,
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
             Parent = columnsFrame,
@@ -627,13 +658,12 @@ function library.createWindow(options)
             BackgroundTransparency = 1,
             BorderSizePixel = 0,
             ScrollBarThickness = 0,
+            ScrollBarImageTransparency = 1,
+            ScrollBarImageColor3 = library.theme.inputBorder,
             ClipsDescendants = false,
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
             Parent = columnsFrame,
         })
-
-        setupAutoScrollBar(colLeft, 2)
-        setupAutoScrollBar(colRight, 2)
 
         create("UIListLayout", {
             SortOrder = Enum.SortOrder.LayoutOrder,
@@ -676,7 +706,16 @@ function library.createWindow(options)
             Parent = tabHeaderRight,
         })
 
+        local function closeGlobalOverlays()
+            for _, child in globalOverlayFrame:GetChildren() do
+                if child:IsA("GuiObject") then
+                    child.Visible = false
+                end
+            end
+        end
+
         function tab.activate()
+            closeGlobalOverlays()
             for _, t in window.tabs do
                 t.deactivate()
             end
@@ -689,9 +728,14 @@ function library.createWindow(options)
             tabLabel.TextColor3 = library.theme.textBright
             btn.BackgroundColor3 = Color3.fromRGB(24, 24, 28)
             btn.BackgroundTransparency = 0
+
+            if window.masterToggleContainer then
+                window.masterToggleContainer.Visible = (tab.name ~= "Configs")
+            end
         end
 
         function tab.deactivate()
+            closeGlobalOverlays()
             view.Visible = false
             tabHeaderLeft.Visible = false
             tabHeaderRight.Visible = false
@@ -1806,7 +1850,7 @@ function library.createWindow(options)
 
                 local fill = create("Frame", {
                     Size = UDim2.new(math.clamp((value - min) / (max - min), 0, 1), 0, 1, 0),
-                    BackgroundColor3 = library.theme.accent,
+                    BackgroundColor3 = Color3.fromRGB(200, 205, 215),
                     BorderSizePixel = 0,
                     Parent = track,
                 })
@@ -2418,7 +2462,8 @@ function library.createWindow(options)
         end
 
         function tab.createSection(self, title)
-            return createSection(colLeft, title)
+            columnsFrame.Visible = false
+            return createSection(fullScroll, title)
         end
 
         table.insert(window.tabs, tab)
