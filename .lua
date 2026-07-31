@@ -410,6 +410,14 @@ function library.createWindow(options)
         end
     end
 
+    local activeOverlays = {}
+    local function closeGlobalOverlays()
+        for _, closeFunc in activeOverlays do
+            pcall(closeFunc)
+        end
+        table.clear(activeOverlays)
+    end
+
     local function isInsideView(element)
         if not element or not element:IsDescendantOf(game) then return false end
         local mainAbsPos = main.AbsolutePosition
@@ -2181,9 +2189,7 @@ function library.createWindow(options)
                                 optBtn.TextColor3 = selected[opt] and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 155, 165)
                             else
                                 selected = opt
-                                open = false
-                                listContainer.Visible = false
-                                arrow.Rotation = 180
+                                closeDropdown()
                             end
                             selectedLabel.Text = getDisplayText()
                             if flag then library.flags[flag] = selected end
@@ -2192,18 +2198,27 @@ function library.createWindow(options)
                     end
                 end
 
+                local function closeDropdown()
+                    open = false
+                    listContainer.Visible = false
+                    arrow.Rotation = 180
+                    container.Size = UDim2.new(1, 0, 0, 24)
+                end
+
                 dropHeader.MouseButton1Click:Connect(function()
                     local wasOpen = open
                     closeGlobalOverlays()
                     open = not wasOpen
                     if open then
                         populateOptions()
-                        listContainer.Size = UDim2.new(1, 0, 0, math.min(#options * 22 + 6, 166))
+                        local listH = math.min(#options * 22 + 6, 166)
+                        listContainer.Size = UDim2.new(1, 0, 0, listH)
                         listContainer.Visible = true
                         arrow.Rotation = 0
+                        container.Size = UDim2.new(1, 0, 0, 24 + listH - 3)
+                        table.insert(activeOverlays, closeDropdown)
                     else
-                        listContainer.Visible = false
-                        arrow.Rotation = 180
+                        closeDropdown()
                     end
                 end)
 
