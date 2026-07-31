@@ -1624,7 +1624,7 @@ function library.createWindow(options)
                             end
                             local iconAbsPos = iconBtn.AbsolutePosition
                             local iconAbsSize = iconBtn.AbsoluteSize
-                            popup.Position = UDim2.new(0, iconAbsPos.X - 10, 0, iconAbsPos.Y + iconAbsSize.Y + 4)
+                            popup.Position = UDim2.new(0, iconAbsPos.X + iconAbsSize.X + 8, 0, iconAbsPos.Y - 6)
                         end)
                     end
 
@@ -1634,7 +1634,7 @@ function library.createWindow(options)
                             if popup.Visible then
                                 local iconAbsPos = iconBtn.AbsolutePosition
                                 local iconAbsSize = iconBtn.AbsoluteSize
-                                popup.Position = UDim2.new(0, iconAbsPos.X - 10, 0, iconAbsPos.Y + iconAbsSize.Y + 4)
+                                popup.Position = UDim2.new(0, iconAbsPos.X + iconAbsSize.X + 8, 0, iconAbsPos.Y - 6)
                                 startBindTracking()
                             else
                                 if bindTrackConn then bindTrackConn:Disconnect() end
@@ -1835,16 +1835,17 @@ function library.createWindow(options)
                     BackgroundColor3 = Color3.fromRGB(20, 22, 28),
                     BorderSizePixel = 0,
                     Visible = false,
-                    ZIndex = 100,
-                    Parent = container,
+                    ZIndex = 100010,
+                    Parent = globalOverlayFrame,
                 })
+                makeCorner(manualInputFrame, 3)
 
                 create("Frame", {
-                    Size = UDim2.new(1, 0, 0, 1.5),
-                    Position = UDim2.new(0, 0, 1, -1.5),
+                    Size = UDim2.new(1, 0, 0, 2),
+                    Position = UDim2.new(0, 0, 1, -2),
                     BackgroundColor3 = library.theme.accent,
                     BorderSizePixel = 0,
-                    ZIndex = 101,
+                    ZIndex = 100011,
                     Parent = manualInputFrame,
                 })
 
@@ -1858,7 +1859,7 @@ function library.createWindow(options)
                     TextColor3 = library.theme.textBright,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ClearTextOnFocus = false,
-                    ZIndex = 102,
+                    ZIndex = 100012,
                     Parent = manualInputFrame,
                 })
 
@@ -1898,13 +1899,37 @@ function library.createWindow(options)
                     applyValue(rounded)
                 end
 
+                local manualTrackConn
+                local function startManualTracking()
+                    if manualTrackConn then manualTrackConn:Disconnect() end
+                    manualTrackConn = runService.RenderStepped:Connect(function()
+                        if not manualInputFrame.Visible or not container:IsDescendantOf(game) then
+                            if manualTrackConn then manualTrackConn:Disconnect() end
+                            manualTrackConn = nil
+                            manualInputFrame.Visible = false
+                            return
+                        end
+                        local absPos = container.AbsolutePosition
+                        local absSize = container.AbsoluteSize
+                        manualInputFrame.Position = UDim2.new(0, absPos.X, 0, absPos.Y)
+                        manualInputFrame.Size = UDim2.new(0, absSize.X, 0, 22)
+                    end)
+                end
+
                 valButton.MouseButton1Click:Connect(function()
+                    local absPos = container.AbsolutePosition
+                    local absSize = container.AbsoluteSize
+                    manualInputFrame.Position = UDim2.new(0, absPos.X, 0, absPos.Y)
+                    manualInputFrame.Size = UDim2.new(0, absSize.X, 0, 22)
                     manualInputFrame.Visible = true
                     manualTextBox.Text = string.format("%." .. decimals .. "f", value)
+                    startManualTracking()
                     manualTextBox:CaptureFocus()
                 end)
 
                 manualTextBox.FocusLost:Connect(function()
+                    if manualTrackConn then manualTrackConn:Disconnect() end
+                    manualTrackConn = nil
                     manualInputFrame.Visible = false
                     local num = tonumber(manualTextBox.Text)
                     if num then
