@@ -390,7 +390,8 @@ function library.createWindow(options)
             AutomaticSize = Enum.AutomaticSize.X,
             BackgroundTransparency = 1,
             Text = "",
-            Parent = headerRight,
+            LayoutOrder = -100,
+            Parent = headerLeft,
         })
 
         create("UIListLayout", {
@@ -1952,7 +1953,7 @@ function library.createWindow(options)
 
                 local listContainer = create("Frame", {
                     Size = UDim2.new(0, 115, 0, 0),
-                    BackgroundColor3 = Color3.fromRGB(24, 24, 28),
+                    BackgroundColor3 = Color3.fromRGB(24, 25, 30),
                     BackgroundTransparency = 0,
                     BorderSizePixel = 0,
                     ClipsDescendants = true,
@@ -1963,15 +1964,7 @@ function library.createWindow(options)
 
                 create("UIListLayout", {
                     SortOrder = Enum.SortOrder.LayoutOrder,
-                    Padding = UDim.new(0, 1),
-                    Parent = listContainer,
-                })
-
-                create("UIPadding", {
-                    PaddingTop = UDim.new(0, 2),
-                    PaddingBottom = UDim.new(0, 2),
-                    PaddingLeft = UDim.new(0, 2),
-                    PaddingRight = UDim.new(0, 2),
+                    Padding = UDim.new(0, 0),
                     Parent = listContainer,
                 })
 
@@ -2021,8 +2014,8 @@ function library.createWindow(options)
                             Parent = listContainer,
                         })
                         create("UIPadding", {
-                            PaddingLeft = UDim.new(0, 8),
-                            PaddingRight = UDim.new(0, 8),
+                            PaddingLeft = UDim.new(0, 6),
+                            PaddingRight = UDim.new(0, 6),
                             Parent = optBtn,
                         })
 
