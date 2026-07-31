@@ -841,10 +841,11 @@ function library.createWindow(options)
                 ZIndex = 100001,
                 Parent = globalOverlayFrame,
             })
-            makeCorner(listContainer, 3)
+            makeCorner(listContainer, 4)
+            makeStroke(listContainer, Color3.fromRGB(40, 42, 50), 1)
 
-            create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 0), Parent = listContainer })
-            create("UIPadding", { PaddingTop = UDim.new(0, 2), PaddingBottom = UDim.new(0, 2), PaddingLeft = UDim.new(0, 0), PaddingRight = UDim.new(0, 0), Parent = listContainer })
+            create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 1), Parent = listContainer })
+            create("UIPadding", { PaddingTop = UDim.new(0, 3), PaddingBottom = UDim.new(0, 3), PaddingLeft = UDim.new(0, 3), PaddingRight = UDim.new(0, 3), Parent = listContainer })
 
                 local function updateHeaderDropdownPos()
                     if open and dropHeader:IsDescendantOf(game) then
@@ -883,8 +884,8 @@ function library.createWindow(options)
                             local isSel = (opt == selected)
                             local optBtn = create("TextButton", {
                                 Size = UDim2.new(1, 0, 0, 22),
-                                BackgroundColor3 = Color3.fromRGB(24, 25, 30),
-                                BackgroundTransparency = 1,
+                                BackgroundColor3 = isSel and Color3.fromRGB(36, 38, 46) or Color3.fromRGB(24, 25, 30),
+                                BackgroundTransparency = isSel and 0 or 1,
                                 BorderSizePixel = 0,
                                 Text = opt,
                                 Font = library.theme.fontBold,
@@ -894,13 +895,21 @@ function library.createWindow(options)
                                 ZIndex = 100002,
                                 Parent = listContainer,
                             })
+                            makeCorner(optBtn, 3)
                             create("UIPadding", { PaddingLeft = UDim.new(0, 8), Parent = optBtn })
 
                             optBtn.MouseEnter:Connect(function()
-                                if not isSel then optBtn.TextColor3 = Color3.fromRGB(255, 255, 255) end
+                                if not isSel then
+                                    optBtn.BackgroundColor3 = Color3.fromRGB(36, 38, 46)
+                                    optBtn.BackgroundTransparency = 0
+                                    optBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                                end
                             end)
                             optBtn.MouseLeave:Connect(function()
-                                optBtn.TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145)
+                                if not isSel then
+                                    optBtn.BackgroundTransparency = 1
+                                    optBtn.TextColor3 = Color3.fromRGB(130, 135, 145)
+                                end
                             end)
 
                             optBtn.MouseButton1Click:Connect(function()
@@ -2129,13 +2138,11 @@ function library.createWindow(options)
                     ZIndex = 100001,
                     Parent = globalOverlayFrame,
                 })
-                makeCorner(listContainer, 3)
+                makeCorner(listContainer, 4)
+                makeStroke(listContainer, Color3.fromRGB(40, 42, 50), 1)
 
-                create("UIListLayout", {
-                    SortOrder = Enum.SortOrder.LayoutOrder,
-                    Padding = UDim.new(0, 0),
-                    Parent = listContainer,
-                })
+                create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 1), Parent = listContainer })
+                create("UIPadding", { PaddingTop = UDim.new(0, 3), PaddingBottom = UDim.new(0, 3), PaddingLeft = UDim.new(0, 3), PaddingRight = UDim.new(0, 3), Parent = listContainer })
 
                 local function updateDropdownPosition()
                     if open and dropHeader:IsDescendantOf(game) then
@@ -2171,8 +2178,8 @@ function library.createWindow(options)
 
                         local optBtn = create("TextButton", {
                             Size = UDim2.new(1, 0, 0, 22),
-                            BackgroundColor3 = Color3.fromRGB(24, 25, 30),
-                            BackgroundTransparency = 1,
+                            BackgroundColor3 = isSel and Color3.fromRGB(36, 38, 46) or Color3.fromRGB(24, 25, 30),
+                            BackgroundTransparency = isSel and 0 or 1,
                             BorderSizePixel = 0,
                             Text = opt,
                             Font = library.theme.fontBold,
@@ -2182,6 +2189,7 @@ function library.createWindow(options)
                             ZIndex = 100002,
                             Parent = listContainer,
                         })
+                        makeCorner(optBtn, 3)
                         create("UIPadding", {
                             PaddingLeft = UDim.new(0, 6),
                             PaddingRight = UDim.new(0, 6),
@@ -2190,11 +2198,16 @@ function library.createWindow(options)
 
                         optBtn.MouseEnter:Connect(function()
                             if not isSel then
+                                optBtn.BackgroundColor3 = Color3.fromRGB(36, 38, 46)
+                                optBtn.BackgroundTransparency = 0
                                 optBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
                             end
                         end)
                         optBtn.MouseLeave:Connect(function()
-                            optBtn.TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145)
+                            if not isSel then
+                                optBtn.BackgroundTransparency = 1
+                                optBtn.TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145)
+                            end
                         end)
 
                         optBtn.MouseButton1Click:Connect(function()
