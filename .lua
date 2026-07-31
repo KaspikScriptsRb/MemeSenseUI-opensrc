@@ -2151,6 +2151,16 @@ function library.createWindow(options)
                 })
                 create("UIPadding", { PaddingTop = UDim.new(0, 3), PaddingBottom = UDim.new(0, 3), PaddingLeft = UDim.new(0, 0), PaddingRight = UDim.new(0, 0), Parent = listContainer })
 
+                local closeDropdown = function()
+                    open = false
+                    listContainer.Visible = false
+                    arrow.Rotation = 180
+                    container.ZIndex = 1
+                    rightGroup.ZIndex = 1
+                    dropHeader.ZIndex = 1
+                    if card then card.ZIndex = 1 end
+                end
+
                 local function populateOptions()
                     for _, child in listContainer:GetChildren() do
                         if child:IsA("TextButton") then child:Destroy() end
@@ -2196,16 +2206,6 @@ function library.createWindow(options)
                             pcall(callback, selected)
                         end)
                     end
-                end
-
-                local function closeDropdown()
-                    open = false
-                    listContainer.Visible = false
-                    arrow.Rotation = 180
-                    container.ZIndex = 1
-                    rightGroup.ZIndex = 1
-                    dropHeader.ZIndex = 1
-                    if card then card.ZIndex = 1 end
                 end
 
                 dropHeader.MouseButton1Click:Connect(function()
