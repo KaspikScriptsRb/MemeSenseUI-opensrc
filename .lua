@@ -584,7 +584,7 @@ function library.createWindow(options)
             end
         end)
         btn.MouseLeave:Connect(function()
-            if window.activeTab ~= tab me
+            if window.activeTab ~= tab then
                 tween(tabLabel, 0.12, { TextColor3 = library.theme.textDim })
             end
         end)
