@@ -144,6 +144,7 @@ function library.createWindow(options)
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "MemeSenseGui"
     screenGui.ResetOnSpawn = false
+    screenGui.IgnoreGuiInset = true
     screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
     local guiParent = coreGui
@@ -252,36 +253,41 @@ function library.createWindow(options)
         Parent = logoFrame,
     })
 
-    memeLabel:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-        senseLabel.Position = UDim2.new(0, 20 + memeLabel.AbsoluteSize.X, 0.5, 0)
-    end)
+    local sidebar = create("Frame", {
+        Size = UDim2.new(0, 165, 1, -44),
+        Position = UDim2.new(0, 0, 0, 44),
+        BackgroundColor3 = library.theme.sidebarBg,
+        BorderSizePixel = 0,
+        Parent = main,
+    })
 
     local tabScroll = create("ScrollingFrame", {
-        Size = UDim2.new(1, 0, 1, -42),
-        Position = UDim2.new(0, 0, 0, 42),
+        Size = UDim2.new(1, 0, 1, 0),
         BackgroundTransparency = 1,
         BorderSizePixel = 0,
-        ScrollBarThickness = 0,
+        ScrollBarThickness = 2,
+        ScrollBarImageColor3 = library.theme.inputBorder,
+        CanvasSize = UDim2.new(0, 0, 0, 0),
         AutomaticCanvasSize = Enum.AutomaticSize.Y,
         Parent = sidebar,
     })
 
     create("UIListLayout", {
         SortOrder = Enum.SortOrder.LayoutOrder,
-        Padding = UDim.new(0, 0),
+        Padding = UDim.new(0, 2),
         Parent = tabScroll,
     })
 
     local headerBar = create("Frame", {
-        Size = UDim2.new(1, -155, 0, 42),
-        Position = UDim2.new(0, 155, 0, 2),
+        Size = UDim2.new(1, -165, 0, 44),
+        Position = UDim2.new(0, 165, 0, 0),
         BackgroundColor3 = library.theme.headerBg,
         BorderSizePixel = 0,
         Parent = main,
     })
 
     local headerLeft = create("Frame", {
-        Size = UDim2.new(0.6, -15, 1, 0),
+        Size = UDim2.new(0.65, -15, 1, 0),
         Position = UDim2.new(0, 15, 0, 0),
         BackgroundTransparency = 1,
         Parent = headerBar,
@@ -295,7 +301,7 @@ function library.createWindow(options)
     })
 
     local headerRight = create("Frame", {
-        Size = UDim2.new(0.4, -15, 1, 0),
+        Size = UDim2.new(0.35, -15, 1, 0),
         Position = UDim2.new(1, -15, 0, 0),
         AnchorPoint = Vector2.new(1, 0),
         BackgroundTransparency = 1,
@@ -311,8 +317,8 @@ function library.createWindow(options)
     })
 
     local contentArea = create("Frame", {
-        Size = UDim2.new(1, -155, 1, -44),
-        Position = UDim2.new(0, 155, 0, 44),
+        Size = UDim2.new(1, -165, 1, -44),
+        Position = UDim2.new(0, 165, 0, 44),
         BackgroundTransparency = 1,
         ClipsDescendants = true,
         Parent = main,
@@ -518,7 +524,7 @@ function library.createWindow(options)
         }
 
         local btn = create("TextButton", {
-            Size = UDim2.new(1, 0, 0, 32),
+            Size = UDim2.new(1, 0, 0, 34),
             BackgroundTransparency = 1,
             Text = "",
             AutoButtonColor = false,
@@ -784,12 +790,12 @@ function library.createWindow(options)
                         create("UIPadding", { PaddingLeft = UDim.new(0, 8), Parent = optBtn })
 
                         optBtn.MouseEnter:Connect(function()
-                            optBtn.BackgroundColor3 = Color3.fromRGB(36, 38, 46)
-                            optBtn.BackgroundTransparency = 0
+                            if not isSel then
+                                optBtn.TextColor3 = Color3.fromRGB(210, 215, 225)
+                            end
                         end)
                         optBtn.MouseLeave:Connect(function()
-                            optBtn.BackgroundColor3 = Color3.fromRGB(24, 25, 30)
-                            optBtn.BackgroundTransparency = 1
+                            optBtn.TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 155, 165)
                         end)
 
                         optBtn.MouseButton1Click:Connect(function()
@@ -1982,6 +1988,7 @@ function library.createWindow(options)
                         local absPos = dropHeader.AbsolutePosition
                         local absSize = dropHeader.AbsoluteSize
                         listContainer.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y)
+                        listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22, 160))
                     end)
                 end
 
@@ -2020,12 +2027,12 @@ function library.createWindow(options)
                         })
 
                         optBtn.MouseEnter:Connect(function()
-                            optBtn.BackgroundColor3 = Color3.fromRGB(36, 38, 46)
-                            optBtn.BackgroundTransparency = 0
+                            if not isSel then
+                                optBtn.TextColor3 = Color3.fromRGB(210, 215, 225)
+                            end
                         end)
                         optBtn.MouseLeave:Connect(function()
-                            optBtn.BackgroundColor3 = Color3.fromRGB(24, 25, 30)
-                            optBtn.BackgroundTransparency = 1
+                            optBtn.TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(140, 145, 155)
                         end)
 
                         optBtn.MouseButton1Click:Connect(function()
