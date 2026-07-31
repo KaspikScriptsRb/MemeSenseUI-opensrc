@@ -398,76 +398,10 @@ function library.createWindow(options)
     end)
 
     function window.createHeaderToggle(config)
-        config = config or {}
-        local name = config.name or "Master switch"
-        local state = config.default or false
-        local callback = config.callback or function() end
-
-        local container = create("TextButton", {
-            Size = UDim2.new(0, 0, 0, 24),
-            AutomaticSize = Enum.AutomaticSize.X,
-            BackgroundTransparency = 1,
-            Text = "",
-            LayoutOrder = -10000,
-            Parent = headerLeft,
-        })
-        window.masterToggleContainer = container
-
-        create("UIListLayout", {
-            FillDirection = Enum.FillDirection.Horizontal,
-            VerticalAlignment = Enum.VerticalAlignment.Center,
-            Padding = UDim.new(0, 8),
-            Parent = container,
-        })
-
-        local box = create("Frame", {
-            Size = UDim2.new(0, 15, 0, 15),
-            BackgroundColor3 = state and library.theme.accent or library.theme.inputBg,
-            BorderSizePixel = 0,
-            Parent = container,
-        })
-        makeCorner(box, 3)
-        makeStroke(box, state and library.theme.accent or library.theme.inputBorder)
-
-        local checkmark = create("ImageLabel", {
-            Size = UDim2.new(0, 11, 0, 11),
-            Position = UDim2.new(0.5, 0, 0.5, 0),
-            AnchorPoint = Vector2.new(0.5, 0.5),
-            BackgroundTransparency = 1,
-            Image = "rbxassetid://14189590169",
-            ImageColor3 = Color3.fromRGB(255, 255, 255),
-            ImageTransparency = state and 0 or 1,
-            Parent = box,
-        })
-
-        create("TextLabel", {
-            Text = name,
-            Font = library.theme.fontBold,
-            TextSize = 13,
-            TextColor3 = library.theme.textBright,
-            AutomaticSize = Enum.AutomaticSize.X,
-            BackgroundTransparency = 1,
-            Parent = container,
-        })
-
-        container.MouseButton1Click:Connect(function()
-            state = not state
-            box.BackgroundColor3 = state and library.theme.accent or library.theme.inputBg
-            box.UIStroke.Color = state and library.theme.accent or library.theme.inputBorder
-            checkmark.ImageTransparency = state and 0 or 1
-            pcall(callback, state)
-        end)
-
-        return {
-            set = function(val)
-                state = val
-                box.BackgroundColor3 = state and library.theme.accent or library.theme.inputBg
-                box.UIStroke.Color = state and library.theme.accent or library.theme.inputBorder
-                checkmark.ImageTransparency = state and 0 or 1
-                pcall(callback, state)
-            end,
-            get = function() return state end
-        }
+        local targetTab = window.activeTab or window.tabs[1]
+        if targetTab then
+            return targetTab:createHeaderToggle(config)
+        end
     end
 
     function window.createHeaderButton(config)
@@ -745,6 +679,79 @@ function library.createWindow(options)
             btn.BackgroundTransparency = 1
         end
 
+        function tab.createHeaderToggle(self, config)
+            config = config or {}
+            local name = config.name or "Master switch"
+            local state = config.default or false
+            local callback = config.callback or function() end
+            local side = config.side == "Left" and tabHeaderLeft or tabHeaderRight
+
+            local container = create("TextButton", {
+                Size = UDim2.new(0, 0, 0, 24),
+                AutomaticSize = Enum.AutomaticSize.X,
+                BackgroundTransparency = 1,
+                Text = "",
+                LayoutOrder = config.layoutOrder or 1,
+                Parent = side,
+            })
+
+            create("UIListLayout", {
+                FillDirection = Enum.FillDirection.Horizontal,
+                VerticalAlignment = Enum.VerticalAlignment.Center,
+                Padding = UDim.new(0, 8),
+                Parent = container,
+            })
+
+            local box = create("Frame", {
+                Size = UDim2.new(0, 15, 0, 15),
+                BackgroundColor3 = state and library.theme.accent or library.theme.inputBg,
+                BorderSizePixel = 0,
+                Parent = container,
+            })
+            makeCorner(box, 3)
+            makeStroke(box, state and library.theme.accent or library.theme.inputBorder)
+
+            local checkmark = create("ImageLabel", {
+                Size = UDim2.new(0, 11, 0, 11),
+                Position = UDim2.new(0.5, 0, 0.5, 0),
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                BackgroundTransparency = 1,
+                Image = "rbxassetid://14189590169",
+                ImageColor3 = Color3.fromRGB(255, 255, 255),
+                ImageTransparency = state and 0 or 1,
+                Parent = box,
+            })
+
+            create("TextLabel", {
+                Text = name,
+                Font = library.theme.fontBold,
+                TextSize = 13,
+                TextColor3 = library.theme.textBright,
+                AutomaticSize = Enum.AutomaticSize.X,
+                BackgroundTransparency = 1,
+                Parent = container,
+            })
+
+            container.MouseButton1Click:Connect(function()
+                state = not state
+                box.BackgroundColor3 = state and library.theme.accent or library.theme.inputBg
+                box.UIStroke.Color = state and library.theme.accent or library.theme.inputBorder
+                checkmark.ImageTransparency = state and 0 or 1
+                pcall(callback, state)
+            end)
+
+            return {
+                set = function(val)
+                    state = val
+                    box.BackgroundColor3 = state and library.theme.accent or library.theme.inputBg
+                    box.UIStroke.Color = state and library.theme.accent or library.theme.inputBorder
+                    checkmark.ImageTransparency = state and 0 or 1
+                    pcall(callback, state)
+                end,
+                get = function() return state end
+            }
+        end
+
         function tab.createHeaderDropdown(self, config)
             config = config or {}
             local options = config.options or {}
@@ -800,6 +807,7 @@ function library.createWindow(options)
                 ZIndex = 100001,
                 Parent = globalOverlayFrame,
             })
+            makeCorner(listContainer, 3)
 
             create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 0), Parent = listContainer })
             create("UIPadding", { PaddingTop = UDim.new(0, 2), PaddingBottom = UDim.new(0, 2), PaddingLeft = UDim.new(0, 0), PaddingRight = UDim.new(0, 0), Parent = listContainer })
@@ -2034,6 +2042,7 @@ function library.createWindow(options)
                     ZIndex = 100001,
                     Parent = globalOverlayFrame,
                 })
+                makeCorner(listContainer, 3)
 
                 create("UIListLayout", {
                     SortOrder = Enum.SortOrder.LayoutOrder,
@@ -2065,7 +2074,7 @@ function library.createWindow(options)
                     end
                     for _, opt in options do
                         local isSel = (isMulti and selected[opt] == true) or (not isMulti and opt == selected)
-                        local optTextColor = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 155, 165)
+                        local optTextColor = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145)
 
                         local optBtn = create("TextButton", {
                             Size = UDim2.new(1, 0, 0, 22),
@@ -2088,11 +2097,11 @@ function library.createWindow(options)
 
                         optBtn.MouseEnter:Connect(function()
                             if not isSel then
-                                optBtn.TextColor3 = Color3.fromRGB(210, 215, 225)
+                                optBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
                             end
                         end)
                         optBtn.MouseLeave:Connect(function()
-                            optBtn.TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(140, 145, 155)
+                            optBtn.TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145)
                         end)
 
                         optBtn.MouseButton1Click:Connect(function()
@@ -2229,7 +2238,7 @@ function library.createWindow(options)
                         })
 
                         local nameLabel = create("TextLabel", {
-                            Size = UDim2.new(0.5, -40, 0, 18),
+                            Size = UDim2.new(1, -175, 0, 18),
                             Position = UDim2.new(0, 36, 0, 8),
                             Text = item.name,
                             Font = library.theme.fontBold,
@@ -2241,7 +2250,7 @@ function library.createWindow(options)
                         })
 
                         local nameEditBox = create("TextBox", {
-                            Size = UDim2.new(0.5, -40, 0, 20),
+                            Size = UDim2.new(1, -175, 0, 20),
                             Position = UDim2.new(0, 36, 0, 7),
                             BackgroundColor3 = Color3.fromRGB(16, 16, 18),
                             Text = item.name,
@@ -2257,7 +2266,7 @@ function library.createWindow(options)
                         create("UIPadding", { PaddingLeft = UDim.new(0, 4), Parent = nameEditBox })
 
                         local subFrame = create("Frame", {
-                            Size = UDim2.new(0.5, -40, 0, 14),
+                            Size = UDim2.new(1, -175, 0, 14),
                             Position = UDim2.new(0, 36, 0, 26),
                             BackgroundTransparency = 1,
                             Parent = cardItem,
