@@ -843,6 +843,14 @@ function library.createWindow(options)
                 Parent = globalOverlayFrame,
             })
             makeCorner(listContainer, 3)
+            create("Frame", {
+                Size = UDim2.new(1, 0, 0, 4),
+                Position = UDim2.new(0, 0, 0, 0),
+                BackgroundColor3 = Color3.fromRGB(24, 25, 30),
+                BorderSizePixel = 0,
+                ZIndex = 100001,
+                Parent = listContainer,
+            })
 
             create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 0), Parent = listContainer })
             create("UIPadding", { PaddingTop = UDim.new(0, 3), PaddingBottom = UDim.new(0, 3), PaddingLeft = UDim.new(0, 0), PaddingRight = UDim.new(0, 0), Parent = listContainer })
@@ -851,7 +859,7 @@ function library.createWindow(options)
                     if open and dropHeader:IsDescendantOf(game) then
                         local relPos = getPositionInMain(dropHeader)
                         local absSize = dropHeader.AbsoluteSize
-                        listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y - 3)
+                        listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y - 2)
                         listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22 + 6, 166))
                     end
                 end
@@ -1756,6 +1764,15 @@ function library.createWindow(options)
                     })
                     makeCorner(modeDropContainer, 3)
 
+                    create("Frame", {
+                        Size = UDim2.new(1, 0, 0, 8),
+                        Position = UDim2.new(0, 0, 0, 0),
+                        BackgroundColor3 = Color3.fromRGB(24, 25, 30),
+                        BorderSizePixel = 0,
+                        ZIndex = 100007,
+                        Parent = modeDropContainer,
+                    })
+
                     create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 0), Parent = modeDropContainer })
                     create("UIPadding", { PaddingTop = UDim.new(0, 3), PaddingBottom = UDim.new(0, 3), Parent = modeDropContainer })
 
@@ -1765,7 +1782,7 @@ function library.createWindow(options)
                         if modeDropOpen then
                             local relBPos = getPositionInMain(modeDropBtn)
                             local bSize = modeDropBtn.AbsoluteSize
-                            modeDropContainer.Position = UDim2.new(0, relBPos.X, 0, relBPos.Y + bSize.Y - 3)
+                            modeDropContainer.Position = UDim2.new(0, relBPos.X, 0, relBPos.Y + bSize.Y - 2)
                             modeDropContainer.Size = UDim2.new(0, bSize.X, 0, 4 * 20 + 6)
                             modeDropContainer.Visible = true
                             modeArrow.Rotation = 0
@@ -2164,7 +2181,14 @@ function library.createWindow(options)
                     Parent = globalOverlayFrame,
                 })
                 makeCorner(listContainer, 3)
-
+                create("Frame", {
+                    Size = UDim2.new(1, 0, 0, 4),
+                    Position = UDim2.new(0, 0, 0, 0),
+                    BackgroundColor3 = library.theme.inputBg,
+                    BorderSizePixel = 0,
+                    ZIndex = 100001,
+                    Parent = listContainer,
+                })
                 create("UIListLayout", {
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     Padding = UDim.new(0, 0),
@@ -2176,7 +2200,7 @@ function library.createWindow(options)
                     if open and dropHeader:IsDescendantOf(game) then
                         local relPos = getPositionInMain(dropHeader)
                         local absSize = dropHeader.AbsoluteSize
-                        listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y - 3)
+                        listContainer.Position = UDim2.new(0, relPos.X, 0, relPos.Y + absSize.Y - 2)
                         listContainer.Size = UDim2.new(0, absSize.X, 0, math.min(#options * 22 + 6, 166))
                     end
                 end
