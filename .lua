@@ -6,19 +6,20 @@ local coreGui = game:GetService("CoreGui")
 local library = {
     flags = {},
     theme = {
-        mainBg = Color3.fromRGB(18, 18, 20),
-        sidebarBg = Color3.fromRGB(22, 22, 25),
-        headerBg = Color3.fromRGB(18, 18, 20),
+        mainBg = Color3.fromRGB(16, 16, 18),
+        sidebarBg = Color3.fromRGB(20, 20, 22),
+        headerBg = Color3.fromRGB(16, 16, 18),
+        columnBg = Color3.fromRGB(16, 16, 18),
         
-        accent = Color3.fromRGB(225, 45, 75),
-        accentDark = Color3.fromRGB(170, 30, 55),
+        accent = Color3.fromRGB(235, 42, 60),
+        accentDark = Color3.fromRGB(175, 28, 42),
         
-        textBright = Color3.fromRGB(250, 250, 255),
-        textDim = Color3.fromRGB(170, 170, 178),
-        textMuted = Color3.fromRGB(110, 110, 118),
+        textBright = Color3.fromRGB(245, 245, 250),
+        textDim = Color3.fromRGB(175, 175, 182),
+        textMuted = Color3.fromRGB(115, 115, 122),
         
-        inputBg = Color3.fromRGB(27, 27, 31),
-        inputBorder = Color3.fromRGB(42, 42, 48),
+        inputBg = Color3.fromRGB(26, 26, 30),
+        inputBorder = Color3.fromRGB(40, 40, 46),
         
         fontBold = Enum.Font.Roboto,
         fontMedium = Enum.Font.Roboto,
@@ -57,13 +58,6 @@ local function create(className, props)
     return inst
 end
 
-local function makeCorner(parent, radius)
-    return create("UICorner", {
-        CornerRadius = UDim.new(0, radius or 2),
-        Parent = parent
-    })
-end
-
 local function makeStroke(parent, color, thickness)
     return create("UIStroke", {
         Color = color or library.theme.inputBorder,
@@ -71,13 +65,6 @@ local function makeStroke(parent, color, thickness)
         ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
         Parent = parent
     })
-end
-
-local function tween(inst, time, props)
-    local info = TweenInfo.new(time or 0.14, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    local t = tweenService:Create(inst, info, props)
-    t:Play()
-    return t
 end
 
 local defaultIcons = {
@@ -97,7 +84,7 @@ local defaultIcons = {
 
 function library.createWindow(options)
     options = options or {}
-    local size = options.size or UDim2.new(0, 680, 0, 500)
+    local size = options.size or UDim2.new(0, 690, 0, 510)
     local toggleKey = options.toggleKey or Enum.KeyCode.RightShift
 
     local window = {
@@ -120,8 +107,7 @@ function library.createWindow(options)
         ClipsDescendants = true,
         Parent = screenGui,
     })
-    makeCorner(main, 2)
-    makeStroke(main, Color3.fromRGB(32, 32, 36), 1)
+    makeStroke(main, Color3.fromRGB(30, 30, 34), 1)
 
     local topBar = create("Frame", {
         Size = UDim2.new(1, 0, 0, 2),
@@ -155,7 +141,7 @@ function library.createWindow(options)
     end)
 
     local sidebar = create("Frame", {
-        Size = UDim2.new(0, 145, 1, -2),
+        Size = UDim2.new(0, 150, 1, -2),
         Position = UDim2.new(0, 0, 0, 2),
         BackgroundColor3 = library.theme.sidebarBg,
         BorderSizePixel = 0,
@@ -163,17 +149,17 @@ function library.createWindow(options)
     })
 
     local logoFrame = create("Frame", {
-        Size = UDim2.new(1, 0, 0, 38),
+        Size = UDim2.new(1, 0, 0, 42),
         BackgroundTransparency = 1,
         Parent = sidebar,
     })
 
     local memeLabel = create("TextLabel", {
-        Position = UDim2.new(0, 14, 0.5, 0),
+        Position = UDim2.new(0, 16, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
         Text = "Meme",
         Font = library.theme.fontBold,
-        TextSize = 18,
+        TextSize = 19,
         TextColor3 = library.theme.accent,
         AutomaticSize = Enum.AutomaticSize.X,
         BackgroundTransparency = 1,
@@ -181,11 +167,11 @@ function library.createWindow(options)
     })
 
     local senseLabel = create("TextLabel", {
-        Position = UDim2.new(0, 14 + memeLabel.AbsoluteSize.X, 0.5, 0),
+        Position = UDim2.new(0, 16 + memeLabel.AbsoluteSize.X, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
         Text = "Sense",
         Font = library.theme.fontBold,
-        TextSize = 18,
+        TextSize = 19,
         TextColor3 = library.theme.textBright,
         AutomaticSize = Enum.AutomaticSize.X,
         BackgroundTransparency = 1,
@@ -193,12 +179,12 @@ function library.createWindow(options)
     })
 
     memeLabel:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-        senseLabel.Position = UDim2.new(0, 14 + memeLabel.AbsoluteSize.X, 0.5, 0)
+        senseLabel.Position = UDim2.new(0, 16 + memeLabel.AbsoluteSize.X, 0.5, 0)
     end)
 
     local tabScroll = create("ScrollingFrame", {
-        Size = UDim2.new(1, 0, 1, -38),
-        Position = UDim2.new(0, 0, 0, 38),
+        Size = UDim2.new(1, 0, 1, -42),
+        Position = UDim2.new(0, 0, 0, 42),
         BackgroundTransparency = 1,
         BorderSizePixel = 0,
         ScrollBarThickness = 0,
@@ -213,8 +199,8 @@ function library.createWindow(options)
     })
 
     local headerBar = create("Frame", {
-        Size = UDim2.new(1, -145, 0, 38),
-        Position = UDim2.new(0, 145, 0, 2),
+        Size = UDim2.new(1, -150, 0, 42),
+        Position = UDim2.new(0, 150, 0, 2),
         BackgroundColor3 = library.theme.headerBg,
         BorderSizePixel = 0,
         Parent = main,
@@ -223,19 +209,19 @@ function library.createWindow(options)
     create("UIListLayout", {
         FillDirection = Enum.FillDirection.Horizontal,
         VerticalAlignment = Enum.VerticalAlignment.Center,
-        Padding = UDim.new(0, 8),
+        Padding = UDim.new(0, 10),
         Parent = headerBar,
     })
 
     create("UIPadding", {
-        PaddingLeft = UDim.new(0, 14),
-        PaddingRight = UDim.new(0, 14),
+        PaddingLeft = UDim.new(0, 16),
+        PaddingRight = UDim.new(0, 16),
         Parent = headerBar,
     })
 
     local contentArea = create("Frame", {
-        Size = UDim2.new(1, -145, 1, -40),
-        Position = UDim2.new(0, 145, 0, 40),
+        Size = UDim2.new(1, -150, 1, -44),
+        Position = UDim2.new(0, 150, 0, 44),
         BackgroundTransparency = 1,
         ClipsDescendants = true,
         Parent = main,
@@ -274,14 +260,13 @@ function library.createWindow(options)
 
         if window.visible then
             main.Visible = true
-            tween(main, 0.18, { GroupTransparency = 0 }).Completed:Connect(function()
-                window.fading = false
-            end)
+            local t = tweenService:Create(main, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { GroupTransparency = 0 })
+            t:Play()
+            t.Completed:Connect(function() window.fading = false end)
         else
-            tween(main, 0.18, { GroupTransparency = 1 }).Completed:Connect(function()
-                main.Visible = false
-                window.fading = false
-            end)
+            local t = tweenService:Create(main, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { GroupTransparency = 1 })
+            t:Play()
+            t.Completed:Connect(function() main.Visible = false window.fading = false end)
         end
     end
 
@@ -298,7 +283,7 @@ function library.createWindow(options)
         local callback = config.callback or function() end
 
         local container = create("TextButton", {
-            Size = UDim2.new(0, 0, 0, 22),
+            Size = UDim2.new(0, 0, 0, 24),
             AutomaticSize = Enum.AutomaticSize.X,
             BackgroundTransparency = 1,
             Text = "",
@@ -313,20 +298,19 @@ function library.createWindow(options)
         })
 
         local box = create("Frame", {
-            Size = UDim2.new(0, 13, 0, 13),
+            Size = UDim2.new(0, 14, 0, 14),
             BackgroundColor3 = state and library.theme.accent or library.theme.inputBg,
             BorderSizePixel = 0,
             Parent = container,
         })
-        makeCorner(box, 2)
-        local stroke = makeStroke(box, state and library.theme.accent or library.theme.inputBorder)
+        makeStroke(box, state and library.theme.accent or library.theme.inputBorder)
 
         local checkmark = create("ImageLabel", {
-            Size = UDim2.new(0, 9, 0, 9),
+            Size = UDim2.new(0, 10, 0, 10),
             Position = UDim2.new(0.5, 0, 0.5, 0),
             AnchorPoint = Vector2.new(0.5, 0.5),
             BackgroundTransparency = 1,
-            Image = "rbxassetid://10709790637",
+            Image = "rbxassetid://14189590169",
             ImageColor3 = Color3.fromRGB(255, 255, 255),
             ImageTransparency = state and 0 or 1,
             Parent = box,
@@ -344,9 +328,9 @@ function library.createWindow(options)
 
         container.MouseButton1Click:Connect(function()
             state = not state
-            tween(box, 0.12, { BackgroundColor3 = state and library.theme.accent or library.theme.inputBg })
-            stroke.Color = state and library.theme.accent or library.theme.inputBorder
-            tween(checkmark, 0.12, { ImageTransparency = state and 0 or 1 })
+            box.BackgroundColor3 = state and library.theme.accent or library.theme.inputBg
+            box.UIStroke.Color = state and library.theme.accent or library.theme.inputBorder
+            checkmark.ImageTransparency = state and 0 or 1
             pcall(callback, state)
         end)
 
@@ -354,7 +338,7 @@ function library.createWindow(options)
             set = function(val)
                 state = val
                 box.BackgroundColor3 = state and library.theme.accent or library.theme.inputBg
-                stroke.Color = state and library.theme.accent or library.theme.inputBorder
+                box.UIStroke.Color = state and library.theme.accent or library.theme.inputBorder
                 checkmark.ImageTransparency = state and 0 or 1
                 pcall(callback, state)
             end,
@@ -369,7 +353,7 @@ function library.createWindow(options)
         local callback = config.callback or function() end
 
         local btn = create("TextButton", {
-            Size = UDim2.new(0, 0, 0, 22),
+            Size = UDim2.new(0, 0, 0, 24),
             AutomaticSize = Enum.AutomaticSize.X,
             BackgroundColor3 = library.theme.inputBg,
             Text = "",
@@ -377,25 +361,24 @@ function library.createWindow(options)
             BorderSizePixel = 0,
             Parent = headerBar,
         })
-        makeCorner(btn, 2)
         makeStroke(btn, library.theme.inputBorder)
 
         create("UIPadding", {
-            PaddingLeft = UDim.new(0, 7),
-            PaddingRight = UDim.new(0, 7),
+            PaddingLeft = UDim.new(0, 8),
+            PaddingRight = UDim.new(0, 8),
             Parent = btn,
         })
 
         create("UIListLayout", {
             FillDirection = Enum.FillDirection.Horizontal,
             VerticalAlignment = Enum.VerticalAlignment.Center,
-            Padding = UDim.new(0, 5),
+            Padding = UDim.new(0, 6),
             Parent = btn,
         })
 
         if icon ~= "" then
             create("ImageLabel", {
-                Size = UDim2.new(0, 11, 0, 11),
+                Size = UDim2.new(0, 12, 0, 12),
                 BackgroundTransparency = 1,
                 Image = icon,
                 ImageColor3 = library.theme.textBright,
@@ -413,12 +396,6 @@ function library.createWindow(options)
             Parent = btn,
         })
 
-        btn.MouseEnter:Connect(function()
-            tween(btn, 0.12, { BackgroundColor3 = Color3.fromRGB(34, 34, 40) })
-        end)
-        btn.MouseLeave:Connect(function()
-            tween(btn, 0.12, { BackgroundColor3 = library.theme.inputBg })
-        end)
         btn.MouseButton1Click:Connect(function()
             pcall(callback)
         end)
@@ -435,7 +412,7 @@ function library.createWindow(options)
         }
 
         local btn = create("TextButton", {
-            Size = UDim2.new(1, 0, 0, 28),
+            Size = UDim2.new(1, 0, 0, 30),
             BackgroundTransparency = 1,
             Text = "",
             AutoButtonColor = false,
@@ -491,37 +468,24 @@ function library.createWindow(options)
             Parent = contentArea,
         })
 
-        local subtabBar = create("Frame", {
-            Size = UDim2.new(1, 0, 0, 24),
-            BackgroundTransparency = 1,
-            Parent = view,
-        })
-
-        create("UIListLayout", {
-            FillDirection = Enum.FillDirection.Horizontal,
-            HorizontalAlignment = Enum.HorizontalAlignment.Center,
-            VerticalAlignment = Enum.VerticalAlignment.Center,
-            Padding = UDim.new(0, 20),
-            Parent = subtabBar,
-        })
-
         local columnsFrame = create("Frame", {
-            Size = UDim2.new(1, 0, 1, -24),
-            Position = UDim2.new(0, 0, 0, 24),
+            Size = UDim2.new(1, 0, 1, 0),
+            Position = UDim2.new(0, 0, 0, 0),
             BackgroundTransparency = 1,
             Parent = view,
         })
 
         create("UIPadding", {
-            PaddingTop = UDim.new(0, 4),
-            PaddingBottom = UDim.new(0, 8),
-            PaddingLeft = UDim.new(0, 14),
-            PaddingRight = UDim.new(0, 14),
+            PaddingTop = UDim.new(0, 10),
+            PaddingBottom = UDim.new(0, 10),
+            PaddingLeft = UDim.new(0, 16),
+            PaddingRight = UDim.new(0, 16),
             Parent = columnsFrame,
         })
 
         local colLeft = create("ScrollingFrame", {
-            Size = UDim2.new(0.5, -8, 1, 0),
+            Size = UDim2.new(0.5, -10, 1, 0),
+            Position = UDim2.new(0, 0, 0, 0),
             BackgroundTransparency = 1,
             BorderSizePixel = 0,
             ScrollBarThickness = 0,
@@ -530,8 +494,8 @@ function library.createWindow(options)
         })
 
         local colRight = create("ScrollingFrame", {
-            Size = UDim2.new(0.5, -8, 1, 0),
-            Position = UDim2.new(0.5, 8, 0, 0),
+            Size = UDim2.new(0.5, -10, 1, 0),
+            Position = UDim2.new(0.5, 10, 0, 0),
             BackgroundTransparency = 1,
             BorderSizePixel = 0,
             ScrollBarThickness = 0,
@@ -541,13 +505,13 @@ function library.createWindow(options)
 
         create("UIListLayout", {
             SortOrder = Enum.SortOrder.LayoutOrder,
-            Padding = UDim.new(0, 8),
+            Padding = UDim.new(0, 10),
             Parent = colLeft,
         })
 
         create("UIListLayout", {
             SortOrder = Enum.SortOrder.LayoutOrder,
-            Padding = UDim.new(0, 8),
+            Padding = UDim.new(0, 10),
             Parent = colRight,
         })
 
@@ -557,67 +521,24 @@ function library.createWindow(options)
             end
             window.activeTab = tab
             view.Visible = true
-            tween(activeBar, 0.12, { BackgroundTransparency = 0 })
-            tween(tabIcon, 0.12, { ImageColor3 = library.theme.accent })
-            tween(tabLabel, 0.12, { TextColor3 = library.theme.textBright })
+            activeBar.BackgroundTransparency = 0
+            tabIcon.ImageColor3 = library.theme.accent
+            tabLabel.TextColor3 = library.theme.textBright
             btn.BackgroundColor3 = Color3.fromRGB(24, 24, 28)
             btn.BackgroundTransparency = 0
         end
 
         function tab.deactivate()
             view.Visible = false
-            tween(activeBar, 0.12, { BackgroundTransparency = 1 })
-            tween(tabIcon, 0.12, { ImageColor3 = library.theme.textDim })
-            tween(tabLabel, 0.12, { TextColor3 = library.theme.textDim })
+            activeBar.BackgroundTransparency = 1
+            tabIcon.ImageColor3 = library.theme.textDim
+            tabLabel.TextColor3 = library.theme.textDim
             btn.BackgroundTransparency = 1
         end
 
         btn.MouseButton1Click:Connect(function()
             tab.activate()
         end)
-
-        btn.MouseEnter:Connect(function()
-            if window.activeTab ~= tab then
-                tween(tabLabel, 0.12, { TextColor3 = library.theme.textBright })
-            end
-        end)
-        btn.MouseLeave:Connect(function()
-            if window.activeTab ~= tab then
-                tween(tabLabel, 0.12, { TextColor3 = library.theme.textDim })
-            end
-        end)
-
-        function tab.createSubTab(subConfig)
-            subConfig = typeof(subConfig) == "table" and subConfig or { name = tostring(subConfig) }
-            local subName = subConfig.name or "SubTab"
-
-            local subBtn = create("TextButton", {
-                Size = UDim2.new(0, 0, 1, 0),
-                AutomaticSize = Enum.AutomaticSize.X,
-                BackgroundTransparency = 1,
-                Text = subName,
-                Font = library.theme.fontMedium,
-                TextSize = 13,
-                TextColor3 = library.theme.textMuted,
-                Parent = subtabBar,
-            })
-
-            subBtn.MouseButton1Click:Connect(function()
-                for _, s in tab.subTabs do
-                    tween(s.btn, 0.12, { TextColor3 = library.theme.textMuted })
-                end
-                tween(subBtn, 0.12, { TextColor3 = library.theme.accent })
-            end)
-
-            local subObj = { btn = subBtn, name = subName }
-            table.insert(tab.subTabs, subObj)
-
-            if #tab.subTabs == 1 then
-                subBtn.TextColor3 = library.theme.accent
-            end
-
-            return subObj
-        end
 
         local function createSection(parentCol, title)
             local card = create("Frame", {
@@ -641,7 +562,7 @@ function library.createWindow(options)
                     TextSize = 13,
                     TextColor3 = library.theme.textDim,
                     AutomaticSize = Enum.AutomaticSize.Y,
-                    Size = UDim2.new(1, 0, 0, 16),
+                    Size = UDim2.new(1, 0, 0, 18),
                     TextXAlignment = Enum.TextXAlignment.Center,
                     BackgroundTransparency = 1,
                     Parent = card,
@@ -660,7 +581,7 @@ function library.createWindow(options)
                 if flag then library.flags[flag] = state end
 
                 local row = create("Frame", {
-                    Size = UDim2.new(1, 0, 0, 18),
+                    Size = UDim2.new(1, 0, 0, 20),
                     BackgroundTransparency = 1,
                     Parent = card,
                 })
@@ -673,30 +594,29 @@ function library.createWindow(options)
                 })
 
                 local box = create("Frame", {
-                    Size = UDim2.new(0, 13, 0, 13),
+                    Size = UDim2.new(0, 14, 0, 14),
                     Position = UDim2.new(0, 0, 0.5, 0),
                     AnchorPoint = Vector2.new(0, 0.5),
                     BackgroundColor3 = state and library.theme.accent or library.theme.inputBg,
                     BorderSizePixel = 0,
                     Parent = toggleBtn,
                 })
-                makeCorner(box, 2)
                 local stroke = makeStroke(box, state and library.theme.accent or library.theme.inputBorder)
 
                 local checkmark = create("ImageLabel", {
-                    Size = UDim2.new(0, 9, 0, 9),
+                    Size = UDim2.new(0, 10, 0, 10),
                     Position = UDim2.new(0.5, 0, 0.5, 0),
                     AnchorPoint = Vector2.new(0.5, 0.5),
                     BackgroundTransparency = 1,
-                    Image = "rbxassetid://10709790637",
+                    Image = "rbxassetid://14189590169",
                     ImageColor3 = Color3.fromRGB(255, 255, 255),
                     ImageTransparency = state and 0 or 1,
                     Parent = box,
                 })
 
                 local label = create("TextLabel", {
-                    Position = UDim2.new(0, 19, 0, 0),
-                    Size = UDim2.new(1, -19, 1, 0),
+                    Position = UDim2.new(0, 20, 0, 0),
+                    Size = UDim2.new(1, -20, 1, 0),
                     Text = name,
                     Font = library.theme.fontMedium,
                     TextSize = 13,
@@ -723,10 +643,10 @@ function library.createWindow(options)
                 })
 
                 local function updateVisuals()
-                    tween(box, 0.12, { BackgroundColor3 = state and library.theme.accent or library.theme.inputBg })
+                    box.BackgroundColor3 = state and library.theme.accent or library.theme.inputBg
                     stroke.Color = state and library.theme.accent or library.theme.inputBorder
-                    tween(checkmark, 0.12, { ImageTransparency = state and 0 or 1 })
-                    tween(label, 0.12, { TextColor3 = state and library.theme.textBright or library.theme.textMuted })
+                    checkmark.ImageTransparency = state and 0 or 1
+                    label.TextColor3 = state and library.theme.textBright or library.theme.textMuted
                 end
 
                 toggleBtn.MouseButton1Click:Connect(function()
@@ -746,37 +666,93 @@ function library.createWindow(options)
                     get = function() return state end,
                 }
 
+                -- Gear / Settings Keybind Popup Button
                 function toggleObj.addKeybind(self, kConfig)
                     kConfig = kConfig or {}
                     local currentKey = kConfig.default or Enum.KeyCode.Unknown
-                    local keyMode = kConfig.mode or "Toggle"
+                    local keyMode = kConfig.mode or "On key down"
                     local keyCallback = kConfig.callback or function() end
                     local binding = false
 
-                    local keyBtn = create("TextButton", {
-                        Size = UDim2.new(0, 16, 0, 14),
+                    local gearBtn = create("TextButton", {
+                        Size = UDim2.new(0, 16, 0, 16),
                         BackgroundColor3 = library.theme.inputBg,
                         Text = "",
                         AutoButtonColor = false,
                         BorderSizePixel = 0,
                         Parent = rightControls,
                     })
-                    makeCorner(keyBtn, 2)
-                    makeStroke(keyBtn, library.theme.inputBorder)
+                    makeStroke(gearBtn, library.theme.inputBorder)
 
-                    local keyIcon = create("ImageLabel", {
-                        Size = UDim2.new(0, 9, 0, 9),
+                    local gearIcon = create("ImageLabel", {
+                        Size = UDim2.new(0, 10, 0, 10),
                         Position = UDim2.new(0.5, 0, 0.5, 0),
                         AnchorPoint = Vector2.new(0.5, 0.5),
                         BackgroundTransparency = 1,
-                        Image = "rbxassetid://10734950309",
+                        Image = "rbxassetid://9405931578",
                         ImageColor3 = library.theme.textDim,
-                        Parent = keyBtn,
+                        Parent = gearBtn,
                     })
 
-                    keyBtn.MouseButton1Click:Connect(function()
+                    -- Popup Window (Exact MemeSense Replica, Screenshot 3)
+                    local popup = create("Frame", {
+                        Size = UDim2.new(0, 140, 0, 75),
+                        Position = UDim2.new(1, 5, 0, 0),
+                        BackgroundColor3 = Color3.fromRGB(30, 32, 38),
+                        BorderSizePixel = 0,
+                        Visible = false,
+                        ZIndex = 25,
+                        Parent = gearBtn,
+                    })
+                    makeStroke(popup, library.theme.inputBorder)
+                    create("UIPadding", { PaddingTop = UDim.new(0, 6), PaddingBottom = UDim.new(0, 6), PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8), Parent = popup })
+
+                    create("TextLabel", {
+                        Size = UDim2.new(0.4, 0, 0, 16),
+                        Text = "Type",
+                        Font = library.theme.fontMedium,
+                        TextSize = 12,
+                        TextColor3 = library.theme.textBright,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        BackgroundTransparency = 1,
+                        ZIndex = 26,
+                        Parent = popup,
+                    })
+
+                    local modeDropBtn = create("TextButton", {
+                        Size = UDim2.new(0.55, 0, 0, 18),
+                        Position = UDim2.new(1, 0, 0, 0),
+                        AnchorPoint = Vector2.new(1, 0),
+                        BackgroundColor3 = Color3.fromRGB(42, 46, 56),
+                        Text = keyMode,
+                        Font = library.theme.fontMedium,
+                        TextSize = 11,
+                        TextColor3 = library.theme.textBright,
+                        ZIndex = 26,
+                        Parent = popup,
+                    })
+                    makeStroke(modeDropBtn, library.theme.inputBorder)
+
+                    local keyBox = create("TextButton", {
+                        Size = UDim2.new(1, 0, 0, 22),
+                        Position = UDim2.new(0, 0, 0, 28),
+                        BackgroundColor3 = Color3.fromRGB(20, 22, 26),
+                        Text = "[" .. (currentKey == Enum.KeyCode.Unknown and "none" or currentKey.Name:lower()) .. "]",
+                        Font = library.theme.fontMedium,
+                        TextSize = 12,
+                        TextColor3 = library.theme.textBright,
+                        ZIndex = 26,
+                        Parent = popup,
+                    })
+                    makeStroke(keyBox, library.theme.inputBorder)
+
+                    gearBtn.MouseButton1Click:Connect(function()
+                        popup.Visible = not popup.Visible
+                    end)
+
+                    keyBox.MouseButton1Click:Connect(function()
                         binding = true
-                        keyIcon.ImageColor3 = library.theme.accent
+                        keyBox.Text = "[...]"
                     end)
 
                     userInputService.InputBegan:Connect(function(input, gpe)
@@ -784,21 +760,11 @@ function library.createWindow(options)
                             if input.UserInputType == Enum.UserInputType.Keyboard then
                                 currentKey = input.KeyCode
                                 binding = false
-                                keyIcon.ImageColor3 = library.theme.textDim
+                                keyBox.Text = "[" .. currentKey.Name:lower() .. "]"
                                 pcall(keyCallback, currentKey)
                             end
                         elseif not gpe and input.KeyCode == currentKey and currentKey ~= Enum.KeyCode.Unknown then
-                            if keyMode == "Toggle" then
-                                toggleObj.set(not state)
-                            elseif keyMode == "Hold" then
-                                toggleObj.set(true)
-                            end
-                        end
-                    end)
-
-                    userInputService.InputEnded:Connect(function(input)
-                        if not binding and input.KeyCode == currentKey and keyMode == "Hold" then
-                            toggleObj.set(false)
+                            toggleObj.set(not state)
                         end
                     end)
 
@@ -861,7 +827,6 @@ function library.createWindow(options)
                     AutoButtonColor = false,
                     Parent = container,
                 })
-                makeCorner(track, 1)
 
                 local fill = create("Frame", {
                     Size = UDim2.new((value - min) / (max - min), 0, 1, 0),
@@ -869,7 +834,6 @@ function library.createWindow(options)
                     BorderSizePixel = 0,
                     Parent = track,
                 })
-                makeCorner(fill, 1)
 
                 local dragging = false
                 local function updateSlider(input)
@@ -877,7 +841,6 @@ function library.createWindow(options)
                     local rawVal = min + (max - min) * percent
                     value = math.floor(rawVal * (10 ^ decimals) + 0.5) / (10 ^ decimals)
                     if flag then library.flags[flag] = value end
-                    
                     fill.Size = UDim2.new(percent, 0, 1, 0)
                     valLabel.Text = string.format("%." .. decimals .. "f", value) .. suffix
                     pcall(callback, value)
@@ -952,7 +915,6 @@ function library.createWindow(options)
                     BorderSizePixel = 0,
                     Parent = container,
                 })
-                makeCorner(dropHeader, 2)
                 makeStroke(dropHeader, library.theme.inputBorder)
 
                 local selectedLabel = create("TextLabel", {
@@ -987,7 +949,6 @@ function library.createWindow(options)
                     ZIndex = 15,
                     Parent = dropHeader,
                 })
-                makeCorner(listContainer, 2)
                 makeStroke(listContainer, library.theme.inputBorder)
 
                 create("UIListLayout", {
@@ -1022,7 +983,6 @@ function library.createWindow(options)
                             ZIndex = 16,
                             Parent = listContainer,
                         })
-                        makeCorner(optBtn, 2)
                         create("UIPadding", {
                             PaddingLeft = UDim.new(0, 5),
                             PaddingRight = UDim.new(0, 5),
@@ -1035,7 +995,7 @@ function library.createWindow(options)
                             if flag then library.flags[flag] = selected end
                             open = false
                             listContainer.Visible = false
-                            tween(arrow, 0.12, { Rotation = 0 })
+                            arrow.Rotation = 0
                             pcall(callback, selected)
                         end)
                     end
@@ -1047,10 +1007,10 @@ function library.createWindow(options)
                     if open then
                         populateOptions()
                         listContainer.Visible = true
-                        tween(arrow, 0.12, { Rotation = 180 })
+                        arrow.Rotation = 180
                     else
                         listContainer.Visible = false
-                        tween(arrow, 0.12, { Rotation = 0 })
+                        arrow.Rotation = 0
                     end
                 end)
 
@@ -1081,15 +1041,8 @@ function library.createWindow(options)
                     BorderSizePixel = 0,
                     Parent = card,
                 })
-                makeCorner(btn, 2)
                 makeStroke(btn, library.theme.inputBorder)
 
-                btn.MouseEnter:Connect(function()
-                    tween(btn, 0.12, { BackgroundColor3 = Color3.fromRGB(32, 32, 38) })
-                end)
-                btn.MouseLeave:Connect(function()
-                    tween(btn, 0.12, { BackgroundColor3 = library.theme.inputBg })
-                end)
                 btn.MouseButton1Click:Connect(function()
                     pcall(callback)
                 end)
