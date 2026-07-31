@@ -197,6 +197,14 @@ function library.createWindow(options)
         fading = false,
     }
 
+    local function closeGlobalOverlays()
+        for _, child in globalOverlayFrame:GetChildren() do
+            if child:IsA("Frame") then
+                child.Visible = false
+            end
+        end
+    end
+
     local main = create("CanvasGroup", {
         Name = "Main",
         Size = size,
@@ -398,7 +406,7 @@ function library.createWindow(options)
         local elemAbsPos = element.AbsolutePosition
         local elemAbsSize = element.AbsoluteSize
 
-        if (elemAbsPos.Y + elemAbsSize.Y) < (mainAbsPos.Y + 45) or elemAbsPos.Y > (mainAbsPos.Y + mainAbsSize.Y - 10) then
+        if (elemAbsPos.Y + elemAbsSize.Y) < (mainAbsPos.Y + 44) or elemAbsPos.Y > (mainAbsPos.Y + mainAbsSize.Y) then
             return false
         end
         return true
@@ -1836,14 +1844,14 @@ function library.createWindow(options)
                 })
 
                 local manualInputFrame = create("Frame", {
-                    Size = UDim2.new(1, 0, 0, 22),
+                    Size = UDim2.new(1, 0, 1, 0),
                     Position = UDim2.new(0, 0, 0, 0),
                     BackgroundColor3 = Color3.fromRGB(20, 22, 28),
                     BorderSizePixel = 0,
                     ClipsDescendants = false,
                     Visible = false,
-                    ZIndex = 100010,
-                    Parent = globalOverlayFrame,
+                    ZIndex = 500,
+                    Parent = container,
                 })
                 makeCorner(manualInputFrame, 4)
 
@@ -1852,7 +1860,7 @@ function library.createWindow(options)
                     Position = UDim2.new(0, 2, 1, -2),
                     BackgroundColor3 = library.theme.accent,
                     BorderSizePixel = 0,
-                    ZIndex = 100015,
+                    ZIndex = 501,
                     Parent = manualInputFrame,
                 })
 
@@ -1866,7 +1874,7 @@ function library.createWindow(options)
                     TextColor3 = library.theme.textBright,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ClearTextOnFocus = false,
-                    ZIndex = 100012,
+                    ZIndex = 502,
                     Parent = manualInputFrame,
                 })
 
@@ -1906,37 +1914,13 @@ function library.createWindow(options)
                     applyValue(rounded)
                 end
 
-                local manualTrackConn
-                local function startManualTracking()
-                    if manualTrackConn then manualTrackConn:Disconnect() end
-                    manualTrackConn = runService.RenderStepped:Connect(function()
-                        if not manualInputFrame.Visible or not container:IsDescendantOf(game) or not isInsideView(container) then
-                            if manualTrackConn then manualTrackConn:Disconnect() end
-                            manualTrackConn = nil
-                            manualInputFrame.Visible = false
-                            return
-                        end
-                        local absPos = container.AbsolutePosition
-                        local absSize = container.AbsoluteSize
-                        manualInputFrame.Position = UDim2.new(0, absPos.X, 0, absPos.Y + 4)
-                        manualInputFrame.Size = UDim2.new(0, absSize.X, 0, 22)
-                    end)
-                end
-
                 valButton.MouseButton1Click:Connect(function()
-                    local absPos = container.AbsolutePosition
-                    local absSize = container.AbsoluteSize
-                    manualInputFrame.Position = UDim2.new(0, absPos.X, 0, absPos.Y + 4)
-                    manualInputFrame.Size = UDim2.new(0, absSize.X, 0, 22)
                     manualInputFrame.Visible = true
                     manualTextBox.Text = string.format("%." .. decimals .. "f", value)
-                    startManualTracking()
                     manualTextBox:CaptureFocus()
                 end)
 
                 manualTextBox.FocusLost:Connect(function()
-                    if manualTrackConn then manualTrackConn:Disconnect() end
-                    manualTrackConn = nil
                     manualInputFrame.Visible = false
                     local num = tonumber(manualTextBox.Text)
                     if num then
@@ -2172,7 +2156,9 @@ function library.createWindow(options)
                 end
 
                 dropHeader.MouseButton1Click:Connect(function()
-                    open = not open
+                    local wasOpen = open
+                    closeGlobalOverlays()
+                    open = not wasOpen
                     if open then
                         local absPos = dropHeader.AbsolutePosition
                         local absSize = dropHeader.AbsoluteSize
