@@ -2077,7 +2077,7 @@ function library.createWindow(options)
                             Size = UDim2.new(0, 16, 0, 16),
                             Position = UDim2.new(0, 12, 0, 10),
                             BackgroundTransparency = 1,
-                            Image = isActive and "rbxassetid://10723415903" or "rbxassetid://10723425624",
+                            Image = "rbxassetid://15330618083",
                             ImageColor3 = Color3.fromRGB(255, 255, 255),
                             Parent = cardItem,
                         })
