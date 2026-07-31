@@ -1910,24 +1910,24 @@ function library.createWindow(options)
                 local function startManualTracking()
                     if manualTrackConn then manualTrackConn:Disconnect() end
                     manualTrackConn = runService.RenderStepped:Connect(function()
-                        if not manualInputFrame.Visible or not track:IsDescendantOf(game) or not isInsideView(track) then
+                        if not manualInputFrame.Visible or not container:IsDescendantOf(game) or not isInsideView(container) then
                             if manualTrackConn then manualTrackConn:Disconnect() end
                             manualTrackConn = nil
                             manualInputFrame.Visible = false
                             return
                         end
-                        local absPos = track.AbsolutePosition
-                        local absSize = track.AbsoluteSize
-                        manualInputFrame.Position = UDim2.new(0, absPos.X, 0, absPos.Y - 12)
-                        manualInputFrame.Size = UDim2.new(0, absSize.X, 0, 20)
+                        local absPos = container.AbsolutePosition
+                        local absSize = container.AbsoluteSize
+                        manualInputFrame.Position = UDim2.new(0, absPos.X, 0, absPos.Y + 4)
+                        manualInputFrame.Size = UDim2.new(0, absSize.X, 0, 22)
                     end)
                 end
 
                 valButton.MouseButton1Click:Connect(function()
-                    local absPos = track.AbsolutePosition
-                    local absSize = track.AbsoluteSize
-                    manualInputFrame.Position = UDim2.new(0, absPos.X, 0, absPos.Y - 12)
-                    manualInputFrame.Size = UDim2.new(0, absSize.X, 0, 20)
+                    local absPos = container.AbsolutePosition
+                    local absSize = container.AbsoluteSize
+                    manualInputFrame.Position = UDim2.new(0, absPos.X, 0, absPos.Y + 4)
+                    manualInputFrame.Size = UDim2.new(0, absSize.X, 0, 22)
                     manualInputFrame.Visible = true
                     manualTextBox.Text = string.format("%." .. decimals .. "f", value)
                     startManualTracking()
