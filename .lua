@@ -127,10 +127,12 @@ local function setupAutoScrollBar(scrollFrame, maxThickness)
     scrollFrame.ScrollBarThickness = 0
     scrollFrame.ScrollBarImageTransparency = 1
     scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    scrollFrame.BorderSizePixel = 0
+    scrollFrame.BackgroundTransparency = 1
 
     local function update()
         task.defer(function()
-            if scrollFrame.AbsoluteCanvasSize.Y > scrollFrame.AbsoluteSize.Y + 4 then
+            if scrollFrame.AbsoluteCanvasSize.Y > scrollFrame.AbsoluteSize.Y + 20 then
                 scrollFrame.ScrollBarThickness = maxThickness
                 scrollFrame.ScrollBarImageTransparency = 0
             else
@@ -1556,7 +1558,7 @@ function library.createWindow(options)
                             end
                             local iconAbsPos = iconBtn.AbsolutePosition
                             local iconAbsSize = iconBtn.AbsoluteSize
-                            popup.Position = UDim2.new(0, iconAbsPos.X + iconAbsSize.X + 6, 0, iconAbsPos.Y - 10)
+                            popup.Position = UDim2.new(0, iconAbsPos.X - 132, 0, iconAbsPos.Y + iconAbsSize.Y + 4)
                         end)
                     end
 
@@ -1566,7 +1568,7 @@ function library.createWindow(options)
                             if popup.Visible then
                                 local iconAbsPos = iconBtn.AbsolutePosition
                                 local iconAbsSize = iconBtn.AbsoluteSize
-                                popup.Position = UDim2.new(0, iconAbsPos.X + iconAbsSize.X + 6, 0, iconAbsPos.Y - 10)
+                                popup.Position = UDim2.new(0, iconAbsPos.X - 132, 0, iconAbsPos.Y + iconAbsSize.Y + 4)
                                 startBindTracking()
                             else
                                 if bindTrackConn then bindTrackConn:Disconnect() end
@@ -2377,21 +2379,6 @@ function library.createWindow(options)
                     end
                     renderList()
                 end
-
-                createBtn.MouseButton1Click:Connect(function()
-                    local name = newConfigBox.Text
-                    if name and name ~= "" then
-                        local dateStr = os.date("%Y/%m/%d %H:%M:%S")
-                        table.insert(configsList, 1, { name = name, modified = dateStr })
-                        activeConfigName = name
-                        newConfigBox.Text = ""
-                        if config.autoSave ~= false then
-                            library.saveConfig(name)
-                        end
-                        pcall(onCreate, name)
-                        renderList()
-                    end
-                end)
 
                 refreshFolderFiles()
 
