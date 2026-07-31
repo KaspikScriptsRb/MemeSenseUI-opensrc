@@ -9,29 +9,17 @@ local library = {
         mainBg = Color3.fromRGB(16, 16, 18),
         sidebarBg = Color3.fromRGB(20, 20, 22),
         headerBg = Color3.fromRGB(16, 16, 18),
-        columnBg = Color3.fromRGB(16, 16, 18),
-        
         accent = Color3.fromRGB(235, 42, 60),
         accentDark = Color3.fromRGB(175, 28, 42),
-        
         textBright = Color3.fromRGB(245, 245, 250),
         textDim = Color3.fromRGB(175, 175, 182),
-        textMuted = Color3.fromRGB(115, 115, 122),
-        
+        textMuted = Color3.fromRGB(130, 130, 138),
         inputBg = Color3.fromRGB(26, 26, 30),
-        inputBorder = Color3.fromRGB(40, 40, 46),
-        
+        inputBorder = Color3.fromRGB(42, 42, 48),
         fontBold = Enum.Font.Roboto,
         fontMedium = Enum.Font.Roboto,
-        fontRegular = Enum.Font.Roboto,
     }
 }
-
-if typeof(getgenv) == "function" and getgenv().memeSenseUI then
-    pcall(function()
-        getgenv().memeSenseUI:Destroy()
-    end)
-end
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "MemeSenseGui"
@@ -41,14 +29,8 @@ screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 local guiParent = coreGui
 if typeof(gethui) == "function" then
     guiParent = gethui()
-elseif typeof(syn) == "table" and syn.protect_gui then
-    syn.protect_gui(screenGui)
 end
 screenGui.Parent = guiParent
-
-if typeof(getgenv) == "function" then
-    getgenv().memeSenseUI = screenGui
-end
 
 local function create(className, props)
     local inst = Instance.new(className)
@@ -247,7 +229,7 @@ function library.createWindow(options)
         Size = UDim2.new(1, -150, 1, -44),
         Position = UDim2.new(0, 150, 0, 44),
         BackgroundTransparency = 1,
-        ClipsDescendants = true,
+        ClipsDescendants = false,
         Parent = main,
     })
 
@@ -342,7 +324,7 @@ function library.createWindow(options)
 
         create("TextLabel", {
             Text = name,
-            Font = library.theme.fontMedium,
+            Font = library.theme.fontBold,
             TextSize = 13,
             TextColor3 = library.theme.textBright,
             AutomaticSize = Enum.AutomaticSize.X,
@@ -379,7 +361,7 @@ function library.createWindow(options)
         local btn = create("TextButton", {
             Size = UDim2.new(0, 0, 0, 26),
             AutomaticSize = Enum.AutomaticSize.X,
-            BackgroundColor3 = Color3.fromRGB(34, 34, 40),
+            BackgroundColor3 = Color3.fromRGB(40, 40, 48),
             Text = "",
             AutoButtonColor = false,
             BorderSizePixel = 0,
@@ -405,7 +387,7 @@ function library.createWindow(options)
                 Size = UDim2.new(0, 13, 0, 13),
                 BackgroundTransparency = 1,
                 Image = icon,
-                ImageColor3 = Color3.fromRGB(230, 230, 235),
+                ImageColor3 = Color3.fromRGB(255, 255, 255),
                 Parent = btn,
             })
         end
@@ -414,7 +396,7 @@ function library.createWindow(options)
             Text = name,
             Font = library.theme.fontBold,
             TextSize = 13,
-            TextColor3 = Color3.fromRGB(230, 230, 235),
+            TextColor3 = Color3.fromRGB(255, 255, 255),
             AutomaticSize = Enum.AutomaticSize.X,
             BackgroundTransparency = 1,
             Parent = btn,
@@ -477,7 +459,7 @@ function library.createWindow(options)
 
         local tabLabel = create("TextLabel", {
             Text = name,
-            Font = library.theme.fontMedium,
+            Font = library.theme.fontBold,
             TextSize = 13,
             TextColor3 = library.theme.textDim,
             AutomaticSize = Enum.AutomaticSize.X,
@@ -492,52 +474,39 @@ function library.createWindow(options)
             Parent = contentArea,
         })
 
-        local subtabHeaderBar = create("Frame", {
-            Size = UDim2.new(1, 0, 0, 24),
-            Position = UDim2.new(0, 0, 0, 4),
-            BackgroundTransparency = 1,
-            Parent = view,
-        })
-
-        create("UIListLayout", {
-            FillDirection = Enum.FillDirection.Horizontal,
-            HorizontalAlignment = Enum.HorizontalAlignment.Center,
-            VerticalAlignment = Enum.VerticalAlignment.Center,
-            Padding = UDim.new(0, 24),
-            Parent = subtabHeaderBar,
-        })
-
         local columnsFrame = create("Frame", {
-            Size = UDim2.new(1, 0, 1, -28),
-            Position = UDim2.new(0, 0, 0, 28),
+            Size = UDim2.new(1, 0, 1, 0),
+            Position = UDim2.new(0, 0, 0, 0),
             BackgroundTransparency = 1,
             Parent = view,
         })
 
         create("UIPadding", {
-            PaddingTop = UDim.new(0, 6),
+            PaddingTop = UDim.new(0, 10),
             PaddingBottom = UDim.new(0, 10),
-            PaddingLeft = UDim.new(0, 16),
-            PaddingRight = UDim.new(0, 16),
+            PaddingLeft = UDim.new(0, 18),
+            PaddingRight = UDim.new(0, 18),
             Parent = columnsFrame,
         })
 
         local colLeft = create("ScrollingFrame", {
-            Size = UDim2.new(0.5, -10, 1, 0),
+            Size = UDim2.new(0.5, -12, 1, 0),
             Position = UDim2.new(0, 0, 0, 0),
             BackgroundTransparency = 1,
             BorderSizePixel = 0,
             ScrollBarThickness = 0,
+            ClipsDescendants = false,
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
             Parent = columnsFrame,
         })
 
         local colRight = create("ScrollingFrame", {
-            Size = UDim2.new(0.5, -10, 1, 0),
-            Position = UDim2.new(0.5, 10, 0, 0),
+            Size = UDim2.new(0.5, -12, 1, 0),
+            Position = UDim2.new(0.5, 12, 0, 0),
             BackgroundTransparency = 1,
             BorderSizePixel = 0,
             ScrollBarThickness = 0,
+            ClipsDescendants = false,
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
             Parent = columnsFrame,
         })
@@ -579,47 +548,6 @@ function library.createWindow(options)
             tab.activate()
         end)
 
-        -- Section SubTabs Switcher Creator (Aim, Accuracy, RCS, Misc)
-        function tab.createSubTabSwitcher(self, options, callback)
-            options = options or {}
-            callback = callback or function() end
-            local buttons = {}
-            local active = options[1] or ""
-
-            for i, opt in options do
-                local subBtn = create("TextButton", {
-                    Size = UDim2.new(0, 0, 1, 0),
-                    AutomaticSize = Enum.AutomaticSize.X,
-                    BackgroundTransparency = 1,
-                    Text = opt,
-                    Font = library.theme.fontBold,
-                    TextSize = 13,
-                    TextColor3 = (opt == active) and library.theme.textBright or library.theme.textMuted,
-                    Parent = subtabHeaderBar,
-                })
-
-                subBtn.MouseButton1Click:Connect(function()
-                    active = opt
-                    for name, b in buttons do
-                        b.TextColor3 = (name == active) and library.theme.textBright or library.theme.textMuted
-                    end
-                    pcall(callback, active)
-                end)
-
-                buttons[opt] = subBtn
-            end
-
-            return {
-                set = function(val)
-                    active = val
-                    for name, b in buttons do
-                        b.TextColor3 = (name == active) and library.theme.textBright or library.theme.textMuted
-                    end
-                    pcall(callback, active)
-                end
-            }
-        end
-
         local function createSection(parentCol, title)
             local card = create("Frame", {
                 Size = UDim2.new(1, 0, 0, 0),
@@ -640,7 +568,7 @@ function library.createWindow(options)
                     Text = title,
                     Font = library.theme.fontBold,
                     TextSize = 13,
-                    TextColor3 = library.theme.textDim,
+                    TextColor3 = library.theme.textBright,
                     AutomaticSize = Enum.AutomaticSize.Y,
                     Size = UDim2.new(1, 0, 0, 18),
                     TextXAlignment = Enum.TextXAlignment.Center,
@@ -651,15 +579,15 @@ function library.createWindow(options)
 
             local section = {}
 
-            -- Internal Section SubTabs Switcher
+            -- SubTabs Component inside Section/Column flow
             function section.createSubTabs(self, config)
-                config = config or {}
+                config = typeof(config) == "table" and config or { options = config }
                 local opts = config.options or {}
                 local callback = config.callback or function() end
                 local active = config.default or opts[1] or ""
 
                 local bar = create("Frame", {
-                    Size = UDim2.new(1, 0, 0, 20),
+                    Size = UDim2.new(1, 0, 0, 22),
                     BackgroundTransparency = 1,
                     Parent = card,
                 })
@@ -668,7 +596,7 @@ function library.createWindow(options)
                     FillDirection = Enum.FillDirection.Horizontal,
                     HorizontalAlignment = Enum.HorizontalAlignment.Center,
                     VerticalAlignment = Enum.VerticalAlignment.Center,
-                    Padding = UDim.new(0, 16),
+                    Padding = UDim.new(0, 18),
                     Parent = bar,
                 })
 
@@ -751,12 +679,12 @@ function library.createWindow(options)
                 })
 
                 local label = create("TextLabel", {
-                    Position = UDim2.new(0, 20, 0, 0),
-                    Size = UDim2.new(1, -20, 1, 0),
+                    Position = UDim2.new(0, 22, 0, 0),
+                    Size = UDim2.new(1, -22, 1, 0),
                     Text = name,
-                    Font = library.theme.fontMedium,
+                    Font = library.theme.fontBold,
                     TextSize = 13,
-                    TextColor3 = state and library.theme.textBright or library.theme.textMuted,
+                    TextColor3 = library.theme.textBright,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     BackgroundTransparency = 1,
                     Parent = toggleBtn,
@@ -782,7 +710,6 @@ function library.createWindow(options)
                     box.BackgroundColor3 = state and library.theme.accent or library.theme.inputBg
                     box.UIStroke.Color = state and library.theme.accent or library.theme.inputBorder
                     checkmark.ImageTransparency = state and 0 or 1
-                    label.TextColor3 = state and library.theme.textBright or library.theme.textMuted
                 end
 
                 toggleBtn.MouseButton1Click:Connect(function()
@@ -833,7 +760,7 @@ function library.createWindow(options)
                     create("TextLabel", {
                         Size = UDim2.new(0.4, 0, 0, 16),
                         Text = "Type",
-                        Font = library.theme.fontMedium,
+                        Font = library.theme.fontBold,
                         TextSize = 12,
                         TextColor3 = library.theme.textBright,
                         TextXAlignment = Enum.TextXAlignment.Left,
@@ -848,7 +775,7 @@ function library.createWindow(options)
                         AnchorPoint = Vector2.new(1, 0),
                         BackgroundColor3 = Color3.fromRGB(42, 46, 56),
                         Text = keyMode,
-                        Font = library.theme.fontMedium,
+                        Font = library.theme.fontBold,
                         TextSize = 11,
                         TextColor3 = library.theme.textBright,
                         ZIndex = 26,
@@ -861,7 +788,7 @@ function library.createWindow(options)
                         Position = UDim2.new(0, 0, 0, 28),
                         BackgroundColor3 = Color3.fromRGB(20, 22, 26),
                         Text = "[" .. (currentKey == Enum.KeyCode.Unknown and "none" or currentKey.Name:lower()) .. "]",
-                        Font = library.theme.fontMedium,
+                        Font = library.theme.fontBold,
                         TextSize = 12,
                         TextColor3 = library.theme.textBright,
                         ZIndex = 26,
@@ -921,9 +848,9 @@ function library.createWindow(options)
                 create("TextLabel", {
                     Size = UDim2.new(0.6, 0, 0, 14),
                     Text = name,
-                    Font = library.theme.fontMedium,
+                    Font = library.theme.fontBold,
                     TextSize = 13,
-                    TextColor3 = library.theme.textMuted,
+                    TextColor3 = library.theme.textBright,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     BackgroundTransparency = 1,
                     Parent = container,
@@ -934,7 +861,7 @@ function library.createWindow(options)
                     Position = UDim2.new(1, 0, 0, 0),
                     AnchorPoint = Vector2.new(1, 0),
                     Text = string.format("%." .. decimals .. "f", value) .. suffix,
-                    Font = library.theme.fontMedium,
+                    Font = library.theme.fontBold,
                     TextSize = 13,
                     TextColor3 = library.theme.textBright,
                     TextXAlignment = Enum.TextXAlignment.Right,
@@ -1019,11 +946,11 @@ function library.createWindow(options)
                     Parent = card,
                 })
 
-                local label = create("TextLabel", {
+                create("TextLabel", {
                     Size = UDim2.new(0.45, 0, 1, 0),
                     Position = UDim2.new(0, 0, 0, 0),
                     Text = name,
-                    Font = library.theme.fontMedium,
+                    Font = library.theme.fontBold,
                     TextSize = 13,
                     TextColor3 = library.theme.textBright,
                     TextXAlignment = Enum.TextXAlignment.Left,
@@ -1069,7 +996,7 @@ function library.createWindow(options)
                     Size = UDim2.new(1, -16, 1, 0),
                     Position = UDim2.new(0, 6, 0, 0),
                     Text = tostring(selected),
-                    Font = library.theme.fontMedium,
+                    Font = library.theme.fontBold,
                     TextSize = 12,
                     TextColor3 = library.theme.textBright,
                     TextXAlignment = Enum.TextXAlignment.Left,
@@ -1125,7 +1052,7 @@ function library.createWindow(options)
                             BackgroundColor3 = isSelected and Color3.fromRGB(34, 34, 40) or library.theme.inputBg,
                             BackgroundTransparency = isSelected and 0 or 1,
                             Text = opt,
-                            Font = library.theme.fontMedium,
+                            Font = library.theme.fontBold,
                             TextSize = 12,
                             TextColor3 = isSelected and library.theme.accent or library.theme.textBright,
                             TextXAlignment = Enum.TextXAlignment.Left,
@@ -1183,7 +1110,7 @@ function library.createWindow(options)
                     Size = UDim2.new(1, 0, 0, 22),
                     BackgroundColor3 = library.theme.inputBg,
                     Text = name,
-                    Font = library.theme.fontMedium,
+                    Font = library.theme.fontBold,
                     TextSize = 13,
                     TextColor3 = library.theme.textBright,
                     AutoButtonColor = false,
