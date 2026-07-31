@@ -997,18 +997,32 @@ function library.createWindow(options)
                 Parent = popoverFrame,
             })
 
-            local function updatePopoverPos()
-                local mainAbsPos = main.AbsolutePosition
-                local mainAbsSize = main.AbsoluteSize
-                local btnAbsPos = btn.AbsolutePosition
-                local btnAbsSize = btn.AbsoluteSize
-                popoverFrame.Position = UDim2.new(0, mainAbsPos.X + mainAbsSize.X - width - 12, 0, btnAbsPos.Y + btnAbsSize.Y + 4)
+            local popTrackConn
+            local function startPopoverTracking()
+                if popTrackConn then popTrackConn:Disconnect() end
+                popTrackConn = runService.RenderStepped:Connect(function()
+                    if not popoverFrame.Visible or not btn:IsDescendantOf(game) then
+                        if popTrackConn then popTrackConn:Disconnect() end
+                        popTrackConn = nil
+                        popoverFrame.Visible = false
+                        return
+                    end
+                    local btnAbsPos = btn.AbsolutePosition
+                    local btnAbsSize = btn.AbsoluteSize
+                    popoverFrame.Position = UDim2.new(0, btnAbsPos.X + btnAbsSize.X - width, 0, btnAbsPos.Y + btnAbsSize.Y + 4)
+                end)
             end
 
             btn.MouseButton1Click:Connect(function()
                 popoverFrame.Visible = not popoverFrame.Visible
                 if popoverFrame.Visible then
-                    updatePopoverPos()
+                    local btnAbsPos = btn.AbsolutePosition
+                    local btnAbsSize = btn.AbsoluteSize
+                    popoverFrame.Position = UDim2.new(0, btnAbsPos.X + btnAbsSize.X - width, 0, btnAbsPos.Y + btnAbsSize.Y + 4)
+                    startPopoverTracking()
+                else
+                    if popTrackConn then popTrackConn:Disconnect() end
+                    popTrackConn = nil
                 end
             end)
 
@@ -1610,7 +1624,7 @@ function library.createWindow(options)
                             end
                             local iconAbsPos = iconBtn.AbsolutePosition
                             local iconAbsSize = iconBtn.AbsoluteSize
-                            popup.Position = UDim2.new(0, iconAbsPos.X - 132, 0, iconAbsPos.Y + iconAbsSize.Y + 4)
+                            popup.Position = UDim2.new(0, iconAbsPos.X - 10, 0, iconAbsPos.Y + iconAbsSize.Y + 4)
                         end)
                     end
 
@@ -1620,7 +1634,7 @@ function library.createWindow(options)
                             if popup.Visible then
                                 local iconAbsPos = iconBtn.AbsolutePosition
                                 local iconAbsSize = iconBtn.AbsoluteSize
-                                popup.Position = UDim2.new(0, iconAbsPos.X - 132, 0, iconAbsPos.Y + iconAbsSize.Y + 4)
+                                popup.Position = UDim2.new(0, iconAbsPos.X - 10, 0, iconAbsPos.Y + iconAbsSize.Y + 4)
                                 startBindTracking()
                             else
                                 if bindTrackConn then bindTrackConn:Disconnect() end
