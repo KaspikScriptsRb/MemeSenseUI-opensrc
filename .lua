@@ -226,6 +226,7 @@ function library.createWindow(options)
     local topBar = create("Frame", {
         Size = UDim2.new(1, 0, 0, 2),
         BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+        ZIndex = 9999,
         Parent = main,
     })
 
@@ -1574,14 +1575,6 @@ function library.createWindow(options)
                     Parent = row,
                 })
 
-                create("UIListLayout", {
-                    FillDirection = Enum.FillDirection.Horizontal,
-                    HorizontalAlignment = Enum.HorizontalAlignment.Right,
-                    VerticalAlignment = Enum.VerticalAlignment.Center,
-                    Padding = UDim.new(0, 4),
-                    Parent = rightControls,
-                })
-
                 local function updateVisuals()
                     box.BackgroundColor3 = state and library.theme.accent or library.theme.inputBg
                     box.UIStroke.Color = state and library.theme.accent or library.theme.inputBorder
@@ -1838,10 +1831,92 @@ function library.createWindow(options)
                     return toggleObj
                 end
 
+                function toggleObj.addSettings(self, sConfig)
+                    sConfig = typeof(sConfig) == "function" and { builder = sConfig } or (sConfig or {})
+                    local builder = sConfig.builder or sConfig.callback
+
+                    local iconBtn = create("ImageButton", {
+                        Size = UDim2.new(0, 18, 0, 16),
+                        BackgroundTransparency = 1,
+                        Image = "rbxassetid://120242544565484",
+                        ImageColor3 = Color3.fromRGB(255, 255, 255),
+                        ImageTransparency = 0,
+                        BorderSizePixel = 0,
+                        Parent = rightControls,
+                    })
+
+                    local popup = create("Frame", {
+                        Size = UDim2.new(0, 175, 0, 0),
+                        AutomaticSize = Enum.AutomaticSize.Y,
+                        BackgroundColor3 = Color3.fromRGB(20, 20, 24),
+                        BackgroundTransparency = 0,
+                        BorderSizePixel = 0,
+                        Active = true,
+                        Visible = false,
+                        ZIndex = 100005,
+                        Parent = globalOverlayFrame,
+                    })
+                    makeCorner(popup, 4)
+                    makeStroke(popup, library.theme.inputBorder)
+                    create("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8), Parent = popup })
+
+                    create("UIListLayout", {
+                        SortOrder = Enum.SortOrder.LayoutOrder,
+                        Padding = UDim.new(0, 6),
+                        Parent = popup,
+                    })
+
+                    local popTrackConn
+                    local function startTracking()
+                        if popTrackConn then popTrackConn:Disconnect() end
+                        popTrackConn = runService.RenderStepped:Connect(function()
+                            if not popup.Visible or not iconBtn:IsDescendantOf(game) or not isInsideView(iconBtn) then
+                                if popTrackConn then popTrackConn:Disconnect() end
+                                popTrackConn = nil
+                                popup.Visible = false
+                                return
+                            end
+                            local relPos = getPositionInMain(iconBtn)
+                            local iconAbsSize = iconBtn.AbsoluteSize
+                            popup.Position = UDim2.new(0, relPos.X + iconAbsSize.X + 4, 0, relPos.Y + iconAbsSize.Y + 4)
+                        end)
+                    end
+
+                    iconBtn.InputBegan:Connect(function(input)
+                        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                            popup.Visible = not popup.Visible
+                            if popup.Visible then
+                                local relPos = getPositionInMain(iconBtn)
+                                local iconAbsSize = iconBtn.AbsoluteSize
+                                popup.Position = UDim2.new(0, relPos.X + iconAbsSize.X + 4, 0, relPos.Y + iconAbsSize.Y + 4)
+                                startTracking()
+                            else
+                                if popTrackConn then popTrackConn:Disconnect() end
+                                popTrackConn = nil
+                            end
+                        end
+                    end)
+
+                    local popObj = {
+                        popup = popup,
+                        card = popup,
+                        createToggle = section.createToggle,
+                        createSlider = section.createSlider,
+                        createDropdown = section.createDropdown,
+                        createColorpicker = section.createColorpicker,
+                        createKeybind = section.addKeybind,
+                    }
+
+                    if typeof(builder) == "function" then
+                        pcall(builder, popObj)
+                    end
+
+                    return popObj
+                end
+
                 return toggleObj
             end
 
-            -- Highly Flexible Slider (Integers, Decimals, minText "Disabled", maxText "∞", custom format)
             function section.createSlider(self, config)
                 config = config or {}
                 local name = config.name or "Slider"
