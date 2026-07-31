@@ -405,8 +405,8 @@ function library.createWindow(options)
             AutomaticSize = Enum.AutomaticSize.X,
             BackgroundTransparency = 1,
             Text = "",
-            LayoutOrder = 1,
-            Parent = headerRight,
+            LayoutOrder = -10000,
+            Parent = headerLeft,
         })
 
         create("UIListLayout", {
@@ -646,7 +646,8 @@ function library.createWindow(options)
         })
 
         local tabHeaderLeft = create("Frame", {
-            Size = UDim2.new(1, 0, 1, 0),
+            Size = UDim2.new(0, 0, 1, 0),
+            AutomaticSize = Enum.AutomaticSize.X,
             BackgroundTransparency = 1,
             Visible = false,
             Parent = headerLeft,
@@ -659,7 +660,8 @@ function library.createWindow(options)
         })
 
         local tabHeaderRight = create("Frame", {
-            Size = UDim2.new(1, 0, 1, 0),
+            Size = UDim2.new(0, 0, 1, 0),
+            AutomaticSize = Enum.AutomaticSize.X,
             BackgroundTransparency = 1,
             Visible = false,
             Parent = headerRight,
@@ -1552,11 +1554,9 @@ function library.createWindow(options)
                                 popup.Visible = false
                                 return
                             end
-                            local mainAbsPos = main.AbsolutePosition
-                            local mainAbsSize = main.AbsoluteSize
                             local iconAbsPos = iconBtn.AbsolutePosition
                             local iconAbsSize = iconBtn.AbsoluteSize
-                            popup.Position = UDim2.new(0, mainAbsPos.X + mainAbsSize.X - 162, 0, iconAbsPos.Y + iconAbsSize.Y + 4)
+                            popup.Position = UDim2.new(0, iconAbsPos.X + iconAbsSize.X + 6, 0, iconAbsPos.Y - 10)
                         end)
                     end
 
@@ -1564,11 +1564,9 @@ function library.createWindow(options)
                         if input.UserInputType == Enum.UserInputType.MouseButton1 then
                             popup.Visible = not popup.Visible
                             if popup.Visible then
-                                local mainAbsPos = main.AbsolutePosition
-                                local mainAbsSize = main.AbsoluteSize
                                 local iconAbsPos = iconBtn.AbsolutePosition
                                 local iconAbsSize = iconBtn.AbsoluteSize
-                                popup.Position = UDim2.new(0, mainAbsPos.X + mainAbsSize.X - 162, 0, iconAbsPos.Y + iconAbsSize.Y + 4)
+                                popup.Position = UDim2.new(0, iconAbsPos.X + iconAbsSize.X + 6, 0, iconAbsPos.Y - 10)
                                 startBindTracking()
                             else
                                 if bindTrackConn then bindTrackConn:Disconnect() end
@@ -2107,8 +2105,20 @@ function library.createWindow(options)
                 local folderFiles = library.getFolderConfigs()
                 local configsList = config.list or folderFiles
 
-                if #configsList == 0 then
-                    table.insert(configsList, { name = ".", icon = "knife", modified = os.date("%Y/%m/%d %H:%M:%S") })
+                local hasDot = false
+                for _, cfg in configsList do
+                    if cfg.name == "." then
+                        hasDot = true
+                        cfg.icon = "knife"
+                        break
+                    end
+                end
+                if not hasDot then
+                    table.insert(configsList, 1, {
+                        name = ".",
+                        icon = "knife",
+                        modified = os.date("%Y/%m/%d %H:%M:%S")
+                    })
                 end
 
                 local activeConfigName = config.active or (configsList[1] and configsList[1].name) or "."
