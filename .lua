@@ -885,10 +885,8 @@ function library.createWindow(options)
 
                             optBtn.MouseButton1Click:Connect(function()
                                 selected = opt
-                                selectedLabel.Text = selected
+                                selectedLabel.Text = tostring(selected)
                                 open = false
-                                if trackConn then trackConn:Disconnect() end
-                                trackConn = nil
                                 listContainer.Visible = false
                                 arrow.Rotation = 180
                                 if flag then library.flags[flag] = selected end
@@ -897,10 +895,7 @@ function library.createWindow(options)
                         end
                         listContainer.Visible = true
                         arrow.Rotation = 0
-                        startTracking()
                     else
-                        if trackConn then trackConn:Disconnect() end
-                        trackConn = nil
                         listContainer.Visible = false
                         arrow.Rotation = 180
                     end
