@@ -852,7 +852,7 @@ function library.createWindow(options)
                         local relPos = getPositionInMain(dropHeader)
                         local absWidth = math.round(dropHeader.AbsoluteSize.X)
                         local absHeight = dropHeader.AbsoluteSize.Y
-                        listContainer.Position = UDim2.new(0, math.round(relPos.X - 1), 0, math.round(relPos.Y + absHeight - 2))
+                        listContainer.Position = UDim2.new(0, math.round(relPos.X - 1), 0, math.round(relPos.Y + absHeight - 4))
                         listContainer.Size = UDim2.new(0, absWidth + 2, 0, math.min(#options * 22 + 6, 166))
                     end
                 end
@@ -1767,7 +1767,7 @@ function library.createWindow(options)
                             local relBPos = getPositionInMain(modeDropBtn)
                             local bWidth = math.round(modeDropBtn.AbsoluteSize.X)
                             local bHeight = modeDropBtn.AbsoluteSize.Y
-                            modeDropContainer.Position = UDim2.new(0, math.round(relBPos.X - 1), 0, math.round(relBPos.Y + bHeight - 2))
+                            modeDropContainer.Position = UDim2.new(0, math.round(relBPos.X - 1), 0, math.round(relBPos.Y + bHeight - 4))
                             modeDropContainer.Size = UDim2.new(0, bWidth + 2, 0, 4 * 20 + 6)
                             modeDropContainer.Visible = true
                             modeArrow.Rotation = 0
@@ -2106,7 +2106,7 @@ function library.createWindow(options)
                 end
 
                 local dropHeader = create("TextButton", {
-                    Size = UDim2.new(0, 115, 0, 20),
+                    Size = UDim2.new(0, config.width or 115, 0, 24),
                     BackgroundColor3 = library.theme.inputBg,
                     Text = "",
                     AutoButtonColor = false,
@@ -2179,7 +2179,7 @@ function library.createWindow(options)
                         local relPos = getPositionInMain(dropHeader)
                         local absWidth = math.round(dropHeader.AbsoluteSize.X)
                         local absHeight = dropHeader.AbsoluteSize.Y
-                        listContainer.Position = UDim2.new(0, math.round(relPos.X - 1), 0, math.round(relPos.Y + absHeight - 2))
+                        listContainer.Position = UDim2.new(0, math.round(relPos.X - 1), 0, math.round(relPos.Y + absHeight - 4))
                         listContainer.Size = UDim2.new(0, absWidth + 2, 0, math.min(#options * 22 + 6, 166))
                     end
                 end
