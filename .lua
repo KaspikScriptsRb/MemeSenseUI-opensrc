@@ -824,7 +824,8 @@ function library.createWindow(options)
             })
 
             local listContainer = create("Frame", {
-                Size = UDim2.new(0, config.width or 110, 0, 0),
+                Size = UDim2.new(1, 0, 0, 0),
+                Position = UDim2.new(0, 0, 1, -3),
                 BackgroundColor3 = Color3.fromRGB(24, 25, 30),
                 BackgroundTransparency = 0,
                 BorderSizePixel = 0,
@@ -832,48 +833,25 @@ function library.createWindow(options)
                 ClipsDescendants = true,
                 Visible = false,
                 ZIndex = 100001,
-                Parent = globalOverlayFrame,
+                Parent = dropHeader,
             })
             makeCorner(listContainer, 3)
 
             create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 0), Parent = listContainer })
             create("UIPadding", { PaddingTop = UDim.new(0, 3), PaddingBottom = UDim.new(0, 3), PaddingLeft = UDim.new(0, 0), PaddingRight = UDim.new(0, 0), Parent = listContainer })
 
-                local function updateHeaderDropdownPos()
-                    if open and dropHeader:IsDescendantOf(game) then
-                        local relPos = getPositionInMain(dropHeader)
-                        local absWidth = math.round(dropHeader.AbsoluteSize.X)
-                        local absHeight = dropHeader.AbsoluteSize.Y
-                        listContainer.Position = UDim2.new(0, math.round(relPos.X), 0, math.round(relPos.Y + absHeight - 4))
-                        listContainer.Size = UDim2.new(0, absWidth, 0, math.min(#options * 22 + 6, 166))
+            dropHeader.MouseButton1Click:Connect(function()
+                open = not open
+                closeGlobalOverlays()
+                if open then
+                    for _, child in listContainer:GetChildren() do
+                        if child:IsA("TextButton") then child:Destroy() end
                     end
-                end
+                    listContainer.Size = UDim2.new(1, 0, 0, math.min(#options * 22 + 6, 166))
+                    listContainer.Visible = true
+                    arrow.Rotation = 0
 
-                local trackConn
-                local function startTracking()
-                    if trackConn then trackConn:Disconnect() end
-                    trackConn = runService.RenderStepped:Connect(function()
-                        if not open or not dropHeader:IsDescendantOf(game) then
-                            if trackConn then trackConn:Disconnect() end
-                            trackConn = nil
-                            listContainer.Visible = false
-                            arrow.Rotation = 180
-                            return
-                        end
-                        updateHeaderDropdownPos()
-                    end)
-                end
-
-                dropHeader.MouseButton1Click:Connect(function()
-                    open = not open
-                    if open then
-                        for _, child in listContainer:GetChildren() do
-                            if child:IsA("TextButton") then child:Destroy() end
-                        end
-                        updateHeaderDropdownPos()
-                        task.defer(updateHeaderDropdownPos)
-
-                        for _, opt in options do
+                    for _, opt in options do
                             local isSel = (opt == selected)
                             local optBtn = create("TextButton", {
                                 Size = UDim2.new(1, -16, 0, 22),
@@ -1738,14 +1716,16 @@ function library.createWindow(options)
                     })
 
                     local modeDropContainer = create("Frame", {
-                        Size = UDim2.new(0, 85, 0, 0),
+                        Size = UDim2.new(1, 0, 0, 0),
+                        Position = UDim2.new(0, 0, 1, -3),
                         BackgroundColor3 = Color3.fromRGB(24, 25, 30),
                         BackgroundTransparency = 0,
                         BorderSizePixel = 0,
                         Active = true,
+                        ClipsDescendants = true,
                         Visible = false,
                         ZIndex = 100007,
-                        Parent = globalOverlayFrame,
+                        Parent = modeDropBtn,
                     })
                     makeCorner(modeDropContainer, 3)
 
@@ -1756,11 +1736,7 @@ function library.createWindow(options)
                     modeDropBtn.MouseButton1Click:Connect(function()
                         modeDropOpen = not modeDropOpen
                         if modeDropOpen then
-                            local relBPos = getPositionInMain(modeDropBtn)
-                            local bWidth = math.round(modeDropBtn.AbsoluteSize.X)
-                            local bHeight = modeDropBtn.AbsoluteSize.Y
-                            modeDropContainer.Position = UDim2.new(0, math.round(relBPos.X), 0, math.round(relBPos.Y + bHeight - 4))
-                            modeDropContainer.Size = UDim2.new(0, bWidth, 0, 4 * 20 + 6)
+                            modeDropContainer.Size = UDim2.new(1, 0, 0, 4 * 20 + 6)
                             modeDropContainer.Visible = true
                             modeArrow.Rotation = 0
                         else
@@ -2147,15 +2123,16 @@ function library.createWindow(options)
                 })
 
                 local listContainer = create("Frame", {
-                    Size = UDim2.new(0, 115, 0, 0),
-                    BackgroundColor3 = Color3.fromRGB(24, 25, 30),
+                    Size = UDim2.new(1, 0, 0, 0),
+                    Position = UDim2.new(0, 0, 1, -3),
+                    BackgroundColor3 = library.theme.inputBg,
                     BackgroundTransparency = 0,
                     BorderSizePixel = 0,
                     Active = true,
                     ClipsDescendants = true,
                     Visible = false,
                     ZIndex = 100001,
-                    Parent = globalOverlayFrame,
+                    Parent = dropHeader,
                 })
                 makeCorner(listContainer, 3)
 
@@ -2165,31 +2142,6 @@ function library.createWindow(options)
                     Parent = listContainer,
                 })
                 create("UIPadding", { PaddingTop = UDim.new(0, 3), PaddingBottom = UDim.new(0, 3), PaddingLeft = UDim.new(0, 0), PaddingRight = UDim.new(0, 0), Parent = listContainer })
-
-                local function updateDropdownPosition()
-                    if open and dropHeader:IsDescendantOf(game) then
-                        local relPos = getPositionInMain(dropHeader)
-                        local absWidth = math.round(dropHeader.AbsoluteSize.X)
-                        local absHeight = dropHeader.AbsoluteSize.Y
-                        listContainer.Position = UDim2.new(0, math.round(relPos.X), 0, math.round(relPos.Y + absHeight - 4))
-                        listContainer.Size = UDim2.new(0, absWidth, 0, math.min(#options * 22 + 6, 166))
-                    end
-                end
-
-                local trackConn
-                local function startTracking()
-                    if trackConn then trackConn:Disconnect() end
-                    trackConn = runService.RenderStepped:Connect(function()
-                        if not open or not dropHeader:IsDescendantOf(game) or not isInsideView(dropHeader) then
-                            if trackConn then trackConn:Disconnect() end
-                            trackConn = nil
-                            listContainer.Visible = false
-                            arrow.Rotation = 180
-                            return
-                        end
-                        updateDropdownPosition()
-                    end)
-                end
 
                 local function populateOptions()
                     for _, child in listContainer:GetChildren() do
@@ -2230,8 +2182,6 @@ function library.createWindow(options)
                             else
                                 selected = opt
                                 open = false
-                                if trackConn then trackConn:Disconnect() end
-                                trackConn = nil
                                 listContainer.Visible = false
                                 arrow.Rotation = 180
                             end
@@ -2248,14 +2198,10 @@ function library.createWindow(options)
                     open = not wasOpen
                     if open then
                         populateOptions()
-                        updateDropdownPosition()
-                        task.defer(updateDropdownPosition)
+                        listContainer.Size = UDim2.new(1, 0, 0, math.min(#options * 22 + 6, 166))
                         listContainer.Visible = true
                         arrow.Rotation = 0
-                        startTracking()
                     else
-                        if trackConn then trackConn:Disconnect() end
-                        trackConn = nil
                         listContainer.Visible = false
                         arrow.Rotation = 180
                     end
