@@ -33,7 +33,11 @@ local function ensureFolder()
     end
 end
 
+library.activeConfigName = "."
+
 function library.saveConfig(name)
+    name = name or library.activeConfigName or "."
+    library.activeConfigName = name
     ensureFolder()
     local json = httpService:JSONEncode(library.flags)
     if typeof(writefile) == "function" then
@@ -49,10 +53,16 @@ function library.loadConfig(nameOrData)
     if typeof(readfile) == "function" and typeof(isfile) == "function" then
         if isfile(path) then
             local ok, content = pcall(readfile, path)
-            if ok and content then data = content end
+            if ok and content then
+                data = content
+                library.activeConfigName = nameOrData
+            end
         elseif isfile("MemeSense_" .. nameOrData .. ".json") then
             local ok, content = pcall(readfile, "MemeSense_" .. nameOrData .. ".json")
-            if ok and content then data = content end
+            if ok and content then
+                data = content
+                library.activeConfigName = nameOrData
+            end
         end
     end
 
