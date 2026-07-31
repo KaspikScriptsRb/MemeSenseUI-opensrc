@@ -3,8 +3,11 @@ local userInputService = game:GetService("UserInputService")
 local runService = game:GetService("RunService")
 local coreGui = game:GetService("CoreGui")
 
+local httpService = game:GetService("HttpService")
+
 local library = {
     flags = {},
+    elements = {},
     theme = {
         mainBg = Color3.fromRGB(16, 16, 18),
         sidebarBg = Color3.fromRGB(20, 20, 22),
@@ -20,6 +23,79 @@ local library = {
         fontMedium = Enum.Font.Gotham,
     }
 }
+
+local folderName = "MemeSense_Configs"
+
+local function ensureFolder()
+    if typeof(makefolder) == "function" and typeof(isfolder) == "function" then
+        if not isfolder(folderName) then
+            pcall(makefolder, folderName)
+        end
+    end
+end
+
+function library.saveConfig(name)
+    ensureFolder()
+    local json = httpService:JSONEncode(library.flags)
+    if typeof(writefile) == "function" then
+        pcall(writefile, folderName .. "/" .. name .. ".json", json)
+    end
+    return json
+end
+
+function library.loadConfig(nameOrData)
+    ensureFolder()
+    local data = nameOrData
+    local path = folderName .. "/" .. nameOrData .. ".json"
+    if typeof(readfile) == "function" and typeof(isfile) == "function" and isfile(path) then
+        local ok, fileContent = pcall(readfile, path)
+        if ok and fileContent then data = fileContent end
+    elseif typeof(readfile) == "function" and typeof(isfile) == "function" and isfile("MemeSense_" .. nameOrData .. ".json") then
+        local ok, fileContent = pcall(readfile, "MemeSense_" .. nameOrData .. ".json")
+        if ok and fileContent then data = fileContent end
+    end
+
+    local success, decoded = pcall(function()
+        return httpService:JSONDecode(data)
+    end)
+
+    if success and typeof(decoded) == "table" then
+        for flag, val in decoded do
+            library.flags[flag] = val
+            if library.elements[flag] and typeof(library.elements[flag].set) == "function" then
+                library.elements[flag]:set(val)
+            end
+        end
+        return true
+    end
+    return false
+end
+
+function library.deleteConfig(name)
+    ensureFolder()
+    local path = folderName .. "/" .. name .. ".json"
+    if typeof(delfile) == "function" and typeof(isfile) == "function" and isfile(path) then
+        pcall(delfile, path)
+    end
+end
+
+function library.getFolderConfigs()
+    ensureFolder()
+    local found = {}
+    if typeof(listfiles) == "function" and typeof(isfolder) == "function" and isfolder(folderName) then
+        local files = listfiles(folderName)
+        for _, filePath in files do
+            local fileName = filePath:match("([^/\\]+)%.json$")
+            if fileName then
+                table.insert(found, {
+                    name = fileName,
+                    modified = os.date("%Y/%m/%d %H:%M:%S")
+                })
+            end
+        end
+    end
+    return found
+end
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "MemeSenseGui"
@@ -96,7 +172,7 @@ function library.createWindow(options)
         ClipsDescendants = false,
         Parent = screenGui,
     })
-    makeCorner(main, 3)
+    makeCorner(main, 0)
     local mainStroke = makeStroke(main, Color3.fromRGB(32, 32, 36), 1)
 
     local topBar = create("Frame", {
@@ -211,7 +287,7 @@ function library.createWindow(options)
     })
 
     local headerRight = create("Frame", {
-        Size = UDim2.new(0.3, 0, 1, 0),
+        Size = UDim2.new(0.35, 0, 1, 0),
         Position = UDim2.new(1, -20, 0, 0),
         AnchorPoint = Vector2.new(1, 0),
         BackgroundTransparency = 1,
@@ -230,23 +306,28 @@ function library.createWindow(options)
         Size = UDim2.new(1, -155, 1, -44),
         Position = UDim2.new(0, 155, 0, 44),
         BackgroundTransparency = 1,
-        ClipsDescendants = false,
+        ClipsDescendants = true,
         Parent = main,
     })
 
-    logoFrame.InputBegan:Connect(function(input)
+    local function startDragging(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             window.dragging = true
             window.dragStart = input.Position
             window.startPos = main.Position
         end
-    end)
+    end
 
-    logoFrame.InputEnded:Connect(function(input)
+    local function stopDragging(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             window.dragging = false
         end
-    end)
+    end
+
+    logoFrame.InputBegan:Connect(startDragging)
+    logoFrame.InputEnded:Connect(stopDragging)
+    headerBar.InputBegan:Connect(startDragging)
+    headerBar.InputEnded:Connect(stopDragging)
 
     userInputService.InputChanged:Connect(function(input)
         if window.dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
@@ -536,12 +617,41 @@ function library.createWindow(options)
             Parent = colRight,
         })
 
+        local tabHeaderLeft = create("Frame", {
+            Size = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
+            Visible = false,
+            Parent = headerLeft,
+        })
+        create("UIListLayout", {
+            FillDirection = Enum.FillDirection.Horizontal,
+            VerticalAlignment = Enum.VerticalAlignment.Center,
+            Padding = UDim.new(0, 10),
+            Parent = tabHeaderLeft,
+        })
+
+        local tabHeaderRight = create("Frame", {
+            Size = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
+            Visible = false,
+            Parent = headerRight,
+        })
+        create("UIListLayout", {
+            FillDirection = Enum.FillDirection.Horizontal,
+            HorizontalAlignment = Enum.HorizontalAlignment.Right,
+            VerticalAlignment = Enum.VerticalAlignment.Center,
+            Padding = UDim.new(0, 10),
+            Parent = tabHeaderRight,
+        })
+
         function tab.activate()
             for _, t in window.tabs do
                 t.deactivate()
             end
             window.activeTab = tab
             view.Visible = true
+            tabHeaderLeft.Visible = true
+            tabHeaderRight.Visible = true
             activeBar.BackgroundTransparency = 0
             tabIcon.ImageColor3 = library.theme.accent
             tabLabel.TextColor3 = library.theme.textBright
@@ -551,10 +661,585 @@ function library.createWindow(options)
 
         function tab.deactivate()
             view.Visible = false
+            tabHeaderLeft.Visible = false
+            tabHeaderRight.Visible = false
             activeBar.BackgroundTransparency = 1
             tabIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
             tabLabel.TextColor3 = library.theme.textDim
             btn.BackgroundTransparency = 1
+        end
+
+        function tab.createHeaderDropdown(self, config)
+            config = config or {}
+            local options = config.options or {}
+            local default = config.default or options[1] or ""
+            local side = config.side == "Right" and tabHeaderRight or tabHeaderLeft
+            local callback = config.callback or function() end
+
+            local dropHeader = create("TextButton", {
+                Size = UDim2.new(0, config.width or 110, 0, 24),
+                BackgroundColor3 = Color3.fromRGB(26, 26, 32),
+                Text = "",
+                AutoButtonColor = false,
+                BorderSizePixel = 0,
+                ZIndex = 20,
+                Parent = side,
+            })
+            makeCorner(dropHeader, 3)
+
+            local selected = default
+            local selectedLabel = create("TextLabel", {
+                Size = UDim2.new(1, -16, 1, 0),
+                Position = UDim2.new(0, 8, 0, 0),
+                Text = tostring(selected),
+                Font = library.theme.fontBold,
+                TextSize = 12,
+                TextColor3 = library.theme.textBright,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                BackgroundTransparency = 1,
+                ZIndex = 21,
+                Parent = dropHeader,
+            })
+
+            local arrow = create("ImageLabel", {
+                Size = UDim2.new(0, 9, 0, 9),
+                Position = UDim2.new(1, -6, 0.5, 0),
+                AnchorPoint = Vector2.new(1, 0.5),
+                BackgroundTransparency = 1,
+                Image = "rbxassetid://10709791523",
+                ImageColor3 = Color3.fromRGB(255, 255, 255),
+                ZIndex = 21,
+                Rotation = 180,
+                Parent = dropHeader,
+            })
+
+            local listContainer = create("Frame", {
+                Size = UDim2.new(1, 0, 0, 0),
+                Position = UDim2.new(0, 0, 1, 2),
+                BackgroundColor3 = Color3.fromRGB(26, 26, 32),
+                BorderSizePixel = 0,
+                Visible = false,
+                ZIndex = 100,
+                Parent = dropHeader,
+            })
+
+            create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 1), Parent = listContainer })
+            create("UIPadding", { PaddingTop = UDim.new(0, 2), PaddingBottom = UDim.new(0, 2), PaddingLeft = UDim.new(0, 2), PaddingRight = UDim.new(0, 2), Parent = listContainer })
+
+            local open = false
+            dropHeader.MouseButton1Click:Connect(function()
+                open = not open
+                if open then
+                    for _, child in listContainer:GetChildren() do
+                        if child:IsA("TextButton") then child:Destroy() end
+                    end
+                    for _, opt in options do
+                        local optBtn = create("TextButton", {
+                            Size = UDim2.new(1, 0, 0, 20),
+                            BackgroundColor3 = (opt == selected) and Color3.fromRGB(34, 34, 40) or Color3.fromRGB(26, 26, 32),
+                            Text = opt,
+                            Font = library.theme.fontBold,
+                            TextSize = 12,
+                            TextColor3 = (opt == selected) and library.theme.accent or library.theme.textBright,
+                            TextXAlignment = Enum.TextXAlignment.Left,
+                            ZIndex = 101,
+                            Parent = listContainer,
+                        })
+                        create("UIPadding", { PaddingLeft = UDim.new(0, 6), Parent = optBtn })
+                        optBtn.MouseButton1Click:Connect(function()
+                            selected = opt
+                            selectedLabel.Text = selected
+                            open = false
+                            listContainer.Visible = false
+                            arrow.Rotation = 180
+                            pcall(callback, selected)
+                        end)
+                    end
+                    listContainer.Size = UDim2.new(1, 0, 0, #options * 21 + 4)
+                    listContainer.Visible = true
+                    arrow.Rotation = 0
+                else
+                    listContainer.Visible = false
+                    arrow.Rotation = 180
+                end
+            end)
+
+            return {
+                set = function(val)
+                    selected = val
+                    selectedLabel.Text = tostring(selected)
+                    pcall(callback, selected)
+                end,
+                get = function() return selected end
+            }
+        end
+
+        function tab.createHeaderButton(self, config)
+            config = config or {}
+            local name = config.name or "Button"
+            local icon = config.icon or ""
+            local side = config.side == "Right" and tabHeaderRight or tabHeaderLeft
+            local callback = config.callback or function() end
+
+            local btn = create("TextButton", {
+                Size = UDim2.new(0, 0, 0, 24),
+                AutomaticSize = Enum.AutomaticSize.X,
+                BackgroundColor3 = Color3.fromRGB(26, 26, 32),
+                Text = "",
+                AutoButtonColor = false,
+                BorderSizePixel = 0,
+                Parent = side,
+            })
+            makeCorner(btn, 3)
+
+            create("UIPadding", {
+                PaddingLeft = UDim.new(0, 8),
+                PaddingRight = UDim.new(0, 8),
+                Parent = btn,
+            })
+
+            create("UIListLayout", {
+                FillDirection = Enum.FillDirection.Horizontal,
+                VerticalAlignment = Enum.VerticalAlignment.Center,
+                Padding = UDim.new(0, 5),
+                Parent = btn,
+            })
+
+            if icon ~= "" then
+                create("ImageLabel", {
+                    Size = UDim2.new(0, 14, 0, 14),
+                    BackgroundTransparency = 1,
+                    Image = icon,
+                    ImageColor3 = Color3.fromRGB(255, 255, 255),
+                    Parent = btn,
+                })
+            end
+
+            create("TextLabel", {
+                Text = name,
+                Font = library.theme.fontBold,
+                TextSize = 12,
+                TextColor3 = library.theme.textBright,
+                AutomaticSize = Enum.AutomaticSize.X,
+                BackgroundTransparency = 1,
+                Parent = btn,
+            })
+
+            btn.MouseButton1Click:Connect(function()
+                pcall(callback)
+            end)
+
+            return btn
+        end
+
+        function tab.createHeaderPopover(self, config)
+            config = config or {}
+            local name = config.name or "Menu"
+            local icon = config.icon or ""
+            local width = config.width or 220
+
+            local btn = tab:createHeaderButton({
+                name = name,
+                icon = icon,
+                side = config.side,
+            })
+
+            local popoverFrame = create("Frame", {
+                Size = UDim2.new(0, width, 0, 0),
+                Position = UDim2.new(0, 0, 1, 6),
+                BackgroundColor3 = Color3.fromRGB(18, 18, 22),
+                BorderSizePixel = 0,
+                Visible = false,
+                ZIndex = 300,
+                ClipsDescendants = false,
+                Parent = btn,
+            })
+            makeCorner(popoverFrame, 4)
+            makeStroke(popoverFrame, Color3.fromRGB(36, 36, 44), 1)
+
+            create("UIPadding", {
+                PaddingTop = UDim.new(0, 10),
+                PaddingBottom = UDim.new(0, 10),
+                PaddingLeft = UDim.new(0, 10),
+                PaddingRight = UDim.new(0, 10),
+                Parent = popoverFrame,
+            })
+
+            create("UIListLayout", {
+                SortOrder = Enum.SortOrder.LayoutOrder,
+                Padding = UDim.new(0, 8),
+                Parent = popoverFrame,
+            })
+
+            btn.MouseButton1Click:Connect(function()
+                popoverFrame.Visible = not popoverFrame.Visible
+            end)
+
+            local popObj = {
+                frame = popoverFrame,
+                button = btn,
+                open = function() popoverFrame.Visible = true end,
+                close = function() popoverFrame.Visible = false end,
+                toggle = function() popoverFrame.Visible = not popoverFrame.Visible end,
+            }
+
+            function popObj.addInput(self, iConfig)
+                iConfig = iConfig or {}
+                local placeholder = iConfig.placeholder or ""
+                local text = iConfig.default or ""
+                local underline = iConfig.underline or false
+                local callback = iConfig.callback or function() end
+
+                local boxFrame = create("Frame", {
+                    Size = UDim2.new(1, 0, 0, 26),
+                    BackgroundColor3 = Color3.fromRGB(26, 26, 32),
+                    BorderSizePixel = 0,
+                    ZIndex = 301,
+                    Parent = popoverFrame,
+                })
+                makeCorner(boxFrame, 3)
+
+                local box = create("TextBox", {
+                    Size = UDim2.new(1, -12, 1, 0),
+                    Position = UDim2.new(0, 6, 0, 0),
+                    BackgroundTransparency = 1,
+                    Text = text,
+                    PlaceholderText = placeholder,
+                    PlaceholderColor3 = library.theme.textMuted,
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = library.theme.textBright,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    ZIndex = 302,
+                    Parent = boxFrame,
+                })
+
+                if underline then
+                    create("Frame", {
+                        Size = UDim2.new(1, 0, 0, 2),
+                        Position = UDim2.new(0, 0, 1, -2),
+                        BackgroundColor3 = Color3.fromRGB(200, 30, 40),
+                        BorderSizePixel = 0,
+                        ZIndex = 303,
+                        Parent = boxFrame,
+                    })
+                end
+
+                box.FocusLost:Connect(function()
+                    pcall(callback, box.Text)
+                end)
+
+                return {
+                    getText = function() return box.Text end,
+                    setText = function(t) box.Text = t end,
+                    box = box
+                }
+            end
+
+            function popObj.addToggle(self, tConfig)
+                tConfig = tConfig or {}
+                local name = tConfig.name or "Toggle"
+                local state = tConfig.default or false
+                local flag = tConfig.flag
+                local callback = tConfig.callback or function() end
+
+                if flag then library.flags[flag] = state end
+
+                local row = create("TextButton", {
+                    Size = UDim2.new(1, 0, 0, 20),
+                    BackgroundTransparency = 1,
+                    Text = "",
+                    ZIndex = 301,
+                    Parent = popoverFrame,
+                })
+
+                local box = create("Frame", {
+                    Size = UDim2.new(0, 14, 0, 14),
+                    Position = UDim2.new(0, 0, 0.5, 0),
+                    AnchorPoint = Vector2.new(0, 0.5),
+                    BackgroundColor3 = state and library.theme.accent or Color3.fromRGB(28, 28, 34),
+                    BorderSizePixel = 0,
+                    ZIndex = 302,
+                    Parent = row,
+                })
+                makeCorner(box, 3)
+
+                local checkIcon = create("ImageLabel", {
+                    Size = UDim2.new(1, -2, 1, -2),
+                    Position = UDim2.new(0.5, 0, 0.5, 0),
+                    AnchorPoint = Vector2.new(0.5, 0.5),
+                    BackgroundTransparency = 1,
+                    Image = "rbxassetid://14189590169",
+                    ImageColor3 = Color3.fromRGB(255, 255, 255),
+                    Visible = state,
+                    ZIndex = 303,
+                    Parent = box,
+                })
+
+                create("TextLabel", {
+                    Position = UDim2.new(0, 22, 0, 0),
+                    Size = UDim2.new(1, -22, 1, 0),
+                    Text = name,
+                    Font = library.theme.fontMedium,
+                    TextSize = 12,
+                    TextColor3 = state and library.theme.textBright or library.theme.textDim,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    BackgroundTransparency = 1,
+                    ZIndex = 302,
+                    Parent = row,
+                })
+
+                row.MouseButton1Click:Connect(function()
+                    state = not state
+                    if flag then library.flags[flag] = state end
+                    box.BackgroundColor3 = state and library.theme.accent or Color3.fromRGB(28, 28, 34)
+                    checkIcon.Visible = state
+                    pcall(callback, state)
+                end)
+            end
+
+            function popObj.addSlider(self, sConfig)
+                sConfig = sConfig or {}
+                local name = sConfig.name or "Slider"
+                local min = sConfig.min or 0
+                local max = sConfig.max or 10
+                local value = sConfig.default or min
+                local decimals = sConfig.decimals or 4
+                local flag = sConfig.flag
+                local callback = sConfig.callback or function() end
+
+                local row = create("Frame", {
+                    Size = UDim2.new(1, 0, 0, 32),
+                    BackgroundTransparency = 1,
+                    ZIndex = 301,
+                    Parent = popoverFrame,
+                })
+
+                local titleLabel = create("TextLabel", {
+                    Size = UDim2.new(0.6, 0, 0, 14),
+                    Text = name,
+                    Font = library.theme.fontMedium,
+                    TextSize = 12,
+                    TextColor3 = library.theme.textBright,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    BackgroundTransparency = 1,
+                    ZIndex = 302,
+                    Parent = row,
+                })
+
+                local valLabel = create("TextLabel", {
+                    Size = UDim2.new(0.4, 0, 0, 14),
+                    Position = UDim2.new(1, 0, 0, 0),
+                    AnchorPoint = Vector2.new(1, 0),
+                    Text = string.format("%." .. decimals .. "f", value),
+                    Font = library.theme.fontMedium,
+                    TextSize = 12,
+                    TextColor3 = library.theme.textDim,
+                    TextXAlignment = Enum.TextXAlignment.Right,
+                    BackgroundTransparency = 1,
+                    ZIndex = 302,
+                    Parent = row,
+                })
+
+                local track = create("Frame", {
+                    Size = UDim2.new(1, 0, 0, 3),
+                    Position = UDim2.new(0, 0, 1, -3),
+                    BackgroundColor3 = Color3.fromRGB(36, 36, 44),
+                    BorderSizePixel = 0,
+                    ZIndex = 302,
+                    Parent = row,
+                })
+
+                local fill = create("Frame", {
+                    Size = UDim2.new(math.clamp((value - min) / (max - min), 0, 1), 0, 1, 0),
+                    BackgroundColor3 = library.theme.accent,
+                    BorderSizePixel = 0,
+                    ZIndex = 303,
+                    Parent = track,
+                })
+
+                local dragging = false
+                local function updateSlider(input)
+                    local percent = math.clamp((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
+                    value = min + (max - min) * percent
+                    fill.Size = UDim2.new(percent, 0, 1, 0)
+                    valLabel.Text = string.format("%." .. decimals .. "f", value)
+                    if flag then library.flags[flag] = value end
+                    pcall(callback, value)
+                end
+
+                track.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = true
+                        updateSlider(input)
+                    end
+                end)
+                userInputService.InputChanged:Connect(function(input)
+                    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                        updateSlider(input)
+                    end
+                end)
+                track.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+                end)
+            end
+
+            function popObj.addDropdown(self, dConfig)
+                dConfig = dConfig or {}
+                local name = dConfig.name or "Dropdown"
+                local options = dConfig.options or {}
+                local selected = dConfig.default or options[1] or ""
+                local flag = dConfig.flag
+                local callback = dConfig.callback or function() end
+
+                local row = create("Frame", {
+                    Size = UDim2.new(1, 0, 0, 24),
+                    BackgroundTransparency = 1,
+                    ZIndex = 301,
+                    Parent = popoverFrame,
+                })
+
+                create("TextLabel", {
+                    Size = UDim2.new(0.4, 0, 1, 0),
+                    Text = name,
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = library.theme.textBright,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    BackgroundTransparency = 1,
+                    ZIndex = 302,
+                    Parent = row,
+                })
+
+                local dropHeader = create("TextButton", {
+                    Size = UDim2.new(0.55, 0, 1, 0),
+                    Position = UDim2.new(1, 0, 0, 0),
+                    AnchorPoint = Vector2.new(1, 0),
+                    BackgroundColor3 = Color3.fromRGB(26, 26, 32),
+                    Text = "",
+                    BorderSizePixel = 0,
+                    ZIndex = 302,
+                    Parent = row,
+                })
+                makeCorner(dropHeader, 3)
+
+                local label = create("TextLabel", {
+                    Size = UDim2.new(1, -16, 1, 0),
+                    Position = UDim2.new(0, 6, 0, 0),
+                    Text = tostring(selected),
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = library.theme.textBright,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    BackgroundTransparency = 1,
+                    ZIndex = 303,
+                    Parent = dropHeader,
+                })
+
+                create("ImageLabel", {
+                    Size = UDim2.new(0, 8, 0, 8),
+                    Position = UDim2.new(1, -6, 0.5, 0),
+                    AnchorPoint = Vector2.new(1, 0.5),
+                    BackgroundTransparency = 1,
+                    Image = "rbxassetid://10709791523",
+                    ImageColor3 = Color3.fromRGB(255, 255, 255),
+                    Rotation = 180,
+                    ZIndex = 303,
+                    Parent = dropHeader,
+                })
+
+                dropHeader.MouseButton1Click:Connect(function()
+                    local nextIdx = 1
+                    for idx, opt in options do
+                        if opt == selected then nextIdx = (idx % #options) + 1 break end
+                    end
+                    selected = options[nextIdx] or options[1]
+                    label.Text = tostring(selected)
+                    if flag then library.flags[flag] = selected end
+                    pcall(callback, selected)
+                end)
+            end
+
+            function popObj.addButton(self, bConfig)
+                bConfig = bConfig or {}
+                local name = bConfig.name or "Button"
+                local callback = bConfig.callback or function() end
+
+                local btnItem = create("TextButton", {
+                    Size = UDim2.new(1, 0, 0, 26),
+                    BackgroundColor3 = Color3.fromRGB(36, 36, 44),
+                    Text = name,
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = library.theme.textBright,
+                    BorderSizePixel = 0,
+                    ZIndex = 301,
+                    Parent = popoverFrame,
+                })
+                makeCorner(btnItem, 3)
+
+                btnItem.MouseButton1Click:Connect(function()
+                    pcall(callback)
+                end)
+            end
+
+            function popObj.addKeybindButton(self, kConfig)
+                kConfig = kConfig or {}
+                local keyName = kConfig.defaultName or "INS"
+                local callback = kConfig.callback or function() end
+
+                local keyBtn = create("TextButton", {
+                    Size = UDim2.new(1, 0, 0, 28),
+                    BackgroundColor3 = Color3.fromRGB(26, 26, 32),
+                    Text = keyName,
+                    Font = library.theme.fontBold,
+                    TextSize = 13,
+                    TextColor3 = library.theme.textBright,
+                    BorderSizePixel = 0,
+                    ZIndex = 301,
+                    Parent = popoverFrame,
+                })
+                makeCorner(keyBtn, 3)
+
+                local binding = false
+                keyBtn.MouseButton1Click:Connect(function()
+                    binding = true
+                    keyBtn.Text = "..."
+                end)
+
+                userInputService.InputBegan:Connect(function(input)
+                    if binding and input.UserInputType == Enum.UserInputType.Keyboard then
+                        binding = false
+                        keyName = input.KeyCode.Name
+                        keyBtn.Text = keyName
+                        window.toggleKey = input.KeyCode
+                        pcall(callback, input.KeyCode)
+                    end
+                end)
+            end
+
+            return popObj
+        end
+
+        function tab.createHeaderIcon(self, config)
+            config = config or {}
+            local icon = config.icon or "rbxassetid://10723346959"
+            local side = config.side == "Right" and tabHeaderRight or tabHeaderLeft
+            local callback = config.callback or function() end
+
+            local iconLabel = create("ImageButton", {
+                Size = UDim2.new(0, 18, 0, 18),
+                BackgroundTransparency = 1,
+                Image = icon,
+                ImageColor3 = Color3.fromRGB(255, 255, 255),
+                Parent = side,
+            })
+
+            iconLabel.MouseButton1Click:Connect(function()
+                pcall(callback)
+            end)
+
+            return iconLabel
         end
 
         btn.MouseButton1Click:Connect(function()
@@ -744,6 +1429,7 @@ function library.createWindow(options)
                     end,
                     get = function() return state end,
                 }
+                if flag then library.elements[flag] = toggleObj end
 
                 function toggleObj.addKeybind(self, kConfig)
                     kConfig = kConfig or {}
@@ -1036,10 +1722,12 @@ function library.createWindow(options)
                     end
                 end)
 
-                return {
+                local sliderObj = {
                     set = applyValue,
                     get = function() return value end,
                 }
+                if flag then library.elements[flag] = sliderObj end
+                return sliderObj
             end
 
             function section.createDropdown(self, config)
@@ -1112,7 +1800,6 @@ function library.createWindow(options)
                     BorderSizePixel = 0,
                     Parent = rightGroup,
                 })
-                makeStroke(dropHeader, library.theme.inputBorder)
 
                 local function getDisplayText()
                     if isMulti then
@@ -1256,7 +1943,7 @@ function library.createWindow(options)
                     end
                 end)
 
-                return {
+                local dropObj = {
                     set = function(val)
                         selected = val
                         selectedLabel.Text = getDisplayText()
@@ -1265,30 +1952,351 @@ function library.createWindow(options)
                     end,
                     get = function() return selected end,
                 }
+                if flag then library.elements[flag] = dropObj end
+                return dropObj
             end
 
-            function section.createButton(self, config)
+            function section.createConfigSystem(self, config)
                 config = config or {}
-                local name = config.name or "Button"
-                local callback = config.callback or function() end
+                local configsList = config.list or {
+                    { name = "LEGIT", modified = "2025/11/10 19:34:38" },
+                    { name = "REDLEGIT", modified = "2025/12/07 13:45:38" },
+                    { name = "PURPLE", modified = "2025/11/10 19:30:58" },
+                    { name = "full semirage", modified = "2026/03/22 17:29:05" },
+                    { name = "semi_reaction time", modified = "2026/03/22 17:33:42" },
+                    { name = "Clean Config", modified = "2026/07/16 08:49:30" },
+                }
+                local activeConfigName = config.active or "PURPLE"
+                local onSave = config.onSave or function() end
+                local onLoad = config.onLoad or function() end
+                local onDelete = config.onDelete or function() end
+                local onCreate = config.onCreate or function() end
+                local onRename = config.onRename or function() end
 
-                local btn = create("TextButton", {
-                    Size = UDim2.new(1, 0, 0, 22),
-                    BackgroundColor3 = library.theme.inputBg,
-                    Text = name,
-                    Font = library.theme.fontBold,
-                    TextSize = 13,
-                    TextColor3 = library.theme.textBright,
-                    AutoButtonColor = false,
-                    BorderSizePixel = 0,
+                local container = create("Frame", {
+                    Size = UDim2.new(1, 0, 0, 0),
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    BackgroundTransparency = 1,
                     Parent = card,
                 })
-                makeCorner(btn, 3)
-                makeStroke(btn, library.theme.inputBorder)
 
-                btn.MouseButton1Click:Connect(function()
-                    pcall(callback)
+                create("UIListLayout", {
+                    SortOrder = Enum.SortOrder.LayoutOrder,
+                    Padding = UDim.new(0, 6),
+                    Parent = container,
+                })
+
+                -- New Config creation input
+                local createRow = create("Frame", {
+                    Size = UDim2.new(1, 0, 0, 26),
+                    BackgroundTransparency = 1,
+                    Parent = container,
+                })
+
+                local newConfigBox = create("TextBox", {
+                    Size = UDim2.new(1, -75, 1, 0),
+                    BackgroundColor3 = library.theme.inputBg,
+                    Text = "",
+                    PlaceholderText = "New config name...",
+                    PlaceholderColor3 = library.theme.textMuted,
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = library.theme.textBright,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    BorderSizePixel = 0,
+                    Parent = createRow,
+                })
+                makeCorner(newConfigBox, 3)
+                makeStroke(newConfigBox, library.theme.inputBorder)
+                create("UIPadding", { PaddingLeft = UDim.new(0, 8), Parent = newConfigBox })
+
+                local createBtn = create("TextButton", {
+                    Size = UDim2.new(0, 68, 1, 0),
+                    Position = UDim2.new(1, 0, 0, 0),
+                    AnchorPoint = Vector2.new(1, 0),
+                    BackgroundColor3 = Color3.fromRGB(38, 38, 46),
+                    Text = "Create",
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = library.theme.textBright,
+                    BorderSizePixel = 0,
+                    Parent = createRow,
+                })
+                makeCorner(createBtn, 3)
+
+                local listFrame = create("Frame", {
+                    Size = UDim2.new(1, 0, 0, 0),
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    BackgroundTransparency = 1,
+                    Parent = container,
+                })
+
+                create("UIListLayout", {
+                    SortOrder = Enum.SortOrder.LayoutOrder,
+                    Padding = UDim.new(0, 6),
+                    Parent = listFrame,
+                })
+
+                local renderList
+
+                renderList = function()
+                    for _, child in listFrame:GetChildren() do
+                        if child:IsA("Frame") then child:Destroy() end
+                    end
+
+                    for idx, item in configsList do
+                        local isActive = (item.name == activeConfigName)
+                        local cardItem = create("Frame", {
+                            Size = UDim2.new(1, 0, 0, 48),
+                            BackgroundColor3 = Color3.fromRGB(22, 22, 26),
+                            BorderSizePixel = 0,
+                            Parent = listFrame,
+                        })
+                        makeCorner(cardItem, 4)
+
+                        create("ImageLabel", {
+                            Size = UDim2.new(0, 16, 0, 16),
+                            Position = UDim2.new(0, 12, 0, 10),
+                            BackgroundTransparency = 1,
+                            Image = isActive and "rbxassetid://10723346959" or "rbxassetid://10723346959",
+                            ImageColor3 = Color3.fromRGB(255, 255, 255),
+                            Parent = cardItem,
+                        })
+
+                        local nameLabel = create("TextLabel", {
+                            Size = UDim2.new(0.5, -40, 0, 18),
+                            Position = UDim2.new(0, 36, 0, 8),
+                            Text = item.name,
+                            Font = library.theme.fontBold,
+                            TextSize = 13,
+                            TextColor3 = library.theme.textBright,
+                            TextXAlignment = Enum.TextXAlignment.Left,
+                            BackgroundTransparency = 1,
+                            Parent = cardItem,
+                        })
+
+                        local nameEditBox = create("TextBox", {
+                            Size = UDim2.new(0.5, -40, 0, 20),
+                            Position = UDim2.new(0, 36, 0, 7),
+                            BackgroundColor3 = Color3.fromRGB(16, 16, 18),
+                            Text = item.name,
+                            Font = library.theme.fontBold,
+                            TextSize = 13,
+                            TextColor3 = library.theme.textBright,
+                            TextXAlignment = Enum.TextXAlignment.Left,
+                            Visible = false,
+                            BorderSizePixel = 0,
+                            Parent = cardItem,
+                        })
+                        makeCorner(nameEditBox, 3)
+                        create("UIPadding", { PaddingLeft = UDim.new(0, 4), Parent = nameEditBox })
+
+                        local subFrame = create("Frame", {
+                            Size = UDim2.new(0.5, -40, 0, 14),
+                            Position = UDim2.new(0, 36, 0, 26),
+                            BackgroundTransparency = 1,
+                            Parent = cardItem,
+                        })
+                        create("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 4), Parent = subFrame })
+
+                        create("TextLabel", {
+                            AutomaticSize = Enum.AutomaticSize.X,
+                            Size = UDim2.new(0, 0, 1, 0),
+                            Text = "Modified:",
+                            Font = library.theme.fontBold,
+                            TextSize = 11,
+                            TextColor3 = library.theme.textDim,
+                            BackgroundTransparency = 1,
+                            Parent = subFrame,
+                        })
+
+                        create("TextLabel", {
+                            AutomaticSize = Enum.AutomaticSize.X,
+                            Size = UDim2.new(0, 0, 1, 0),
+                            Text = item.modified or "2026/01/01 00:00:00",
+                            Font = library.theme.fontBold,
+                            TextSize = 11,
+                            TextColor3 = Color3.fromRGB(220, 40, 40),
+                            BackgroundTransparency = 1,
+                            Parent = subFrame,
+                        })
+
+                        local rightActions = create("Frame", {
+                            Size = UDim2.new(0, 140, 1, 0),
+                            Position = UDim2.new(1, -12, 0, 0),
+                            AnchorPoint = Vector2.new(1, 0),
+                            BackgroundTransparency = 1,
+                            Parent = cardItem,
+                        })
+
+                        create("UIListLayout", {
+                            FillDirection = Enum.FillDirection.Horizontal,
+                            HorizontalAlignment = Enum.HorizontalAlignment.Right,
+                            VerticalAlignment = Enum.VerticalAlignment.Center,
+                            Padding = UDim.new(0, 8),
+                            Parent = rightActions,
+                        })
+
+                        local editIcon = create("ImageButton", {
+                            Size = UDim2.new(0, 15, 0, 15),
+                            BackgroundTransparency = 1,
+                            Image = "rbxassetid://88134306391339",
+                            ImageColor3 = Color3.fromRGB(220, 220, 220),
+                            Parent = rightActions,
+                        })
+
+                        editIcon.MouseButton1Click:Connect(function()
+                            nameLabel.Visible = false
+                            nameEditBox.Visible = true
+                            nameEditBox:CaptureFocus()
+                        end)
+
+                        nameEditBox.FocusLost:Connect(function(enterPressed)
+                            nameLabel.Visible = true
+                            nameEditBox.Visible = false
+                            if nameEditBox.Text ~= "" and nameEditBox.Text ~= item.name then
+                                local oldName = item.name
+                                item.name = nameEditBox.Text
+                                if activeConfigName == oldName then
+                                    activeConfigName = item.name
+                                end
+                                nameLabel.Text = item.name
+                                pcall(onRename, oldName, item.name)
+                            else
+                                nameEditBox.Text = item.name
+                            end
+                        end)
+
+                        local deleteIcon = create("ImageButton", {
+                            Size = UDim2.new(0, 15, 0, 15),
+                            BackgroundTransparency = 1,
+                            Image = "rbxassetid://14002617467",
+                            ImageColor3 = Color3.fromRGB(220, 220, 220),
+                            Parent = rightActions,
+                        })
+
+                        deleteIcon.MouseButton1Click:Connect(function()
+                            local deletedName = item.name
+                            library.deleteConfig(deletedName)
+                            table.remove(configsList, idx)
+                            if activeConfigName == deletedName then
+                                activeConfigName = configsList[1] and configsList[1].name or ""
+                            end
+                            pcall(onDelete, deletedName)
+                            renderList()
+                        end)
+
+                        local actionBtn = create("TextButton", {
+                            Size = UDim2.new(0, 68, 0, 28),
+                            BackgroundColor3 = Color3.fromRGB(38, 38, 46),
+                            Text = "",
+                            AutoButtonColor = false,
+                            BorderSizePixel = 0,
+                            Parent = rightActions,
+                        })
+                        makeCorner(actionBtn, 4)
+
+                        create("UIListLayout", {
+                            FillDirection = Enum.FillDirection.Horizontal,
+                            HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                            VerticalAlignment = Enum.VerticalAlignment.Center,
+                            Padding = UDim.new(0, 5),
+                            Parent = actionBtn,
+                        })
+
+                        create("ImageLabel", {
+                            Size = UDim2.new(0, 14, 0, 14),
+                            BackgroundTransparency = 1,
+                            Image = isActive and "rbxassetid://109683101189277" or "rbxassetid://10709791437",
+                            ImageColor3 = Color3.fromRGB(255, 255, 255),
+                            Parent = actionBtn,
+                        })
+
+                        create("TextLabel", {
+                            AutomaticSize = Enum.AutomaticSize.X,
+                            Text = isActive and "Save" or "Load",
+                            Font = library.theme.fontBold,
+                            TextSize = 12,
+                            TextColor3 = Color3.fromRGB(255, 255, 255),
+                            BackgroundTransparency = 1,
+                            Parent = actionBtn,
+                        })
+
+                        actionBtn.MouseButton1Click:Connect(function()
+                            if isActive then
+                                local dateStr = os.date("%Y/%m/%d %H:%M:%S")
+                                item.modified = dateStr
+                                if config.autoSave ~= false then
+                                    library.saveConfig(item.name)
+                                end
+                                pcall(onSave, item.name)
+                                renderList()
+                            else
+                                activeConfigName = item.name
+                                if config.autoLoad ~= false then
+                                    library.loadConfig(item.name)
+                                end
+                                pcall(onLoad, item.name)
+                                renderList()
+                            end
+                        end)
+                    end
+                end
+
+                local function refreshFolderFiles()
+                    local diskFiles = library.getFolderConfigs()
+                    if #diskFiles > 0 then
+                        local existingMap = {}
+                        for _, c in configsList do
+                            existingMap[c.name] = true
+                        end
+                        for _, diskItem in diskFiles do
+                            if not existingMap[diskItem.name] then
+                                table.insert(configsList, 1, diskItem)
+                            end
+                        end
+                    end
+                    renderList()
+                end
+
+                createBtn.MouseButton1Click:Connect(function()
+                    local name = newConfigBox.Text
+                    if name and name ~= "" then
+                        local dateStr = os.date("%Y/%m/%d %H:%M:%S")
+                        table.insert(configsList, 1, { name = name, modified = dateStr })
+                        activeConfigName = name
+                        newConfigBox.Text = ""
+                        if config.autoSave ~= false then
+                            library.saveConfig(name)
+                        end
+                        pcall(onCreate, name)
+                        renderList()
+                    end
                 end)
+
+                refreshFolderFiles()
+
+                return {
+                    refresh = refreshFolderFiles,
+                    getConfigs = function() return configsList end,
+                    getActive = function() return activeConfigName end,
+                    setActive = function(name)
+                        activeConfigName = name
+                        renderList()
+                    end,
+                    createConfig = function(name)
+                        if name and name ~= "" then
+                            local dateStr = os.date("%Y/%m/%d %H:%M:%S")
+                            table.insert(configsList, 1, { name = name, modified = dateStr })
+                            activeConfigName = name
+                            if config.autoSave ~= false then
+                                library.saveConfig(name)
+                            end
+                            pcall(onCreate, name)
+                            renderList()
+                        end
+                    end
+                }
             end
 
             return section
