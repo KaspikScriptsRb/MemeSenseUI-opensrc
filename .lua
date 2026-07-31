@@ -1519,12 +1519,13 @@ function library.createWindow(options)
                 }
             end
 
-            function section.createToggle(self, config)
+            function section.createToggle(self, config, targetParent)
                 config = config or {}
                 local name = config.name or "Toggle"
                 local state = config.default or false
                 local flag = config.flag
                 local callback = config.callback or function() end
+                local parentCard = targetParent or card
 
                 if flag then library.flags[flag] = state end
 
@@ -1532,7 +1533,7 @@ function library.createWindow(options)
                     Size = UDim2.new(1, 0, 0, 20),
                     BackgroundTransparency = 1,
                     ClipsDescendants = false,
-                    Parent = card,
+                    Parent = parentCard,
                 })
 
                 local toggleBtn = create("TextButton", {
@@ -1920,20 +1921,10 @@ function library.createWindow(options)
                         card = popup,
                     }
 
-                    local function withPopupCard(fn)
-                        return function(self, cfg)
-                            local origCard = card
-                            card = popup
-                            local result = fn(self, cfg)
-                            card = origCard
-                            return result
-                        end
-                    end
-
-                    popObj.createToggle = withPopupCard(section.createToggle)
-                    popObj.createSlider = withPopupCard(section.createSlider)
-                    popObj.createDropdown = withPopupCard(section.createDropdown)
-                    popObj.createColorpicker = withPopupCard(section.createColorpicker)
+                    function popObj.createToggle(self, cfg) return section:createToggle(cfg, popup) end
+                    function popObj.createSlider(self, cfg) return section:createSlider(cfg, popup) end
+                    function popObj.createDropdown(self, cfg) return section:createDropdown(cfg, popup) end
+                    function popObj.createColorpicker(self, cfg) return section:createColorpicker(cfg, popup) end
 
                     if typeof(builder) == "function" then
                         pcall(builder, popObj)
@@ -1945,7 +1936,7 @@ function library.createWindow(options)
                 return toggleObj
             end
 
-            function section.createSlider(self, config)
+            function section.createSlider(self, config, targetParent)
                 config = config or {}
                 local name = config.name or "Slider"
                 local min = config.min or 0
@@ -1958,6 +1949,7 @@ function library.createWindow(options)
                 local customFormat = config.format
                 local flag = config.flag
                 local callback = config.callback or function() end
+                local parentCard = targetParent or card
 
                 local value = math.clamp(default, min, max)
                 if flag then library.flags[flag] = value end
@@ -1965,7 +1957,7 @@ function library.createWindow(options)
                 local container = create("Frame", {
                     Size = UDim2.new(1, 0, 0, 26),
                     BackgroundTransparency = 1,
-                    Parent = card,
+                    Parent = parentCard,
                 })
 
                 create("TextLabel", {
@@ -2117,13 +2109,14 @@ function library.createWindow(options)
                 return sliderObj
             end
 
-            function section.createDropdown(self, config)
+            function section.createDropdown(self, config, targetParent)
                 config = config or {}
                 local name = config.name or "Dropdown"
                 local options = config.options or {}
                 local isMulti = config.multi or false
                 local showIcon = config.icon
                 if showIcon == nil then showIcon = true end
+                local parentCard = targetParent or card
 
                 local selected = isMulti and (config.default or {}) or (config.default or options[1] or "")
                 local flag = config.flag
@@ -2136,7 +2129,7 @@ function library.createWindow(options)
                     Size = UDim2.new(1, 0, 0, 24),
                     BackgroundTransparency = 1,
                     ClipsDescendants = false,
-                    Parent = card,
+                    Parent = parentCard,
                 })
 
                 create("TextLabel", {
@@ -2352,6 +2345,58 @@ function library.createWindow(options)
                 }
                 if flag then library.elements[flag] = dropObj end
                 return dropObj
+            end
+
+            function section.createColorpicker(self, config, targetParent)
+                config = config or {}
+                local name = config.name or "Color"
+                local color = config.default or Color3.fromRGB(255, 255, 255)
+                local flag = config.flag
+                local callback = config.callback or function() end
+                local parentCard = targetParent or card
+
+                if flag then library.flags[flag] = color end
+
+                local row = create("Frame", {
+                    Size = UDim2.new(1, 0, 0, 22),
+                    BackgroundTransparency = 1,
+                    Parent = parentCard,
+                })
+
+                create("TextLabel", {
+                    Size = UDim2.new(0.6, 0, 1, 0),
+                    Text = name,
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = library.theme.textBright,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    BackgroundTransparency = 1,
+                    Parent = row,
+                })
+
+                local preview = create("TextButton", {
+                    Size = UDim2.new(0, 26, 0, 14),
+                    Position = UDim2.new(1, 0, 0.5, 0),
+                    AnchorPoint = Vector2.new(1, 0.5),
+                    BackgroundColor3 = color,
+                    BorderSizePixel = 0,
+                    Text = "",
+                    AutoButtonColor = false,
+                    Parent = row,
+                })
+                makeCorner(preview, 3)
+
+                local colorPickerObj = {
+                    set = function(col)
+                        color = col
+                        preview.BackgroundColor3 = color
+                        if flag then library.flags[flag] = color end
+                        pcall(callback, color)
+                    end,
+                    get = function() return color end
+                }
+                if flag then library.elements[flag] = colorPickerObj end
+                return colorPickerObj
             end
 
             function section.createConfigSystem(self, config)
