@@ -421,6 +421,17 @@ function library.createWindow(options)
         end
     end
 
+    window.toggleKey = toggleKey
+
+    userInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.UserInputType == Enum.UserInputType.Keyboard then
+            if input.KeyCode == window.toggleKey then
+                window.toggle()
+            end
+        end
+    end)
+
     local activeOverlays = {}
     local function closeGlobalOverlays()
         for _, closeFunc in activeOverlays do
