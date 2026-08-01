@@ -2141,19 +2141,20 @@ function library.createWindow(options)
                 })
 
                 create("TextLabel", {
-                    Size = UDim2.new(0.45, 0, 1, 0),
+                    Size = UDim2.new(0.42, 0, 1, 0),
                     Position = UDim2.new(0, 0, 0, 0),
                     Text = name,
                     Font = library.theme.fontBold,
-                    TextSize = 13,
+                    TextSize = 12,
                     TextColor3 = library.theme.textBright,
                     TextXAlignment = Enum.TextXAlignment.Left,
+                    TextTruncate = Enum.TextTruncate.AtEnd,
                     BackgroundTransparency = 1,
                     Parent = container,
                 })
 
                 local rightGroup = create("Frame", {
-                    Size = UDim2.new(0.55, 0, 1, 0),
+                    Size = UDim2.new(0.58, 0, 1, 0),
                     Position = UDim2.new(1, 0, 0, 0),
                     AnchorPoint = Vector2.new(1, 0),
                     BackgroundTransparency = 1,
@@ -2180,8 +2181,9 @@ function library.createWindow(options)
                     })
                 end
 
+                local dropHeaderWidth = config.width or (targetParent ~= nil and 105 or 135)
                 local dropHeader = create("TextButton", {
-                    Size = UDim2.new(0, config.width or 135, 0, 24),
+                    Size = UDim2.new(0, dropHeaderWidth, 0, 24),
                     BackgroundColor3 = library.theme.inputBg,
                     Text = "",
                     AutoButtonColor = false,
@@ -2324,7 +2326,9 @@ function library.createWindow(options)
 
                 dropHeader.MouseButton1Click:Connect(function()
                     local wasOpen = open
-                    closeGlobalOverlays()
+                    if targetParent == nil then
+                        closeGlobalOverlays()
+                    end
                     open = not wasOpen
                     if open then
                         populateOptions()
@@ -2336,7 +2340,9 @@ function library.createWindow(options)
                         rightGroup.ZIndex = 1000
                         dropHeader.ZIndex = 1000
                         if card then card.ZIndex = 1000 end
-                        table.insert(activeOverlays, closeDropdown)
+                        if targetParent == nil then
+                            table.insert(activeOverlays, closeDropdown)
+                        end
                     else
                         closeDropdown()
                     end
