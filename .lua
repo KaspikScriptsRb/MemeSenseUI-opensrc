@@ -434,11 +434,22 @@ function library.createWindow(options)
     end)
 
     local activeOverlays = {}
-    local function closeGlobalOverlays()
-        for _, closeFunc in activeOverlays do
-            pcall(closeFunc)
+    local function closeGlobalOverlays(preserveSettings)
+        local remaining = {}
+        for _, item in ipairs(activeOverlays) do
+            if typeof(item) == "table" and item.isSettings then
+                if preserveSettings then
+                    table.insert(remaining, item)
+                else
+                    if item.close then pcall(item.close) end
+                end
+            elseif typeof(item) == "table" and item.close then
+                pcall(item.close)
+            elseif typeof(item) == "function" then
+                pcall(item)
+            end
         end
-        table.clear(activeOverlays)
+        activeOverlays = remaining
     end
 
     local function isInsideView(element)
@@ -2754,7 +2765,7 @@ function library.createWindow(options)
 
                 previewBtn.MouseButton1Click:Connect(function()
                     local wasVisible = pickerPopup.Visible
-                    closeGlobalOverlays()
+                    closeGlobalOverlays(true)
                     pickerPopup.Visible = not wasVisible
                     if pickerPopup.Visible then
                         local absPos = previewBtn.AbsolutePosition
