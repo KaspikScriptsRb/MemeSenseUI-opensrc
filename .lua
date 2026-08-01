@@ -2145,7 +2145,7 @@ function library.createWindow(options)
 
                 if flag then library.flags[flag] = selected end
 
-                local isVertical = (config.layout == "Vertical") or (targetParent ~= nil and config.layout ~= "Horizontal")
+                local isVertical = (config.layout == "Vertical")
                 local containerHeight = isVertical and 44 or 24
 
                 local container = create("Frame", {
@@ -2155,6 +2155,7 @@ function library.createWindow(options)
                     Parent = parentCard,
                 })
 
+                local rightGroup
                 if isVertical then
                     create("TextLabel", {
                         Size = UDim2.new(1, 0, 0, 16),
@@ -2168,7 +2169,7 @@ function library.createWindow(options)
                         Parent = container,
                     })
 
-                    local rightGroup = create("Frame", {
+                    rightGroup = create("Frame", {
                         Size = UDim2.new(1, 0, 0, 24),
                         Position = UDim2.new(0, 0, 0, 18),
                         BackgroundTransparency = 1,
@@ -2189,7 +2190,7 @@ function library.createWindow(options)
                         Parent = container,
                     })
 
-                    local rightGroup = create("Frame", {
+                    rightGroup = create("Frame", {
                         Size = UDim2.new(0.58, 0, 1, 0),
                         Position = UDim2.new(1, 0, 0, 0),
                         AnchorPoint = Vector2.new(1, 0),
@@ -2402,10 +2403,12 @@ function library.createWindow(options)
                 config = config or {}
                 local name = config.name or "Color"
                 local color = config.default or Color3.fromRGB(255, 255, 255)
+                local alpha = config.alpha ~= nil and config.alpha or 1.0
                 local flag = config.flag
                 local callback = config.callback or function() end
                 local parentCard = targetParent or card
 
+                local h, s, v = Color3.toHSV(color)
                 if flag then library.flags[flag] = color end
 
                 local row = create("Frame", {
@@ -2425,7 +2428,7 @@ function library.createWindow(options)
                     Parent = row,
                 })
 
-                local preview = create("TextButton", {
+                local previewBtn = create("TextButton", {
                     Size = UDim2.new(0, 26, 0, 14),
                     Position = UDim2.new(1, 0, 0.5, 0),
                     AnchorPoint = Vector2.new(1, 0.5),
@@ -2435,16 +2438,346 @@ function library.createWindow(options)
                     AutoButtonColor = false,
                     Parent = row,
                 })
-                makeCorner(preview, 3)
+                makeCorner(previewBtn, 3)
+
+                local pickerPopup = create("Frame", {
+                    Size = UDim2.new(0, 224, 0, 175),
+                    BackgroundColor3 = Color3.fromRGB(18, 18, 22),
+                    BorderSizePixel = 0,
+                    Visible = false,
+                    ZIndex = 100010,
+                    Parent = globalOverlayFrame,
+                })
+                makeCorner(pickerPopup, 5)
+                makeStroke(pickerPopup, Color3.fromRGB(45, 45, 55), 1)
+
+                create("UIPadding", {
+                    PaddingTop = UDim.new(0, 8),
+                    PaddingBottom = UDim.new(0, 8),
+                    PaddingLeft = UDim.new(0, 8),
+                    PaddingRight = UDim.new(0, 8),
+                    Parent = pickerPopup,
+                })
+
+                local satValBox = create("TextButton", {
+                    Size = UDim2.new(0, 140, 0, 125),
+                    Position = UDim2.new(0, 0, 0, 0),
+                    BackgroundColor3 = Color3.fromHSV(h, 1, 1),
+                    BorderSizePixel = 0,
+                    Text = "",
+                    AutoButtonColor = false,
+                    ZIndex = 100011,
+                    Parent = pickerPopup,
+                })
+                makeCorner(satValBox, 3)
+
+                local whiteGrad = create("Frame", {
+                    Size = UDim2.new(1, 0, 1, 0),
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                    BorderSizePixel = 0,
+                    ZIndex = 100012,
+                    Parent = satValBox,
+                })
+                makeCorner(whiteGrad, 3)
+                create("UIGradient", {
+                    Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255)),
+                    Transparency = NumberSequence.new({
+                        NumberSequenceKeypoint.new(0, 0),
+                        NumberSequenceKeypoint.new(1, 1)
+                    }),
+                    Parent = whiteGrad,
+                })
+
+                local blackGrad = create("Frame", {
+                    Size = UDim2.new(1, 0, 1, 0),
+                    BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+                    BorderSizePixel = 0,
+                    ZIndex = 100013,
+                    Parent = satValBox,
+                })
+                makeCorner(blackGrad, 3)
+                create("UIGradient", {
+                    Color = ColorSequence.new(Color3.fromRGB(0, 0, 0), Color3.fromRGB(0, 0, 0)),
+                    Transparency = NumberSequence.new({
+                        NumberSequenceKeypoint.new(0, 1),
+                        NumberSequenceKeypoint.new(1, 0)
+                    }),
+                    Rotation = 90,
+                    Parent = blackGrad,
+                })
+
+                local cursorRing = create("Frame", {
+                    Size = UDim2.new(0, 12, 0, 12),
+                    AnchorPoint = Vector2.new(0.5, 0.5),
+                    Position = UDim2.new(s, 0, 1 - v, 0),
+                    BackgroundTransparency = 1,
+                    ZIndex = 100014,
+                    Parent = satValBox,
+                })
+                makeCorner(cursorRing, 6)
+                makeStroke(cursorRing, Color3.fromRGB(255, 255, 255), 1.5)
+
+                local hueBox = create("TextButton", {
+                    Size = UDim2.new(0, 18, 0, 125),
+                    Position = UDim2.new(0, 148, 0, 0),
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                    BorderSizePixel = 0,
+                    Text = "",
+                    AutoButtonColor = false,
+                    ZIndex = 100011,
+                    Parent = pickerPopup,
+                })
+                makeCorner(hueBox, 3)
+
+                create("UIGradient", {
+                    Color = ColorSequence.new({
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
+                        ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 255, 0)),
+                        ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 255, 0)),
+                        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 255, 255)),
+                        ColorSequenceKeypoint.new(0.67, Color3.fromRGB(0, 0, 255)),
+                        ColorSequenceKeypoint.new(0.83, Color3.fromRGB(255, 0, 255)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0)),
+                    }),
+                    Rotation = 90,
+                    Parent = hueBox,
+                })
+
+                local hueSliderPin = create("Frame", {
+                    Size = UDim2.new(1, 4, 0, 4),
+                    Position = UDim2.new(0.5, 0, h, 0),
+                    AnchorPoint = Vector2.new(0.5, 0.5),
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                    BorderSizePixel = 0,
+                    ZIndex = 100015,
+                    Parent = hueBox,
+                })
+                makeCorner(hueSliderPin, 2)
+                makeStroke(hueSliderPin, Color3.fromRGB(0, 0, 0), 1)
+
+                local alphaBox = create("TextButton", {
+                    Size = UDim2.new(0, 18, 0, 125),
+                    Position = UDim2.new(0, 174, 0, 0),
+                    BackgroundColor3 = Color3.fromRGB(30, 30, 38),
+                    BorderSizePixel = 0,
+                    Text = "",
+                    AutoButtonColor = false,
+                    ZIndex = 100011,
+                    Parent = pickerPopup,
+                })
+                makeCorner(alphaBox, 3)
+
+                local alphaGrid = create("Frame", {
+                    Size = UDim2.new(1, 0, 1, 0),
+                    BackgroundColor3 = color,
+                    BorderSizePixel = 0,
+                    ZIndex = 100012,
+                    Parent = alphaBox,
+                })
+                makeCorner(alphaGrid, 3)
+
+                local alphaGrad = create("UIGradient", {
+                    Color = ColorSequence.new(Color3.fromRGB(0, 0, 0), color),
+                    Transparency = NumberSequence.new({
+                        NumberSequenceKeypoint.new(0, 1),
+                        NumberSequenceKeypoint.new(1, 0)
+                    }),
+                    Rotation = 90,
+                    Parent = alphaGrid,
+                })
+
+                local alphaSliderPin = create("Frame", {
+                    Size = UDim2.new(1, 4, 0, 4),
+                    Position = UDim2.new(0.5, 0, 1 - alpha, 0),
+                    AnchorPoint = Vector2.new(0.5, 0.5),
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                    BorderSizePixel = 0,
+                    ZIndex = 100015,
+                    Parent = alphaBox,
+                })
+                makeCorner(alphaSliderPin, 2)
+                makeStroke(alphaSliderPin, Color3.fromRGB(0, 0, 0), 1)
+
+                local hexBoxFrame = create("Frame", {
+                    Size = UDim2.new(1, 0, 0, 24),
+                    Position = UDim2.new(0, 0, 0, 134),
+                    BackgroundColor3 = Color3.fromRGB(25, 25, 32),
+                    BorderSizePixel = 0,
+                    ZIndex = 100011,
+                    Parent = pickerPopup,
+                })
+                makeCorner(hexBoxFrame, 3)
+
+                local hexTextBox = create("TextBox", {
+                    Size = UDim2.new(1, -12, 1, 0),
+                    Position = UDim2.new(0, 6, 0, 0),
+                    BackgroundTransparency = 1,
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = Color3.fromRGB(220, 225, 235),
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    ClearTextOnFocus = false,
+                    ZIndex = 100012,
+                    Parent = hexBoxFrame,
+                })
+
+                local function colorToHex(col, alp)
+                    local r = math.floor(col.R * 255 + 0.5)
+                    local g = math.floor(col.G * 255 + 0.5)
+                    local b = math.floor(col.B * 255 + 0.5)
+                    local a = math.floor(alp * 255 + 0.5)
+                    return string.format("#%02X%02X%02X%02X", r, g, b, a)
+                end
+
+                local function hexToColor(hexStr)
+                    hexStr = hexStr:gsub("#", "")
+                    if #hexStr == 6 then
+                        local r = tonumber(hexStr:sub(1, 2), 16) or 255
+                        local g = tonumber(hexStr:sub(3, 4), 16) or 255
+                        local b = tonumber(hexStr:sub(5, 6), 16) or 255
+                        return Color3.fromRGB(r, g, b), alpha
+                    elseif #hexStr == 8 then
+                        local r = tonumber(hexStr:sub(1, 2), 16) or 255
+                        local g = tonumber(hexStr:sub(3, 4), 16) or 255
+                        local b = tonumber(hexStr:sub(5, 6), 16) or 255
+                        local a = (tonumber(hexStr:sub(7, 8), 16) or 255) / 255
+                        return Color3.fromRGB(r, g, b), a
+                    end
+                    return nil
+                end
+
+                local function updateColor(newH, newS, newV, newA, skipHex)
+                    h, s, v, alpha = newH, newS, newV, newA
+                    color = Color3.fromHSV(h, s, v)
+
+                    satValBox.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
+                    cursorRing.Position = UDim2.new(s, 0, 1 - v, 0)
+                    hueSliderPin.Position = UDim2.new(0.5, 0, h, 0)
+                    alphaSliderPin.Position = UDim2.new(0.5, 0, 1 - alpha, 0)
+                    alphaGrad.Color = ColorSequence.new(Color3.fromRGB(0, 0, 0), color)
+
+                    previewBtn.BackgroundColor3 = color
+
+                    if not skipHex then
+                        hexTextBox.Text = colorToHex(color, alpha)
+                    end
+
+                    if flag then library.flags[flag] = color end
+                    pcall(callback, color, alpha)
+                end
+
+                updateColor(h, s, v, alpha, false)
+
+                local draggingSV = false
+                local function updateSVInput(input)
+                    local relX = math.clamp((input.Position.X - satValBox.AbsolutePosition.X) / satValBox.AbsoluteSize.X, 0, 1)
+                    local relY = math.clamp((input.Position.Y - satValBox.AbsolutePosition.Y) / satValBox.AbsoluteSize.Y, 0, 1)
+                    updateColor(h, relX, 1 - relY, alpha, false)
+                end
+
+                satValBox.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        draggingSV = true
+                        updateSVInput(input)
+                    end
+                end)
+
+                local draggingHue = false
+                local function updateHueInput(input)
+                    local relY = math.clamp((input.Position.Y - hueBox.AbsolutePosition.Y) / hueBox.AbsoluteSize.Y, 0, 1)
+                    updateColor(relY, s, v, alpha, false)
+                end
+
+                hueBox.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        draggingHue = true
+                        updateHueInput(input)
+                    end
+                end)
+
+                local draggingAlpha = false
+                local function updateAlphaInput(input)
+                    local relY = math.clamp((input.Position.Y - alphaBox.AbsolutePosition.Y) / alphaBox.AbsoluteSize.Y, 0, 1)
+                    updateColor(h, s, v, 1 - relY, false)
+                end
+
+                alphaBox.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        draggingAlpha = true
+                        updateAlphaInput(input)
+                    end
+                end)
+
+                userInputService.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        draggingSV = false
+                        draggingHue = false
+                        draggingAlpha = false
+                    end
+                end)
+
+                userInputService.InputChanged:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseMovement then
+                        if draggingSV then updateSVInput(input)
+                        elseif draggingHue then updateHueInput(input)
+                        elseif draggingAlpha then updateAlphaInput(input)
+                        end
+                    end
+                end)
+
+                hexTextBox.FocusLost:Connect(function()
+                    local parsedCol, parsedAlpha = hexToColor(hexTextBox.Text)
+                    if parsedCol then
+                        local newH, newS, newV = Color3.toHSV(parsedCol)
+                        updateColor(newH, newS, newV, parsedAlpha or alpha, true)
+                    else
+                        hexTextBox.Text = colorToHex(color, alpha)
+                    end
+                end)
+
+                local trackConn
+                local function startTracking()
+                    if trackConn then trackConn:Disconnect() end
+                    trackConn = runService.RenderStepped:Connect(function()
+                        if not pickerPopup.Visible or not previewBtn:IsDescendantOf(game) then
+                            if trackConn then trackConn:Disconnect() end
+                            trackConn = nil
+                            pickerPopup.Visible = false
+                            return
+                        end
+                        local absPos = previewBtn.AbsolutePosition
+                        local absSize = previewBtn.AbsoluteSize
+                        local sgAbs = screenGui.AbsolutePosition
+                        pickerPopup.Position = UDim2.new(0, (absPos.X - sgAbs.X) + absSize.X + 8, 0, (absPos.Y - sgAbs.Y) - 6)
+                    end)
+                end
+
+                previewBtn.MouseButton1Click:Connect(function()
+                    local wasVisible = pickerPopup.Visible
+                    closeGlobalOverlays()
+                    pickerPopup.Visible = not wasVisible
+                    if pickerPopup.Visible then
+                        local absPos = previewBtn.AbsolutePosition
+                        local absSize = previewBtn.AbsoluteSize
+                        local sgAbs = screenGui.AbsolutePosition
+                        pickerPopup.Position = UDim2.new(0, (absPos.X - sgAbs.X) + absSize.X + 8, 0, (absPos.Y - sgAbs.Y) - 6)
+                        startTracking()
+                        table.insert(activeOverlays, function()
+                            pickerPopup.Visible = false
+                            if trackConn then trackConn:Disconnect() end
+                            trackConn = nil
+                        end)
+                    end
+                end)
 
                 local colorPickerObj = {
-                    set = function(col)
+                    set = function(col, newAlpha)
                         color = col
-                        preview.BackgroundColor3 = color
-                        if flag then library.flags[flag] = color end
-                        pcall(callback, color)
+                        if newAlpha then alpha = newAlpha end
+                        local newH, newS, newV = Color3.toHSV(color)
+                        updateColor(newH, newS, newV, alpha, false)
                     end,
-                    get = function() return color end
+                    get = function() return color, alpha end
                 }
                 if flag then library.elements[flag] = colorPickerObj end
                 return colorPickerObj
