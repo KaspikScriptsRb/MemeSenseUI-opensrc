@@ -403,7 +403,7 @@ function library.createWindow(options)
         if window.visible then
             globalOverlayFrame.Visible = true
             main.Visible = true
-            local t = tweenService:Create(main, tweenInfo, { GroupTransparency = 0 })
+            local t = tweenService:Create(main, tweenInfo, { BackgroundTransparency = 0 })
             tweenService:Create(mainStroke, tweenInfo, { Transparency = 0 }):Play()
             t:Play()
             t.Completed:Connect(function() window.fading = false end)
@@ -412,7 +412,7 @@ function library.createWindow(options)
             for _, child in globalOverlayFrame:GetChildren() do
                 if child:IsA("Frame") then child.Visible = false end
             end
-            local t = tweenService:Create(main, tweenInfo, { GroupTransparency = 1 })
+            local t = tweenService:Create(main, tweenInfo, { BackgroundTransparency = 1 })
             tweenService:Create(mainStroke, tweenInfo, { Transparency = 1 }):Play()
             t:Play()
             t.Completed:Connect(function()
