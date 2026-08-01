@@ -1656,30 +1656,30 @@ function library.createWindow(options)
                     local function startBindTracking()
                         if bindTrackConn then bindTrackConn:Disconnect() end
                         bindTrackConn = runService.RenderStepped:Connect(function()
-                            if not popup.Visible or not iconBtn:IsDescendantOf(game) or not isInsideView(iconBtn) then
+                            if not popup.Visible or not iconBtn:IsDescendantOf(game) then
                                 if bindTrackConn then bindTrackConn:Disconnect() end
                                 bindTrackConn = nil
                                 popup.Visible = false
                                 return
                             end
-                            local relPos = getPositionInMain(iconBtn)
+                            local iconAbs = iconBtn.AbsolutePosition
                             local iconAbsSize = iconBtn.AbsoluteSize
-                            popup.Position = UDim2.new(0, relPos.X + iconAbsSize.X + 4, 0, relPos.Y + iconAbsSize.Y + 4)
+                            local sgAbs = screenGui.AbsolutePosition
+                            popup.Position = UDim2.new(0, (iconAbs.X - sgAbs.X) + iconAbsSize.X + 4, 0, (iconAbs.Y - sgAbs.Y) + 4)
                         end)
                     end
 
-                    iconBtn.InputBegan:Connect(function(input)
-                        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                            popup.Visible = not popup.Visible
-                            if popup.Visible then
-                                local relPos = getPositionInMain(iconBtn)
-                                local iconAbsSize = iconBtn.AbsoluteSize
-                                popup.Position = UDim2.new(0, relPos.X + iconAbsSize.X + 4, 0, relPos.Y + iconAbsSize.Y + 4)
-                                startBindTracking()
-                            else
-                                if bindTrackConn then bindTrackConn:Disconnect() end
-                                bindTrackConn = nil
-                            end
+                    iconBtn.MouseButton1Click:Connect(function()
+                        popup.Visible = not popup.Visible
+                        if popup.Visible then
+                            local iconAbs = iconBtn.AbsolutePosition
+                            local iconAbsSize = iconBtn.AbsoluteSize
+                            local sgAbs = screenGui.AbsolutePosition
+                            popup.Position = UDim2.new(0, (iconAbs.X - sgAbs.X) + iconAbsSize.X + 4, 0, (iconAbs.Y - sgAbs.Y) + 4)
+                            startBindTracking()
+                        else
+                            if bindTrackConn then bindTrackConn:Disconnect() end
+                            bindTrackConn = nil
                         end
                     end)
 
@@ -1905,35 +1905,33 @@ function library.createWindow(options)
                         end)
                     end
 
-                    iconBtn.InputBegan:Connect(function(input)
-                        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                            if library.activeSettingsPopup and library.activeSettingsPopup ~= popup then
-                                library.activeSettingsPopup.Visible = false
-                                if library.activeSettingsIcon then
-                                    library.activeSettingsIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
-                                end
+                    iconBtn.MouseButton1Click:Connect(function()
+                        if library.activeSettingsPopup and library.activeSettingsPopup ~= popup then
+                            library.activeSettingsPopup.Visible = false
+                            if library.activeSettingsIcon then
+                                library.activeSettingsIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
                             end
+                        end
 
-                            local wasVisible = popup.Visible
-                            popup.Visible = not wasVisible
-                            iconBtn.ImageColor3 = popup.Visible and library.theme.accent or Color3.fromRGB(255, 255, 255)
+                        local wasVisible = popup.Visible
+                        popup.Visible = not wasVisible
+                        iconBtn.ImageColor3 = popup.Visible and library.theme.accent or Color3.fromRGB(255, 255, 255)
 
-                            if popup.Visible then
-                                library.activeSettingsPopup = popup
-                                library.activeSettingsIcon = iconBtn
-                                local iconAbs = iconBtn.AbsolutePosition
-                                local iconAbsSize = iconBtn.AbsoluteSize
-                                local sgAbs = screenGui.AbsolutePosition
-                                popup.Position = UDim2.new(0, (iconAbs.X - sgAbs.X) + iconAbsSize.X + 8, 0, (iconAbs.Y - sgAbs.Y) - 6)
-                                startTracking()
-                            else
-                                if library.activeSettingsPopup == popup then
-                                    library.activeSettingsPopup = nil
-                                    library.activeSettingsIcon = nil
-                                end
-                                if popTrackConn then popTrackConn:Disconnect() end
-                                popTrackConn = nil
+                        if popup.Visible then
+                            library.activeSettingsPopup = popup
+                            library.activeSettingsIcon = iconBtn
+                            local iconAbs = iconBtn.AbsolutePosition
+                            local iconAbsSize = iconBtn.AbsoluteSize
+                            local sgAbs = screenGui.AbsolutePosition
+                            popup.Position = UDim2.new(0, (iconAbs.X - sgAbs.X) + iconAbsSize.X + 8, 0, (iconAbs.Y - sgAbs.Y) - 6)
+                            startTracking()
+                        else
+                            if library.activeSettingsPopup == popup then
+                                library.activeSettingsPopup = nil
+                                library.activeSettingsIcon = nil
                             end
+                            if popTrackConn then popTrackConn:Disconnect() end
+                            popTrackConn = nil
                         end
                     end)
 
