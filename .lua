@@ -198,15 +198,16 @@ function library.createWindow(options)
         fading = false,
     }
 
-    local main = create("CanvasGroup", {
+    local main = create("Frame", {
         Name = "Main",
         Size = size,
         Position = UDim2.new(0.5, -size.X.Offset / 2, 0.5, -size.Y.Offset / 2),
         BackgroundColor3 = library.theme.mainBg,
         BorderSizePixel = 0,
-        GroupTransparency = 0,
+        ClipsDescendants = false,
         Parent = screenGui,
     })
+    makeCorner(main, 4)
     local mainStroke = makeStroke(main, Color3.fromRGB(32, 32, 36), 1)
 
     local globalOverlayFrame = create("Frame", {
@@ -214,7 +215,7 @@ function library.createWindow(options)
         Size = UDim2.new(1, 0, 1, 0),
         BackgroundTransparency = 1,
         ZIndex = 100000,
-        Parent = main,
+        Parent = screenGui,
     })
 
     local function getPositionInMain(elem)
@@ -1891,20 +1892,16 @@ function library.createWindow(options)
                     local function startTracking()
                         if popTrackConn then popTrackConn:Disconnect() end
                         popTrackConn = runService.RenderStepped:Connect(function()
-                            if not popup.Visible or not iconBtn:IsDescendantOf(game) or not isInsideView(iconBtn) then
+                            if not popup.Visible or not iconBtn:IsDescendantOf(game) then
                                 if popTrackConn then popTrackConn:Disconnect() end
                                 popTrackConn = nil
                                 popup.Visible = false
                                 return
                             end
-                            local relPos = getPositionInMain(iconBtn)
+                            local iconAbs = iconBtn.AbsolutePosition
                             local iconAbsSize = iconBtn.AbsoluteSize
-                            local mainAbsSize = main.AbsoluteSize
-                            local targetX = relPos.X + iconAbsSize.X + 8
-                            if targetX + 210 > mainAbsSize.X then
-                                targetX = mainAbsSize.X + 8
-                            end
-                            popup.Position = UDim2.new(0, targetX, 0, relPos.Y - 6)
+                            local sgAbs = screenGui.AbsolutePosition
+                            popup.Position = UDim2.new(0, (iconAbs.X - sgAbs.X) + iconAbsSize.X + 8, 0, (iconAbs.Y - sgAbs.Y) - 6)
                         end)
                     end
 
@@ -1924,14 +1921,10 @@ function library.createWindow(options)
                             if popup.Visible then
                                 library.activeSettingsPopup = popup
                                 library.activeSettingsIcon = iconBtn
-                                local relPos = getPositionInMain(iconBtn)
+                                local iconAbs = iconBtn.AbsolutePosition
                                 local iconAbsSize = iconBtn.AbsoluteSize
-                                local mainAbsSize = main.AbsoluteSize
-                                local targetX = relPos.X + iconAbsSize.X + 8
-                                if targetX + 210 > mainAbsSize.X then
-                                    targetX = mainAbsSize.X + 8
-                                end
-                                popup.Position = UDim2.new(0, targetX, 0, relPos.Y - 6)
+                                local sgAbs = screenGui.AbsolutePosition
+                                popup.Position = UDim2.new(0, (iconAbs.X - sgAbs.X) + iconAbsSize.X + 8, 0, (iconAbs.Y - sgAbs.Y) - 6)
                                 startTracking()
                             else
                                 if library.activeSettingsPopup == popup then
@@ -2499,12 +2492,15 @@ function library.createWindow(options)
                     Parent = headerRow,
                 })
 
-                local letters = { "B", "T", "I", "D" }
-                for idx, l in ipairs(letters) do
-                    create("TextLabel", {
+                local headerLetterLabels = {}
+                local keys = { "b", "t", "i", "d" }
+                local keyUpper = { b = "B", t = "T", i = "I", d = "D" }
+
+                for idx, key in ipairs(keys) do
+                    headerLetterLabels[key] = create("TextLabel", {
                         Size = UDim2.new(0, 16, 1, 0),
                         Position = UDim2.new(0, (idx - 1) * 20, 0, 0),
-                        Text = l,
+                        Text = keyUpper[key],
                         Font = library.theme.fontBold,
                         TextSize = 11,
                         TextColor3 = Color3.fromRGB(130, 135, 145),
@@ -2512,6 +2508,23 @@ function library.createWindow(options)
                         BackgroundTransparency = 1,
                         Parent = lettersGroup,
                     })
+                end
+
+                local allTableStates = {}
+
+                local function updateHeaderLettersColor()
+                    for _, key in ipairs(keys) do
+                        local anyInColumn = false
+                        for _, rStates in ipairs(allTableStates) do
+                            if rStates[key] == true then
+                                anyInColumn = true
+                                break
+                            end
+                        end
+                        if headerLetterLabels[key] then
+                            headerLetterLabels[key].TextColor3 = anyInColumn and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145)
+                        end
+                    end
                 end
 
                 for order, itemConfig in ipairs(items) do
@@ -2551,6 +2564,7 @@ function library.createWindow(options)
 
                         local flagsPrefix = itemConfig.flagPrefix or ("item_" .. itemConfig.name:lower():gsub("%s+", "_"))
                         local rowStates = {}
+                        table.insert(allTableStates, rowStates)
 
                         local function updateRowTextColor()
                             local anyEnabled = false
@@ -2558,26 +2572,22 @@ function library.createWindow(options)
                                 if s == true then anyEnabled = true break end
                             end
                             itemLabel.TextColor3 = anyEnabled and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(140, 145, 155)
+                            updateHeaderLettersColor()
                         end
 
-                        local keys = { "b", "t", "i", "d" }
                         for idx, key in ipairs(keys) do
                             local flagName = flagsPrefix .. "_" .. key
                             local defaultVal = itemConfig.defaults and itemConfig.defaults[key] or false
                             library.flags[flagName] = defaultVal
                             rowStates[key] = defaultVal
 
-                            local letter = key:upper()
                             local box = create("TextButton", {
                                 Size = UDim2.new(0, 13, 0, 13),
                                 Position = UDim2.new(0, (idx - 1) * 20 + 2, 0.5, 0),
                                 AnchorPoint = Vector2.new(0, 0.5),
                                 BackgroundColor3 = defaultVal and library.theme.accent or Color3.fromRGB(24, 25, 30),
                                 BorderSizePixel = 0,
-                                Text = letter,
-                                Font = library.theme.fontBold,
-                                TextSize = 10,
-                                TextColor3 = defaultVal and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(80, 85, 95),
+                                Text = "",
                                 AutoButtonColor = false,
                                 Parent = togglesGroup,
                             })
@@ -2587,7 +2597,6 @@ function library.createWindow(options)
                             local state = defaultVal
                             local function updateBoxVisuals()
                                 box.BackgroundColor3 = state and library.theme.accent or Color3.fromRGB(24, 25, 30)
-                                box.TextColor3 = state and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(80, 85, 95)
                                 stroke.Color = state and library.theme.accent or Color3.fromRGB(40, 42, 50)
                             end
 
