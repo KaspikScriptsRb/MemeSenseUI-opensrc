@@ -2530,12 +2530,12 @@ function library.createWindow(options)
                             Parent = container,
                         })
 
-                        create("TextLabel", {
+                        local itemLabel = create("TextLabel", {
                             Size = UDim2.new(0.55, 0, 1, 0),
                             Text = itemConfig.name,
                             Font = library.theme.fontBold,
                             TextSize = 12,
-                            TextColor3 = Color3.fromRGB(180, 185, 195),
+                            TextColor3 = Color3.fromRGB(140, 145, 155),
                             TextXAlignment = Enum.TextXAlignment.Left,
                             BackgroundTransparency = 1,
                             Parent = row,
@@ -2550,12 +2550,22 @@ function library.createWindow(options)
                         })
 
                         local flagsPrefix = itemConfig.flagPrefix or ("item_" .. itemConfig.name:lower():gsub("%s+", "_"))
+                        local rowStates = {}
+
+                        local function updateRowTextColor()
+                            local anyEnabled = false
+                            for _, s in pairs(rowStates) do
+                                if s == true then anyEnabled = true break end
+                            end
+                            itemLabel.TextColor3 = anyEnabled and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(140, 145, 155)
+                        end
 
                         local keys = { "b", "t", "i", "d" }
                         for idx, key in ipairs(keys) do
                             local flagName = flagsPrefix .. "_" .. key
                             local defaultVal = itemConfig.defaults and itemConfig.defaults[key] or false
                             library.flags[flagName] = defaultVal
+                            rowStates[key] = defaultVal
 
                             local box = create("TextButton", {
                                 Size = UDim2.new(0, 13, 0, 13),
@@ -2574,20 +2584,25 @@ function library.createWindow(options)
                             box.MouseButton1Click:Connect(function()
                                 state = not state
                                 library.flags[flagName] = state
+                                rowStates[key] = state
                                 box.BackgroundColor3 = state and library.theme.accent or Color3.fromRGB(24, 25, 30)
                                 stroke.Color = state and library.theme.accent or Color3.fromRGB(40, 42, 50)
+                                updateRowTextColor()
                             end)
 
                             library.elements[flagName] = {
                                 set = function(val)
                                     state = val
                                     library.flags[flagName] = state
+                                    rowStates[key] = state
                                     box.BackgroundColor3 = state and library.theme.accent or Color3.fromRGB(24, 25, 30)
                                     stroke.Color = state and library.theme.accent or Color3.fromRGB(40, 42, 50)
+                                    updateRowTextColor()
                                 end,
                                 get = function() return state end
                             }
                         end
+                        updateRowTextColor()
                     end
                 end
             end
