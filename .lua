@@ -2567,13 +2567,17 @@ function library.createWindow(options)
                             library.flags[flagName] = defaultVal
                             rowStates[key] = defaultVal
 
+                            local letter = key:upper()
                             local box = create("TextButton", {
                                 Size = UDim2.new(0, 13, 0, 13),
                                 Position = UDim2.new(0, (idx - 1) * 20 + 2, 0.5, 0),
                                 AnchorPoint = Vector2.new(0, 0.5),
                                 BackgroundColor3 = defaultVal and library.theme.accent or Color3.fromRGB(24, 25, 30),
                                 BorderSizePixel = 0,
-                                Text = "",
+                                Text = letter,
+                                Font = library.theme.fontBold,
+                                TextSize = 10,
+                                TextColor3 = defaultVal and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(80, 85, 95),
                                 AutoButtonColor = false,
                                 Parent = togglesGroup,
                             })
@@ -2581,12 +2585,17 @@ function library.createWindow(options)
                             local stroke = makeStroke(box, defaultVal and library.theme.accent or Color3.fromRGB(40, 42, 50))
 
                             local state = defaultVal
+                            local function updateBoxVisuals()
+                                box.BackgroundColor3 = state and library.theme.accent or Color3.fromRGB(24, 25, 30)
+                                box.TextColor3 = state and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(80, 85, 95)
+                                stroke.Color = state and library.theme.accent or Color3.fromRGB(40, 42, 50)
+                            end
+
                             box.MouseButton1Click:Connect(function()
                                 state = not state
                                 library.flags[flagName] = state
                                 rowStates[key] = state
-                                box.BackgroundColor3 = state and library.theme.accent or Color3.fromRGB(24, 25, 30)
-                                stroke.Color = state and library.theme.accent or Color3.fromRGB(40, 42, 50)
+                                updateBoxVisuals()
                                 updateRowTextColor()
                             end)
 
@@ -2595,8 +2604,7 @@ function library.createWindow(options)
                                     state = val
                                     library.flags[flagName] = state
                                     rowStates[key] = state
-                                    box.BackgroundColor3 = state and library.theme.accent or Color3.fromRGB(24, 25, 30)
-                                    stroke.Color = state and library.theme.accent or Color3.fromRGB(40, 42, 50)
+                                    updateBoxVisuals()
                                     updateRowTextColor()
                                 end,
                                 get = function() return state end
