@@ -436,7 +436,7 @@ function library.createWindow(options)
     local activeOverlays = {}
     local function closeGlobalOverlays(preserveSettings)
         local remaining = {}
-        for _, item in ipairs(activeOverlays) do
+        for _, item in pairs(activeOverlays) do
             if typeof(item) == "table" and item.isSettings then
                 if preserveSettings then
                     table.insert(remaining, item)
@@ -865,7 +865,7 @@ function library.createWindow(options)
                 Parent = dropHeader,
             })
 
-            local listContainer = create("Frame", {
+            local listContainer = create("ScrollingFrame", {
                 Size = UDim2.new(1, 0, 0, 0),
                 Position = UDim2.new(0, 0, 1, -3),
                 BackgroundColor3 = Color3.fromRGB(24, 25, 30),
@@ -875,6 +875,11 @@ function library.createWindow(options)
                 ClipsDescendants = true,
                 Visible = false,
                 ZIndex = 100001,
+                ScrollBarThickness = 0,
+                ScrollBarTransparency = 1,
+                CanvasSize = UDim2.new(0, 0, 0, 0),
+                AutomaticCanvasSize = Enum.AutomaticCanvasSize.Y,
+                ScrollingDirection = Enum.ScrollingDirection.Y,
                 Parent = dropHeader,
             })
             makeCorner(listContainer, 3)
@@ -889,7 +894,12 @@ function library.createWindow(options)
                     for _, child in listContainer:GetChildren() do
                         if child:IsA("TextButton") then child:Destroy() end
                     end
-                    listContainer.Size = UDim2.new(1, 0, 0, math.min(#options * 22 + 6, 166))
+                    local maxH = 140
+                    local totalH = #options * 22 + 6
+                    local listH = math.min(totalH, maxH)
+                    listContainer.Size = UDim2.new(1, 0, 0, listH)
+                    listContainer.CanvasSize = UDim2.new(0, 0, 0, totalH)
+                    listContainer.ScrollingEnabled = (totalH > maxH)
                     listContainer.Visible = true
                     arrow.Rotation = 0
 
@@ -2280,7 +2290,7 @@ function library.createWindow(options)
                     Parent = dropHeader,
                 })
 
-                local listContainer = create("Frame", {
+                local listContainer = create("ScrollingFrame", {
                     Size = UDim2.new(1, 0, 0, 0),
                     Position = UDim2.new(0, 0, 1, -3),
                     BackgroundColor3 = library.theme.inputBg,
@@ -2290,6 +2300,11 @@ function library.createWindow(options)
                     ClipsDescendants = true,
                     Visible = false,
                     ZIndex = 100001,
+                    ScrollBarThickness = 0,
+                    ScrollBarTransparency = 1,
+                    CanvasSize = UDim2.new(0, 0, 0, 0),
+                    AutomaticCanvasSize = Enum.AutomaticCanvasSize.Y,
+                    ScrollingDirection = Enum.ScrollingDirection.Y,
                     Parent = dropHeader,
                 })
                 makeCorner(listContainer, 3)
@@ -2381,8 +2396,12 @@ function library.createWindow(options)
                     open = not wasOpen
                     if open then
                         populateOptions()
-                        local listH = math.min(#options * 22 + 6, 166)
+                        local maxH = 140
+                        local totalH = #options * 22 + 6
+                        local listH = math.min(totalH, maxH)
                         listContainer.Size = UDim2.new(1, 0, 0, listH)
+                        listContainer.CanvasSize = UDim2.new(0, 0, 0, totalH)
+                        listContainer.ScrollingEnabled = (totalH > maxH)
                         listContainer.Visible = true
                         arrow.Rotation = 0
                         container.ZIndex = 1000
@@ -2838,7 +2857,7 @@ function library.createWindow(options)
                 local keys = { "b", "t", "i", "d" }
                 local keyUpper = { b = "B", t = "T", i = "I", d = "D" }
 
-                for idx, key in ipairs(keys) do
+                for idx, key in pairs(keys) do
                     headerLetterLabels[key] = create("TextLabel", {
                         Size = UDim2.new(0, 16, 1, 0),
                         Position = UDim2.new(0, (idx - 1) * 20, 0, 0),
@@ -2855,9 +2874,9 @@ function library.createWindow(options)
                 local allTableStates = {}
 
                 local function updateHeaderLettersColor()
-                    for _, key in ipairs(keys) do
+                    for _, key in pairs(keys) do
                         local anyInColumn = false
-                        for _, rStates in ipairs(allTableStates) do
+                        for _, rStates in pairs(allTableStates) do
                             if rStates[key] == true then
                                 anyInColumn = true
                                 break
@@ -2869,7 +2888,7 @@ function library.createWindow(options)
                     end
                 end
 
-                for order, itemConfig in ipairs(items) do
+                for order, itemConfig in pairs(items) do
                     if itemConfig == "spacer" or itemConfig.spacer or itemConfig.name == "" then
                         create("Frame", {
                             Size = UDim2.new(1, 0, 0, 6),
@@ -2917,7 +2936,7 @@ function library.createWindow(options)
                             updateHeaderLettersColor()
                         end
 
-                        for idx, key in ipairs(keys) do
+                        for idx, key in pairs(keys) do
                             local flagName = flagsPrefix .. "_" .. key
                             local defaultVal = itemConfig.defaults and itemConfig.defaults[key] or false
                             library.flags[flagName] = defaultVal
