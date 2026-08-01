@@ -1899,7 +1899,12 @@ function library.createWindow(options)
                             end
                             local relPos = getPositionInMain(iconBtn)
                             local iconAbsSize = iconBtn.AbsoluteSize
-                            popup.Position = UDim2.new(0, relPos.X + iconAbsSize.X + 4, 0, relPos.Y + iconAbsSize.Y + 4)
+                            local mainAbsSize = main.AbsoluteSize
+                            local targetX = relPos.X + iconAbsSize.X + 8
+                            if targetX + 210 > mainAbsSize.X then
+                                targetX = mainAbsSize.X + 8
+                            end
+                            popup.Position = UDim2.new(0, targetX, 0, relPos.Y - 6)
                         end)
                     end
 
@@ -1921,7 +1926,12 @@ function library.createWindow(options)
                                 library.activeSettingsIcon = iconBtn
                                 local relPos = getPositionInMain(iconBtn)
                                 local iconAbsSize = iconBtn.AbsoluteSize
-                                popup.Position = UDim2.new(0, relPos.X + iconAbsSize.X + 4, 0, relPos.Y + iconAbsSize.Y + 4)
+                                local mainAbsSize = main.AbsoluteSize
+                                local targetX = relPos.X + iconAbsSize.X + 8
+                                if targetX + 210 > mainAbsSize.X then
+                                    targetX = mainAbsSize.X + 8
+                                end
+                                popup.Position = UDim2.new(0, targetX, 0, relPos.Y - 6)
                                 startTracking()
                             else
                                 if library.activeSettingsPopup == popup then
@@ -2144,34 +2154,59 @@ function library.createWindow(options)
 
                 if flag then library.flags[flag] = selected end
 
+                local isVertical = (config.layout == "Vertical") or (targetParent ~= nil and config.layout ~= "Horizontal")
+                local containerHeight = isVertical and 44 or 24
+
                 local container = create("Frame", {
-                    Size = UDim2.new(1, 0, 0, 24),
+                    Size = UDim2.new(1, 0, 0, containerHeight),
                     BackgroundTransparency = 1,
                     ClipsDescendants = false,
                     Parent = parentCard,
                 })
 
-                create("TextLabel", {
-                    Size = UDim2.new(0.42, 0, 1, 0),
-                    Position = UDim2.new(0, 0, 0, 0),
-                    Text = name,
-                    Font = library.theme.fontBold,
-                    TextSize = 12,
-                    TextColor3 = library.theme.textBright,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    TextTruncate = Enum.TextTruncate.AtEnd,
-                    BackgroundTransparency = 1,
-                    Parent = container,
-                })
+                if isVertical then
+                    create("TextLabel", {
+                        Size = UDim2.new(1, 0, 0, 16),
+                        Position = UDim2.new(0, 0, 0, 0),
+                        Text = name,
+                        Font = library.theme.fontBold,
+                        TextSize = 12,
+                        TextColor3 = library.theme.textBright,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        BackgroundTransparency = 1,
+                        Parent = container,
+                    })
 
-                local rightGroup = create("Frame", {
-                    Size = UDim2.new(0.58, 0, 1, 0),
-                    Position = UDim2.new(1, 0, 0, 0),
-                    AnchorPoint = Vector2.new(1, 0),
-                    BackgroundTransparency = 1,
-                    ClipsDescendants = false,
-                    Parent = container,
-                })
+                    local rightGroup = create("Frame", {
+                        Size = UDim2.new(1, 0, 0, 24),
+                        Position = UDim2.new(0, 0, 0, 18),
+                        BackgroundTransparency = 1,
+                        ClipsDescendants = false,
+                        Parent = container,
+                    })
+                else
+                    create("TextLabel", {
+                        Size = UDim2.new(0.42, 0, 1, 0),
+                        Position = UDim2.new(0, 0, 0, 0),
+                        Text = name,
+                        Font = library.theme.fontBold,
+                        TextSize = 12,
+                        TextColor3 = library.theme.textBright,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        TextTruncate = Enum.TextTruncate.AtEnd,
+                        BackgroundTransparency = 1,
+                        Parent = container,
+                    })
+
+                    local rightGroup = create("Frame", {
+                        Size = UDim2.new(0.58, 0, 1, 0),
+                        Position = UDim2.new(1, 0, 0, 0),
+                        AnchorPoint = Vector2.new(1, 0),
+                        BackgroundTransparency = 1,
+                        ClipsDescendants = false,
+                        Parent = container,
+                    })
+                end
 
                 create("UIListLayout", {
                     FillDirection = Enum.FillDirection.Horizontal,
@@ -2192,9 +2227,9 @@ function library.createWindow(options)
                     })
                 end
 
-                local dropHeaderWidth = config.width or (targetParent ~= nil and 105 or 135)
+                local dropHeaderSize = isVertical and UDim2.new(1, 0, 0, 24) or UDim2.new(0, config.width or (targetParent ~= nil and 105 or 135), 0, 24)
                 local dropHeader = create("TextButton", {
-                    Size = UDim2.new(0, dropHeaderWidth, 0, 24),
+                    Size = dropHeaderSize,
                     BackgroundColor3 = library.theme.inputBg,
                     Text = "",
                     AutoButtonColor = false,
@@ -2422,6 +2457,139 @@ function library.createWindow(options)
                 }
                 if flag then library.elements[flag] = colorPickerObj end
                 return colorPickerObj
+            end
+
+            function section.createItemTable(self, items)
+                local container = create("Frame", {
+                    Size = UDim2.new(1, 0, 0, 0),
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    BackgroundTransparency = 1,
+                    Parent = card,
+                })
+
+                create("UIListLayout", {
+                    SortOrder = Enum.SortOrder.LayoutOrder,
+                    Padding = UDim.new(0, 4),
+                    Parent = container,
+                })
+
+                local headerRow = create("Frame", {
+                    Size = UDim2.new(1, 0, 0, 18),
+                    BackgroundTransparency = 1,
+                    LayoutOrder = -100,
+                    Parent = container,
+                })
+
+                create("TextLabel", {
+                    Size = UDim2.new(0.55, 0, 1, 0),
+                    Text = "Item name",
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = Color3.fromRGB(130, 135, 145),
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    BackgroundTransparency = 1,
+                    Parent = headerRow,
+                })
+
+                local lettersGroup = create("Frame", {
+                    Size = UDim2.new(0, 80, 1, 0),
+                    Position = UDim2.new(1, 0, 0, 0),
+                    AnchorPoint = Vector2.new(1, 0),
+                    BackgroundTransparency = 1,
+                    Parent = headerRow,
+                })
+
+                local letters = { "B", "T", "I", "D" }
+                for idx, l in ipairs(letters) do
+                    create("TextLabel", {
+                        Size = UDim2.new(0, 16, 1, 0),
+                        Position = UDim2.new(0, (idx - 1) * 20, 0, 0),
+                        Text = l,
+                        Font = library.theme.fontBold,
+                        TextSize = 11,
+                        TextColor3 = Color3.fromRGB(130, 135, 145),
+                        TextXAlignment = Enum.TextXAlignment.Center,
+                        BackgroundTransparency = 1,
+                        Parent = lettersGroup,
+                    })
+                end
+
+                for order, itemConfig in ipairs(items) do
+                    if itemConfig == "spacer" or itemConfig.spacer or itemConfig.name == "" then
+                        create("Frame", {
+                            Size = UDim2.new(1, 0, 0, 6),
+                            BackgroundTransparency = 1,
+                            LayoutOrder = order,
+                            Parent = container,
+                        })
+                    else
+                        local row = create("Frame", {
+                            Size = UDim2.new(1, 0, 0, 20),
+                            BackgroundTransparency = 1,
+                            LayoutOrder = order,
+                            Parent = container,
+                        })
+
+                        create("TextLabel", {
+                            Size = UDim2.new(0.55, 0, 1, 0),
+                            Text = itemConfig.name,
+                            Font = library.theme.fontBold,
+                            TextSize = 12,
+                            TextColor3 = Color3.fromRGB(180, 185, 195),
+                            TextXAlignment = Enum.TextXAlignment.Left,
+                            BackgroundTransparency = 1,
+                            Parent = row,
+                        })
+
+                        local togglesGroup = create("Frame", {
+                            Size = UDim2.new(0, 80, 1, 0),
+                            Position = UDim2.new(1, 0, 0, 0),
+                            AnchorPoint = Vector2.new(1, 0),
+                            BackgroundTransparency = 1,
+                            Parent = row,
+                        })
+
+                        local flagsPrefix = itemConfig.flagPrefix or ("item_" .. itemConfig.name:lower():gsub("%s+", "_"))
+
+                        local keys = { "b", "t", "i", "d" }
+                        for idx, key in ipairs(keys) do
+                            local flagName = flagsPrefix .. "_" .. key
+                            local defaultVal = itemConfig.defaults and itemConfig.defaults[key] or false
+                            library.flags[flagName] = defaultVal
+
+                            local box = create("TextButton", {
+                                Size = UDim2.new(0, 13, 0, 13),
+                                Position = UDim2.new(0, (idx - 1) * 20 + 2, 0.5, 0),
+                                AnchorPoint = Vector2.new(0, 0.5),
+                                BackgroundColor3 = defaultVal and library.theme.accent or Color3.fromRGB(24, 25, 30),
+                                BorderSizePixel = 0,
+                                Text = "",
+                                AutoButtonColor = false,
+                                Parent = togglesGroup,
+                            })
+                            makeCorner(box, 3)
+                            local stroke = makeStroke(box, defaultVal and library.theme.accent or Color3.fromRGB(40, 42, 50))
+
+                            local state = defaultVal
+                            box.MouseButton1Click:Connect(function()
+                                state = not state
+                                library.flags[flagName] = state
+                                box.BackgroundColor3 = state and library.theme.accent or Color3.fromRGB(24, 25, 30)
+                                stroke.Color = state and library.theme.accent or Color3.fromRGB(40, 42, 50)
+                            end)
+
+                            library.elements[flagName] = {
+                                set = function(val)
+                                    state = val
+                                    library.flags[flagName] = state
+                                    box.BackgroundColor3 = state and library.theme.accent or Color3.fromRGB(24, 25, 30)
+                                    stroke.Color = state and library.theme.accent or Color3.fromRGB(40, 42, 50)
+                                end,
+                                get = function() return state end
+                            }
+                        end
+                    end
+                end
             end
 
             function section.createConfigSystem(self, config)
