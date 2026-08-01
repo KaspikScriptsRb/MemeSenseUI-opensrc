@@ -1456,7 +1456,7 @@ function library.createWindow(options)
                     TextColor3 = library.theme.textBright,
                     AutomaticSize = Enum.AutomaticSize.Y,
                     Size = UDim2.new(1, 0, 0, 18),
-                    TextXAlignment = Enum.TextXAlignment.Center,
+                    TextXAlignment = Enum.TextXAlignment.Left,
                     BackgroundTransparency = 1,
                     Parent = card,
                 })
@@ -1857,7 +1857,7 @@ function library.createWindow(options)
                     })
 
                     local popup = create("Frame", {
-                        Size = UDim2.new(0, 180, 0, 0),
+                        Size = UDim2.new(0, 210, 0, 0),
                         AutomaticSize = Enum.AutomaticSize.Y,
                         BackgroundColor3 = Color3.fromRGB(20, 20, 24),
                         BackgroundTransparency = 0,
