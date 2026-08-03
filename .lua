@@ -878,7 +878,7 @@ function library.createWindow(options)
                 ScrollBarThickness = 0,
                 ScrollBarTransparency = 1,
                 CanvasSize = UDim2.new(0, 0, 0, 0),
-                AutomaticCanvasSize = Enum.AutomaticCanvasSize.Y,
+                AutomaticCanvasSize = Enum.AutomaticSize.Y,
                 ScrollingDirection = Enum.ScrollingDirection.Y,
                 Parent = dropHeader,
             })
@@ -2324,7 +2324,7 @@ function library.createWindow(options)
                     ScrollBarThickness = 0,
                     ScrollBarTransparency = 1,
                     CanvasSize = UDim2.new(0, 0, 0, 0),
-                    AutomaticCanvasSize = Enum.AutomaticCanvasSize.Y,
+                    AutomaticCanvasSize = Enum.AutomaticSize.Y,
                     ScrollingDirection = Enum.ScrollingDirection.Y,
                     Parent = isPopupChild and globalOverlayFrame or dropHeader,
                 })
