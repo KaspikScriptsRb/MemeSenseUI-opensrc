@@ -1987,7 +1987,7 @@ function library.createWindow(options)
                     function popObj.createColorpicker(self, cfg) return section:createColorpicker(cfg, popup) end
 
                     if typeof(builder) == "function" then
-                        pcall(builder, popObj)
+                        builder(popObj)
                     end
 
                     return popObj
