@@ -1611,12 +1611,20 @@ function library.createWindow(options)
                 })
 
                 local rightControls = create("Frame", {
-                    Size = UDim2.new(0, 60, 1, 0),
+                    Size = UDim2.new(0, 80, 1, 0),
                     Position = UDim2.new(1, 0, 0, 0),
                     AnchorPoint = Vector2.new(1, 0),
                     BackgroundTransparency = 1,
                     ClipsDescendants = false,
                     Parent = row,
+                })
+
+                create("UIListLayout", {
+                    FillDirection = Enum.FillDirection.Horizontal,
+                    HorizontalAlignment = Enum.HorizontalAlignment.Right,
+                    VerticalAlignment = Enum.VerticalAlignment.Center,
+                    Padding = UDim.new(0, 4),
+                    Parent = rightControls,
                 })
 
                 local function updateVisuals()
@@ -1926,9 +1934,25 @@ function library.createWindow(options)
                         end)
                     end
 
+                    local popupOverlayItem = {
+                        isSettings = true,
+                        close = function()
+                            popup.Visible = false
+                            iconBtn.ImageColor3 = Color3.fromRGB(255, 255, 255)
+                            if library.activeSettingsPopup == popup then
+                                library.activeSettingsPopup = nil
+                                library.activeSettingsIcon = nil
+                            end
+                            if popTrackConn then popTrackConn:Disconnect() end
+                            popTrackConn = nil
+                        end
+                    }
+
                     iconBtn.MouseButton1Click:Connect(function()
                         if library.activeSettingsPopup and library.activeSettingsPopup ~= popup then
-                            library.activeSettingsPopup.Visible = false
+                            if library.activeSettingsPopup.Visible then
+                                library.activeSettingsPopup.Visible = false
+                            end
                             if library.activeSettingsIcon then
                                 library.activeSettingsIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
                             end
@@ -1946,13 +1970,9 @@ function library.createWindow(options)
                             local sgAbs = screenGui.AbsolutePosition
                             popup.Position = UDim2.new(0, (iconAbs.X - sgAbs.X) + iconAbsSize.X + 8, 0, (iconAbs.Y - sgAbs.Y) - 6)
                             startTracking()
+                            table.insert(activeOverlays, popupOverlayItem)
                         else
-                            if library.activeSettingsPopup == popup then
-                                library.activeSettingsPopup = nil
-                                library.activeSettingsIcon = nil
-                            end
-                            if popTrackConn then popTrackConn:Disconnect() end
-                            popTrackConn = nil
+                            popupOverlayItem.close()
                         end
                     end)
 
@@ -2290,6 +2310,7 @@ function library.createWindow(options)
                     Parent = dropHeader,
                 })
 
+                local isPopupChild = (targetParent ~= nil)
                 local listContainer = create("ScrollingFrame", {
                     Size = UDim2.new(1, 0, 0, 0),
                     Position = UDim2.new(0, 0, 1, -3),
@@ -2299,13 +2320,13 @@ function library.createWindow(options)
                     Active = true,
                     ClipsDescendants = true,
                     Visible = false,
-                    ZIndex = 100001,
+                    ZIndex = 100030,
                     ScrollBarThickness = 0,
                     ScrollBarTransparency = 1,
                     CanvasSize = UDim2.new(0, 0, 0, 0),
                     AutomaticCanvasSize = Enum.AutomaticCanvasSize.Y,
                     ScrollingDirection = Enum.ScrollingDirection.Y,
-                    Parent = dropHeader,
+                    Parent = isPopupChild and globalOverlayFrame or dropHeader,
                 })
                 makeCorner(listContainer, 3)
 
@@ -2345,7 +2366,7 @@ function library.createWindow(options)
                             TextSize = 12,
                             TextColor3 = optTextColor,
                             TextXAlignment = Enum.TextXAlignment.Left,
-                            ZIndex = 100002,
+                            ZIndex = 100031,
                             Parent = listContainer,
                         })
 
@@ -2365,17 +2386,7 @@ function library.createWindow(options)
                                 optBtn.TextColor3 = selected[opt] and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 155, 165)
                             else
                                 selected = opt
-                                if typeof(closeDropdown) == "function" then
-                                    closeDropdown()
-                                else
-                                    open = false
-                                    listContainer.Visible = false
-                                    arrow.Rotation = 180
-                                    container.ZIndex = 1
-                                    rightGroup.ZIndex = 1
-                                    dropHeader.ZIndex = 1
-                                    if card then card.ZIndex = 1 end
-                                end
+                                closeDropdown()
                             end
                             if selectedLabel and typeof(getDisplayText) == "function" then
                                 selectedLabel.Text = getDisplayText()
@@ -2390,7 +2401,7 @@ function library.createWindow(options)
 
                 dropHeader.MouseButton1Click:Connect(function()
                     local wasOpen = open
-                    if targetParent == nil then
+                    if not isPopupChild then
                         closeGlobalOverlays()
                     end
                     open = not wasOpen
@@ -2399,7 +2410,14 @@ function library.createWindow(options)
                         local maxH = 140
                         local totalH = #options * 22 + 6
                         local listH = math.min(totalH, maxH)
-                        listContainer.Size = UDim2.new(1, 0, 0, listH)
+                        if isPopupChild then
+                            local dhAbs = dropHeader.AbsolutePosition
+                            local sgAbs = screenGui.AbsolutePosition
+                            listContainer.Size = UDim2.new(0, dropHeader.AbsoluteSize.X, 0, listH)
+                            listContainer.Position = UDim2.new(0, dhAbs.X - sgAbs.X, 0, (dhAbs.Y - sgAbs.Y) + dropHeader.AbsoluteSize.Y + 2)
+                        else
+                            listContainer.Size = UDim2.new(1, 0, 0, listH)
+                        end
                         listContainer.CanvasSize = UDim2.new(0, 0, 0, totalH)
                         listContainer.ScrollingEnabled = (totalH > maxH)
                         listContainer.Visible = true
@@ -2408,9 +2426,7 @@ function library.createWindow(options)
                         rightGroup.ZIndex = 1000
                         dropHeader.ZIndex = 1000
                         if card then card.ZIndex = 1000 end
-                        if targetParent == nil then
-                            table.insert(activeOverlays, closeDropdown)
-                        end
+                        table.insert(activeOverlays, closeDropdown)
                     else
                         closeDropdown()
                     end
