@@ -2303,59 +2303,353 @@ function library.createWindow(options)
 
             local section = {}
 
-            function section.createSubTabs(self, config)
-                config = typeof(config) == "table" and config or { options = config }
-                local opts = config.options or {}
-                local callback = config.callback or function() end
-                local active = config.default or opts[1] or ""
+            local function addKeybindFn(elemObj, kConfig)
+                kConfig = kConfig or {}
+                local currentKey = kConfig.default or Enum.KeyCode.Unknown
+                local keyMode = kConfig.mode or "On key down"
+                local keyCallback = kConfig.callback or function() end
+                local binding = false
 
-                local bar = create("Frame", {
-                    Size = UDim2.new(1, 0, 0, 22),
+                local targetRight = elemObj.rightControls or rightControls
+                if not targetRight then return elemObj end
+
+                local iconBtn = create("ImageButton", {
+                    Size = UDim2.new(0, 18, 0, 16),
                     BackgroundTransparency = 1,
-                    Parent = card,
+                    Image = "rbxassetid://121332782788896",
+                    ImageColor3 = Color3.fromRGB(255, 255, 255),
+                    ImageTransparency = 0,
+                    BorderSizePixel = 0,
+                    Parent = targetRight,
                 })
 
-                create("UIListLayout", {
-                    FillDirection = Enum.FillDirection.Horizontal,
-                    HorizontalAlignment = Enum.HorizontalAlignment.Center,
-                    VerticalAlignment = Enum.VerticalAlignment.Center,
-                    Padding = UDim.new(0, 18),
-                    Parent = bar,
+                local popup = create("Frame", {
+                    Size = UDim2.new(0, 150, 0, 75),
+                    BackgroundColor3 = Color3.fromRGB(20, 20, 24),
+                    BackgroundTransparency = 0,
+                    BorderSizePixel = 0,
+                    Active = true,
+                    Visible = false,
+                    ZIndex = 100005,
+                    Parent = globalOverlayFrame,
                 })
+                makeCorner(popup, 4)
+                create("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10), Parent = popup })
 
-                local btns = {}
-                for _, opt in opts do
-                    local b = create("TextButton", {
-                        Size = UDim2.new(0, 0, 1, 0),
-                        AutomaticSize = Enum.AutomaticSize.X,
-                        BackgroundTransparency = 1,
-                        Text = opt,
-                        Font = library.theme.fontBold,
-                        TextSize = 13,
-                        TextColor3 = (opt == active) and library.theme.textBright or library.theme.textMuted,
-                        Parent = bar,
-                    })
-
-                    b.MouseButton1Click:Connect(function()
-                        active = opt
-                        for name, btnObj in btns do
-                            btnObj.TextColor3 = (name == active) and library.theme.textBright or library.theme.textMuted
+                local bindTrackConn
+                local function startBindTracking()
+                    if bindTrackConn then bindTrackConn:Disconnect() end
+                    bindTrackConn = runService.RenderStepped:Connect(function()
+                        if not popup.Visible or not iconBtn:IsDescendantOf(game) then
+                            if bindTrackConn then bindTrackConn:Disconnect() end
+                            bindTrackConn = nil
+                            popup.Visible = false
+                            return
                         end
-                        pcall(callback, active)
+                        local iconAbs = iconBtn.AbsolutePosition
+                        local iconAbsSize = iconBtn.AbsoluteSize
+                        local sgAbs = screenGui.AbsolutePosition
+                        popup.Position = UDim2.new(0, (iconAbs.X - sgAbs.X) + iconAbsSize.X + 4, 0, (iconAbs.Y - sgAbs.Y) + 4)
                     end)
-
-                    btns[opt] = b
                 end
 
-                return {
-                    set = function(val)
-                        active = val
-                        for name, btnObj in btns do
-                            btnObj.TextColor3 = (name == active) and library.theme.textBright or library.theme.textMuted
+                iconBtn.MouseButton1Click:Connect(function()
+                    popup.Visible = not popup.Visible
+                    if popup.Visible then
+                        local iconAbs = iconBtn.AbsolutePosition
+                        local iconAbsSize = iconBtn.AbsoluteSize
+                        local sgAbs = screenGui.AbsolutePosition
+                        popup.Position = UDim2.new(0, (iconAbs.X - sgAbs.X) + iconAbsSize.X + 4, 0, (iconAbs.Y - sgAbs.Y) + 4)
+                        startBindTracking()
+                    else
+                        if bindTrackConn then bindTrackConn:Disconnect() end
+                        bindTrackConn = nil
+                    end
+                end)
+
+                create("TextLabel", {
+                    Size = UDim2.new(0.4, 0, 0, 16),
+                    Text = "Type",
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = library.theme.textBright,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    BackgroundTransparency = 1,
+                    ZIndex = 100006,
+                    Parent = popup,
+                })
+
+                local modeDropBtn = create("TextButton", {
+                    Size = UDim2.new(0.55, 0, 0, 18),
+                    Position = UDim2.new(1, 0, 0, 0),
+                    AnchorPoint = Vector2.new(1, 0),
+                    BackgroundColor3 = Color3.fromRGB(24, 25, 30),
+                    BorderSizePixel = 0,
+                    Active = true,
+                    Text = "",
+                    AutoButtonColor = false,
+                    ZIndex = 100006,
+                    Parent = popup,
+                })
+                makeCorner(modeDropBtn, 3)
+
+                local modeLabel = create("TextLabel", {
+                    Size = UDim2.new(1, -14, 1, 0),
+                    Position = UDim2.new(0, 5, 0, 0),
+                    Text = keyMode,
+                    Font = library.theme.fontBold,
+                    TextSize = 11,
+                    TextColor3 = library.theme.textBright,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    BackgroundTransparency = 1,
+                    ZIndex = 100006,
+                    Parent = modeDropBtn,
+                })
+
+                local modeArrow = create("ImageLabel", {
+                    Size = UDim2.new(0, 8, 0, 8),
+                    Position = UDim2.new(1, -4, 0.5, 0),
+                    AnchorPoint = Vector2.new(1, 0.5),
+                    BackgroundTransparency = 1,
+                    Image = "rbxassetid://10709791523",
+                    ImageColor3 = Color3.fromRGB(255, 255, 255),
+                    ZIndex = 100006,
+                    Rotation = 180,
+                    Parent = modeDropBtn,
+                })
+
+                local modeDropContainer = create("Frame", {
+                    Size = UDim2.new(1, 0, 0, 0),
+                    Position = UDim2.new(0, 0, 1, -3),
+                    BackgroundColor3 = Color3.fromRGB(24, 25, 30),
+                    BackgroundTransparency = 0,
+                    BorderSizePixel = 0,
+                    Active = true,
+                    ClipsDescendants = true,
+                    Visible = false,
+                    ZIndex = 100007,
+                    Parent = modeDropBtn,
+                })
+                makeCorner(modeDropContainer, 3)
+
+                create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 0), Parent = modeDropContainer })
+                create("UIPadding", { PaddingTop = UDim.new(0, 3), PaddingBottom = UDim.new(0, 3), Parent = modeDropContainer })
+
+                local modeDropOpen = false
+                modeDropBtn.MouseButton1Click:Connect(function()
+                    modeDropOpen = not modeDropOpen
+                    if modeDropOpen then
+                        modeDropContainer.Size = UDim2.new(1, 0, 0, 4 * 20 + 6)
+                        modeDropContainer.Visible = true
+                        modeArrow.Rotation = 0
+                    else
+                        modeDropContainer.Visible = false
+                        modeArrow.Rotation = 180
+                    end
+                end)
+
+                local modeOptions = {"Always on", "On key down", "Toggle", "Disabled"}
+                for _, mOpt in modeOptions do
+                    local isSel = (mOpt == keyMode)
+                    local mBtn = create("TextButton", {
+                        Size = UDim2.new(1, 0, 0, 20),
+                        BackgroundColor3 = Color3.fromRGB(24, 25, 30),
+                        BackgroundTransparency = 1,
+                        BorderSizePixel = 0,
+                        Text = mOpt,
+                        Font = library.theme.fontBold,
+                        TextSize = 11,
+                        TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145),
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        ZIndex = 100008,
+                        Parent = modeDropContainer,
+                    })
+                    create("UIPadding", { PaddingLeft = UDim.new(0, 6), Parent = mBtn })
+
+                    mBtn.MouseEnter:Connect(function()
+                        if not isSel then mBtn.TextColor3 = Color3.fromRGB(255, 255, 255) end
+                    end)
+                    mBtn.MouseLeave:Connect(function()
+                        mBtn.TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145)
+                    end)
+
+                    mBtn.MouseButton1Click:Connect(function()
+                        keyMode = mOpt
+                        modeLabel.Text = keyMode
+                        modeDropOpen = false
+                        modeDropContainer.Visible = false
+                        modeArrow.Rotation = 180
+                        if keyMode == "Always on" then
+                            if elemObj.set then elemObj.set(true) end
+                        elseif keyMode == "Disabled" or keyMode == "On key down" then
+                            if elemObj.set then elemObj.set(false) end
                         end
-                        pcall(callback, active)
+                        pcall(keyCallback, currentKey, keyMode)
+                    end)
+                end
+
+                local keyBox = create("TextButton", {
+                    Size = UDim2.new(1, 0, 0, 22),
+                    Position = UDim2.new(0, 0, 0, 28),
+                    BackgroundColor3 = Color3.fromRGB(20, 22, 26),
+                    BorderSizePixel = 0,
+                    Text = "[" .. (currentKey == Enum.KeyCode.Unknown and "none" or currentKey.Name:lower()) .. "]",
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = library.theme.textBright,
+                    ZIndex = 100006,
+                    Parent = popup,
+                })
+                makeCorner(keyBox, 3)
+
+                keyBox.MouseButton1Click:Connect(function()
+                    binding = true
+                    keyBox.Text = "[...]"
+                end)
+
+                userInputService.InputBegan:Connect(function(input, gpe)
+                    if binding then
+                        if input.UserInputType == Enum.UserInputType.Keyboard then
+                            currentKey = input.KeyCode
+                            binding = false
+                            keyBox.Text = "[" .. (currentKey == Enum.KeyCode.Unknown and "none" or currentKey.Name:lower()) .. "]"
+                            iconBtn.ImageColor3 = (currentKey ~= Enum.KeyCode.Unknown) and library.theme.accent or Color3.fromRGB(255, 255, 255)
+                            pcall(keyCallback, currentKey, keyMode)
+                        end
+                    elseif not gpe and input.KeyCode == currentKey and currentKey ~= Enum.KeyCode.Unknown then
+                        if keyMode == "Toggle" then
+                            if elemObj.get and elemObj.set then elemObj.set(not elemObj.get()) end
+                        elseif keyMode == "On key down" then
+                            if elemObj.set then elemObj.set(true) end
+                        elseif keyMode == "Always on" then
+                            if elemObj.set then elemObj.set(true) end
+                        end
+                    end
+                end)
+
+                userInputService.InputEnded:Connect(function(input, gpe)
+                    if not gpe and input.KeyCode == currentKey and currentKey ~= Enum.KeyCode.Unknown then
+                        if keyMode == "On key down" then
+                            if elemObj.set then elemObj.set(false) end
+                        end
+                    end
+                end)
+
+                return elemObj
+            end
+
+            local function addSettingsFn(elemObj, sConfig)
+                sConfig = typeof(sConfig) == "function" and { builder = sConfig } or (sConfig or {})
+                local builder = sConfig.builder or sConfig.callback
+
+                local targetRight = elemObj.rightControls or rightControls
+                if not targetRight then return elemObj end
+
+                local iconBtn = create("ImageButton", {
+                    Size = UDim2.new(0, 18, 0, 16),
+                    BackgroundTransparency = 1,
+                    Image = "rbxassetid://120242544565484",
+                    ImageColor3 = Color3.fromRGB(255, 255, 255),
+                    ImageTransparency = 0,
+                    BorderSizePixel = 0,
+                    Parent = targetRight,
+                })
+
+                local popup = create("Frame", {
+                    Size = UDim2.new(0, 210, 0, 0),
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    BackgroundColor3 = Color3.fromRGB(20, 20, 24),
+                    BackgroundTransparency = 0,
+                    BorderSizePixel = 0,
+                    Active = true,
+                    Visible = false,
+                    ZIndex = 100005,
+                    Parent = globalOverlayFrame,
+                })
+                makeCorner(popup, 4)
+                create("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8), Parent = popup })
+
+                create("UIListLayout", {
+                    SortOrder = Enum.SortOrder.LayoutOrder,
+                    Padding = UDim.new(0, 6),
+                    Parent = popup,
+                })
+
+                local popTrackConn
+                local function startTracking()
+                    if popTrackConn then popTrackConn:Disconnect() end
+                    popTrackConn = runService.RenderStepped:Connect(function()
+                        if not popup.Visible or not iconBtn:IsDescendantOf(game) then
+                            if popTrackConn then popTrackConn:Disconnect() end
+                            popTrackConn = nil
+                            popup.Visible = false
+                            return
+                        end
+                        local iconAbs = iconBtn.AbsolutePosition
+                        local iconAbsSize = iconBtn.AbsoluteSize
+                        local sgAbs = screenGui.AbsolutePosition
+                        popup.Position = UDim2.new(0, (iconAbs.X - sgAbs.X) + iconAbsSize.X + 8, 0, (iconAbs.Y - sgAbs.Y) - 6)
+                    end)
+                end
+
+                local popupOverlayItem = {
+                    isSettings = true,
+                    close = function()
+                        popup.Visible = false
+                        iconBtn.ImageColor3 = Color3.fromRGB(255, 255, 255)
+                        if library.activeSettingsPopup == popup then
+                            library.activeSettingsPopup = nil
+                            library.activeSettingsIcon = nil
+                        end
+                        if popTrackConn then popTrackConn:Disconnect() end
+                        popTrackConn = nil
                     end
                 }
+
+                iconBtn.MouseButton1Click:Connect(function()
+                    if library.activeSettingsPopup and library.activeSettingsPopup ~= popup then
+                        if library.activeSettingsPopup.Visible then
+                            library.activeSettingsPopup.Visible = false
+                        end
+                        if library.activeSettingsIcon then
+                            library.activeSettingsIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+                        end
+                    end
+
+                    local wasVisible = popup.Visible
+                    popup.Visible = not wasVisible
+                    iconBtn.ImageColor3 = popup.Visible and library.theme.accent or Color3.fromRGB(255, 255, 255)
+
+                    if popup.Visible then
+                        library.activeSettingsPopup = popup
+                        library.activeSettingsIcon = iconBtn
+                        local iconAbs = iconBtn.AbsolutePosition
+                        local iconAbsSize = iconBtn.AbsoluteSize
+                        local sgAbs = screenGui.AbsolutePosition
+                        popup.Position = UDim2.new(0, (iconAbs.X - sgAbs.X) + iconAbsSize.X + 8, 0, (iconAbs.Y - sgAbs.Y) - 6)
+                        startTracking()
+                        table.insert(activeOverlays, popupOverlayItem)
+                    else
+                        popupOverlayItem.close()
+                    end
+                end)
+
+                local popObj = {
+                    popup = popup,
+                    card = popup,
+                }
+
+                function popObj.createToggle(self, cfg) return section:createToggle(cfg, popup) end
+                function popObj.createSlider(self, cfg) return section:createSlider(cfg, popup) end
+                function popObj.createDropdown(self, cfg) return section:createDropdown(cfg, popup) end
+                function popObj.createColorpicker(self, cfg) return section:createColorpicker(cfg, popup) end
+                function popObj.createKeybind(self, cfg) return section:createKeybind(cfg, popup) end
+
+                if typeof(builder) == "function" then
+                    builder(popObj)
+                end
+
+                return popObj
             end
 
             function section.createToggle(self, config, targetParent)
@@ -2446,8 +2740,6 @@ function library.createWindow(options)
                     pcall(callback, state)
                 end)
 
-                local addKeybindFn, addSettingsFn
-
                 local toggleObj = {
                     set = function(val)
                         state = val
@@ -2457,356 +2749,69 @@ function library.createWindow(options)
                     end,
                     get = function() return state end,
                     rightControls = rightControls,
+                    addKeybind = addKeybindFn,
+                    addSettings = addSettingsFn,
                 }
                 if flag then library.elements[flag] = toggleObj end
 
-                addKeybindFn = function(self, kConfig)
-                    kConfig = kConfig or {}
-                    local currentKey = kConfig.default or Enum.KeyCode.Unknown
-                    local keyMode = kConfig.mode or "On key down"
-                    local keyCallback = kConfig.callback or function() end
-                    local binding = false
-
-                    local iconBtn = create("ImageButton", {
-                        Size = UDim2.new(0, 18, 0, 16),
-                        BackgroundTransparency = 1,
-                        Image = "rbxassetid://121332782788896",
-                        ImageColor3 = Color3.fromRGB(255, 255, 255),
-                        ImageTransparency = 0,
-                        BorderSizePixel = 0,
-                        Parent = self.rightControls or rightControls,
-                    })
-
-                    local popup = create("Frame", {
-                        Size = UDim2.new(0, 150, 0, 75),
-                        BackgroundColor3 = Color3.fromRGB(20, 20, 24),
-                        BackgroundTransparency = 0,
-                        BorderSizePixel = 0,
-                        Active = true,
-                        Visible = false,
-                        ZIndex = 100005,
-                        Parent = globalOverlayFrame,
-                    })
-                    makeCorner(popup, 4)
-                    create("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10), Parent = popup })
-
-                    local bindTrackConn
-                    local function startBindTracking()
-                        if bindTrackConn then bindTrackConn:Disconnect() end
-                        bindTrackConn = runService.RenderStepped:Connect(function()
-                            if not popup.Visible or not iconBtn:IsDescendantOf(game) then
-                                if bindTrackConn then bindTrackConn:Disconnect() end
-                                bindTrackConn = nil
-                                popup.Visible = false
-                                return
-                            end
-                            local iconAbs = iconBtn.AbsolutePosition
-                            local iconAbsSize = iconBtn.AbsoluteSize
-                            local sgAbs = screenGui.AbsolutePosition
-                            popup.Position = UDim2.new(0, (iconAbs.X - sgAbs.X) + iconAbsSize.X + 4, 0, (iconAbs.Y - sgAbs.Y) + 4)
-                        end)
-                    end
-
-                    iconBtn.MouseButton1Click:Connect(function()
-                        popup.Visible = not popup.Visible
-                        if popup.Visible then
-                            local iconAbs = iconBtn.AbsolutePosition
-                            local iconAbsSize = iconBtn.AbsoluteSize
-                            local sgAbs = screenGui.AbsolutePosition
-                            popup.Position = UDim2.new(0, (iconAbs.X - sgAbs.X) + iconAbsSize.X + 4, 0, (iconAbs.Y - sgAbs.Y) + 4)
-                            startBindTracking()
-                        else
-                            if bindTrackConn then bindTrackConn:Disconnect() end
-                            bindTrackConn = nil
-                        end
-                    end)
-
-                    create("TextLabel", {
-                        Size = UDim2.new(0.4, 0, 0, 16),
-                        Text = "Type",
-                        Font = library.theme.fontBold,
-                        TextSize = 12,
-                        TextColor3 = library.theme.textBright,
-                        TextXAlignment = Enum.TextXAlignment.Left,
-                        BackgroundTransparency = 1,
-                        ZIndex = 100006,
-                        Parent = popup,
-                    })
-
-                    local modeDropBtn = create("TextButton", {
-                        Size = UDim2.new(0.55, 0, 0, 18),
-                        Position = UDim2.new(1, 0, 0, 0),
-                        AnchorPoint = Vector2.new(1, 0),
-                        BackgroundColor3 = Color3.fromRGB(24, 25, 30),
-                        BorderSizePixel = 0,
-                        Active = true,
-                        Text = "",
-                        AutoButtonColor = false,
-                        ZIndex = 100006,
-                        Parent = popup,
-                    })
-                    makeCorner(modeDropBtn, 3)
-
-                    local modeLabel = create("TextLabel", {
-                        Size = UDim2.new(1, -14, 1, 0),
-                        Position = UDim2.new(0, 5, 0, 0),
-                        Text = keyMode,
-                        Font = library.theme.fontBold,
-                        TextSize = 11,
-                        TextColor3 = library.theme.textBright,
-                        TextXAlignment = Enum.TextXAlignment.Left,
-                        BackgroundTransparency = 1,
-                        ZIndex = 100006,
-                        Parent = modeDropBtn,
-                    })
-
-                    local modeArrow = create("ImageLabel", {
-                        Size = UDim2.new(0, 8, 0, 8),
-                        Position = UDim2.new(1, -4, 0.5, 0),
-                        AnchorPoint = Vector2.new(1, 0.5),
-                        BackgroundTransparency = 1,
-                        Image = "rbxassetid://10709791523",
-                        ImageColor3 = Color3.fromRGB(255, 255, 255),
-                        ZIndex = 100006,
-                        Rotation = 180,
-                        Parent = modeDropBtn,
-                    })
-
-                    local modeDropContainer = create("Frame", {
-                        Size = UDim2.new(1, 0, 0, 0),
-                        Position = UDim2.new(0, 0, 1, -3),
-                        BackgroundColor3 = Color3.fromRGB(24, 25, 30),
-                        BackgroundTransparency = 0,
-                        BorderSizePixel = 0,
-                        Active = true,
-                        ClipsDescendants = true,
-                        Visible = false,
-                        ZIndex = 100007,
-                        Parent = modeDropBtn,
-                    })
-                    makeCorner(modeDropContainer, 3)
-
-                    create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 0), Parent = modeDropContainer })
-                    create("UIPadding", { PaddingTop = UDim.new(0, 3), PaddingBottom = UDim.new(0, 3), Parent = modeDropContainer })
-
-                    local modeDropOpen = false
-                    modeDropBtn.MouseButton1Click:Connect(function()
-                        modeDropOpen = not modeDropOpen
-                        if modeDropOpen then
-                            modeDropContainer.Size = UDim2.new(1, 0, 0, 4 * 20 + 6)
-                            modeDropContainer.Visible = true
-                            modeArrow.Rotation = 0
-                        else
-                            modeDropContainer.Visible = false
-                            modeArrow.Rotation = 180
-                        end
-                    end)
-
-                    local modeOptions = {"Always on", "On key down", "Toggle", "Disabled"}
-                    for _, mOpt in modeOptions do
-                        local isSel = (mOpt == keyMode)
-                        local mBtn = create("TextButton", {
-                            Size = UDim2.new(1, 0, 0, 20),
-                            BackgroundColor3 = Color3.fromRGB(24, 25, 30),
-                            BackgroundTransparency = 1,
-                            BorderSizePixel = 0,
-                            Text = mOpt,
-                            Font = library.theme.fontBold,
-                            TextSize = 11,
-                            TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145),
-                            TextXAlignment = Enum.TextXAlignment.Left,
-                            ZIndex = 100008,
-                            Parent = modeDropContainer,
-                        })
-                        create("UIPadding", { PaddingLeft = UDim.new(0, 6), Parent = mBtn })
-
-                        mBtn.MouseEnter:Connect(function()
-                            if not isSel then mBtn.TextColor3 = Color3.fromRGB(255, 255, 255) end
-                        end)
-                        mBtn.MouseLeave:Connect(function()
-                            mBtn.TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145)
-                        end)
-
-                        mBtn.MouseButton1Click:Connect(function()
-                            keyMode = mOpt
-                            modeLabel.Text = keyMode
-                            modeDropOpen = false
-                            modeDropContainer.Visible = false
-                            modeArrow.Rotation = 180
-                            if keyMode == "Always on" then
-                                if self.set then self.set(true) end
-                            elseif keyMode == "Disabled" or keyMode == "On key down" then
-                                if self.set then self.set(false) end
-                            end
-                            pcall(keyCallback, currentKey, keyMode)
-                        end)
-                    end
-
-                    local keyBox = create("TextButton", {
-                        Size = UDim2.new(1, 0, 0, 22),
-                        Position = UDim2.new(0, 0, 0, 28),
-                        BackgroundColor3 = Color3.fromRGB(20, 22, 26),
-                        BorderSizePixel = 0,
-                        Text = "[" .. (currentKey == Enum.KeyCode.Unknown and "none" or currentKey.Name:lower()) .. "]",
-                        Font = library.theme.fontBold,
-                        TextSize = 12,
-                        TextColor3 = library.theme.textBright,
-                        ZIndex = 100006,
-                        Parent = popup,
-                    })
-                    makeCorner(keyBox, 3)
-
-                    keyBox.MouseButton1Click:Connect(function()
-                        binding = true
-                        keyBox.Text = "[...]"
-                    end)
-
-                    userInputService.InputBegan:Connect(function(input, gpe)
-                        if binding then
-                            if input.UserInputType == Enum.UserInputType.Keyboard then
-                                currentKey = input.KeyCode
-                                binding = false
-                                keyBox.Text = "[" .. (currentKey == Enum.KeyCode.Unknown and "none" or currentKey.Name:lower()) .. "]"
-                                iconBtn.ImageColor3 = (currentKey ~= Enum.KeyCode.Unknown) and library.theme.accent or Color3.fromRGB(255, 255, 255)
-                                pcall(keyCallback, currentKey, keyMode)
-                            end
-                        elseif not gpe and input.KeyCode == currentKey and currentKey ~= Enum.KeyCode.Unknown then
-                            if keyMode == "Toggle" then
-                                if self.get and self.set then self.set(not self.get()) end
-                            elseif keyMode == "On key down" then
-                                if self.set then self.set(true) end
-                            elseif keyMode == "Always on" then
-                                if self.set then self.set(true) end
-                            end
-                        end
-                    end)
-
-                    userInputService.InputEnded:Connect(function(input, gpe)
-                        if not gpe and input.KeyCode == currentKey and currentKey ~= Enum.KeyCode.Unknown then
-                            if keyMode == "On key down" then
-                                if self.set then self.set(false) end
-                            end
-                        end
-                    end)
-
-                    return self
-                end
-
-                addSettingsFn = function(self, sConfig)
-                    sConfig = typeof(sConfig) == "function" and { builder = sConfig } or (sConfig or {})
-                    local builder = sConfig.builder or sConfig.callback
-
-                    local iconBtn = create("ImageButton", {
-                        Size = UDim2.new(0, 18, 0, 16),
-                        BackgroundTransparency = 1,
-                        Image = "rbxassetid://120242544565484",
-                        ImageColor3 = Color3.fromRGB(255, 255, 255),
-                        ImageTransparency = 0,
-                        BorderSizePixel = 0,
-                        Parent = self.rightControls or rightControls,
-                    })
-
-                    local popup = create("Frame", {
-                        Size = UDim2.new(0, 210, 0, 0),
-                        AutomaticSize = Enum.AutomaticSize.Y,
-                        BackgroundColor3 = Color3.fromRGB(20, 20, 24),
-                        BackgroundTransparency = 0,
-                        BorderSizePixel = 0,
-                        Active = true,
-                        Visible = false,
-                        ZIndex = 100005,
-                        Parent = globalOverlayFrame,
-                    })
-                    makeCorner(popup, 4)
-                    create("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8), Parent = popup })
-
-                    create("UIListLayout", {
-                        SortOrder = Enum.SortOrder.LayoutOrder,
-                        Padding = UDim.new(0, 6),
-                        Parent = popup,
-                    })
-
-                    local popTrackConn
-                    local function startTracking()
-                        if popTrackConn then popTrackConn:Disconnect() end
-                        popTrackConn = runService.RenderStepped:Connect(function()
-                            if not popup.Visible or not iconBtn:IsDescendantOf(game) then
-                                if popTrackConn then popTrackConn:Disconnect() end
-                                popTrackConn = nil
-                                popup.Visible = false
-                                return
-                            end
-                            local iconAbs = iconBtn.AbsolutePosition
-                            local iconAbsSize = iconBtn.AbsoluteSize
-                            local sgAbs = screenGui.AbsolutePosition
-                            popup.Position = UDim2.new(0, (iconAbs.X - sgAbs.X) + iconAbsSize.X + 8, 0, (iconAbs.Y - sgAbs.Y) - 6)
-                        end)
-                    end
-
-                    local popupOverlayItem = {
-                        isSettings = true,
-                        close = function()
-                            popup.Visible = false
-                            iconBtn.ImageColor3 = Color3.fromRGB(255, 255, 255)
-                            if library.activeSettingsPopup == popup then
-                                library.activeSettingsPopup = nil
-                                library.activeSettingsIcon = nil
-                            end
-                            if popTrackConn then popTrackConn:Disconnect() end
-                            popTrackConn = nil
-                        end
-                    }
-
-                    iconBtn.MouseButton1Click:Connect(function()
-                        if library.activeSettingsPopup and library.activeSettingsPopup ~= popup then
-                            if library.activeSettingsPopup.Visible then
-                                library.activeSettingsPopup.Visible = false
-                            end
-                            if library.activeSettingsIcon then
-                                library.activeSettingsIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
-                            end
-                        end
-
-                        local wasVisible = popup.Visible
-                        popup.Visible = not wasVisible
-                        iconBtn.ImageColor3 = popup.Visible and library.theme.accent or Color3.fromRGB(255, 255, 255)
-
-                        if popup.Visible then
-                            library.activeSettingsPopup = popup
-                            library.activeSettingsIcon = iconBtn
-                            local iconAbs = iconBtn.AbsolutePosition
-                            local iconAbsSize = iconBtn.AbsoluteSize
-                            local sgAbs = screenGui.AbsolutePosition
-                            popup.Position = UDim2.new(0, (iconAbs.X - sgAbs.X) + iconAbsSize.X + 8, 0, (iconAbs.Y - sgAbs.Y) - 6)
-                            startTracking()
-                            table.insert(activeOverlays, popupOverlayItem)
-                        else
-                            popupOverlayItem.close()
-                        end
-                    end)
-
-                    local popObj = {
-                        popup = popup,
-                        card = popup,
-                    }
-
-                    function popObj.createToggle(self, cfg) return section:createToggle(cfg, popup) end
-                    function popObj.createSlider(self, cfg) return section:createSlider(cfg, popup) end
-                    function popObj.createDropdown(self, cfg) return section:createDropdown(cfg, popup) end
-                    function popObj.createColorpicker(self, cfg) return section:createColorpicker(cfg, popup) end
-                    function popObj.createKeybind(self, cfg) return section:createKeybind(cfg, popup) end
-
-                    if typeof(builder) == "function" then
-                        builder(popObj)
-                    end
-
-                    return popObj
-                end
-
-                toggleObj.addKeybind = addKeybindFn
-                toggleObj.addSettings = addSettingsFn
-
                 return toggleObj
+            end
+
+            function section.createSubTabs(self, config)
+                config = typeof(config) == "table" and config or { options = config }
+                local opts = config.options or {}
+                local callback = config.callback or function() end
+                local active = config.default or opts[1] or ""
+
+                local bar = create("Frame", {
+                    Size = UDim2.new(1, 0, 0, 22),
+                    BackgroundTransparency = 1,
+                    Parent = card,
+                })
+
+                create("UIListLayout", {
+                    FillDirection = Enum.FillDirection.Horizontal,
+                    HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                    VerticalAlignment = Enum.VerticalAlignment.Center,
+                    Padding = UDim.new(0, 18),
+                    Parent = bar,
+                })
+
+                local btns = {}
+                for _, opt in opts do
+                    local b = create("TextButton", {
+                        Size = UDim2.new(0, 0, 1, 0),
+                        AutomaticSize = Enum.AutomaticSize.X,
+                        BackgroundTransparency = 1,
+                        Text = opt,
+                        Font = library.theme.fontBold,
+                        TextSize = 13,
+                        TextColor3 = (opt == active) and library.theme.textBright or library.theme.textMuted,
+                        Parent = bar,
+                    })
+
+                    b.MouseButton1Click:Connect(function()
+                        active = opt
+                        for name, btnObj in btns do
+                            btnObj.TextColor3 = (name == active) and library.theme.textBright or library.theme.textMuted
+                        end
+                        pcall(callback, active)
+                    end)
+
+                    btns[opt] = b
+                end
+
+                return {
+                    set = function(val)
+                        active = val
+                        for name, btnObj in btns do
+                            btnObj.TextColor3 = (name == active) and library.theme.textBright or library.theme.textMuted
+                        end
+                        pcall(callback, active)
+                    end
+                }
+            end
+
             end
 
             function section.createKeybind(self, config, targetParent)
