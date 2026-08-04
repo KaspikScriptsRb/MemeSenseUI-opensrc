@@ -2454,6 +2454,7 @@ function library.createWindow(options)
                         pcall(callback, state)
                     end,
                     get = function() return state end,
+                    rightControls = rightControls
                 }
                 if flag then library.elements[flag] = toggleObj end
 
@@ -3030,6 +3031,9 @@ function library.createWindow(options)
                 local sliderObj = {
                     set = applyValue,
                     get = function() return value end,
+                    rightControls = rightGroup,
+                    addKeybind = toggleObj.addKeybind,
+                    addSettings = toggleObj.addSettings,
                 }
                 if flag then library.elements[flag] = sliderObj end
                 return sliderObj
@@ -3306,6 +3310,9 @@ function library.createWindow(options)
                         pcall(callback, selected)
                     end,
                     get = function() return selected end,
+                    rightControls = rightGroup,
+                    addKeybind = toggleObj.addKeybind,
+                    addSettings = toggleObj.addSettings,
                 }
                 if flag then library.elements[flag] = dropObj end
                 return dropObj
@@ -3330,7 +3337,7 @@ function library.createWindow(options)
                 })
 
                 create("TextLabel", {
-                    Size = UDim2.new(0.6, 0, 1, 0),
+                    Size = UDim2.new(0.5, 0, 1, 0),
                     Text = name,
                     Font = library.theme.fontBold,
                     TextSize = 12,
@@ -3340,15 +3347,30 @@ function library.createWindow(options)
                     Parent = row,
                 })
 
+                local rightControls = create("Frame", {
+                    Size = UDim2.new(0.5, 0, 1, 0),
+                    Position = UDim2.new(1, 0, 0, 0),
+                    AnchorPoint = Vector2.new(1, 0),
+                    BackgroundTransparency = 1,
+                    ClipsDescendants = false,
+                    Parent = row,
+                })
+
+                create("UIListLayout", {
+                    FillDirection = Enum.FillDirection.Horizontal,
+                    HorizontalAlignment = Enum.HorizontalAlignment.Right,
+                    VerticalAlignment = Enum.VerticalAlignment.Center,
+                    Padding = UDim.new(0, 4),
+                    Parent = rightControls,
+                })
+
                 local previewBtn = create("TextButton", {
                     Size = UDim2.new(0, 26, 0, 14),
-                    Position = UDim2.new(1, 0, 0.5, 0),
-                    AnchorPoint = Vector2.new(1, 0.5),
                     BackgroundColor3 = color,
                     BorderSizePixel = 0,
                     Text = "",
                     AutoButtonColor = false,
-                    Parent = row,
+                    Parent = rightControls,
                 })
                 makeCorner(previewBtn, 3)
 
@@ -3689,7 +3711,10 @@ function library.createWindow(options)
                         local newH, newS, newV = Color3.toHSV(color)
                         updateColor(newH, newS, newV, alpha, false)
                     end,
-                    get = function() return color, alpha end
+                    get = function() return color, alpha end,
+                    rightControls = rightControls,
+                    addKeybind = toggleObj.addKeybind,
+                    addSettings = toggleObj.addSettings,
                 }
                 if flag then library.elements[flag] = colorPickerObj end
                 return colorPickerObj
