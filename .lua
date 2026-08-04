@@ -747,6 +747,672 @@ function library.createWindow(options)
             btn.BackgroundTransparency = 1
         end
 
+        function tab.createInventoryGrid(self, config)
+            config = config or {}
+
+            fullScroll.Visible = false
+            columnsFrame.Visible = false
+
+            local invContainer = create("Frame", {
+                Size = UDim2.new(1, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Parent = view,
+            })
+
+            local topCategoriesFrame = create("Frame", {
+                Size = UDim2.new(1, 0, 0, 32),
+                Position = UDim2.new(0, 0, 0, 0),
+                BackgroundTransparency = 1,
+                Parent = invContainer,
+            })
+
+            create("UIListLayout", {
+                FillDirection = Enum.FillDirection.Horizontal,
+                HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                VerticalAlignment = Enum.VerticalAlignment.Center,
+                Padding = UDim.new(0, 24),
+                Parent = topCategoriesFrame,
+            })
+
+            local topCats = { "Profile", "Equipment", "Containers", "Tools", "Graphic Art" }
+            local activeTopCat = "Equipment"
+
+            local subCategoriesFrame = create("Frame", {
+                Size = UDim2.new(1, 0, 0, 28),
+                Position = UDim2.new(0, 0, 0, 36),
+                BackgroundTransparency = 1,
+                Parent = invContainer,
+            })
+
+            create("UIListLayout", {
+                FillDirection = Enum.FillDirection.Horizontal,
+                HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                VerticalAlignment = Enum.VerticalAlignment.Center,
+                Padding = UDim.new(0, 18),
+                Parent = subCategoriesFrame,
+            })
+
+            local subCats = { "Knives", "Pistols", "Mid-Tier", "Rifles", "Misc", "Agents", "Gloves" }
+            local activeSubCat = "Knives"
+
+            create("Frame", {
+                Size = UDim2.new(1, 0, 0, 1),
+                Position = UDim2.new(0, 0, 0, 68),
+                BackgroundColor3 = Color3.fromRGB(35, 35, 42),
+                BorderSizePixel = 0,
+                Parent = invContainer,
+            })
+
+            local gridScroll = create("ScrollingFrame", {
+                Size = UDim2.new(1, 0, 1, -74),
+                Position = UDim2.new(0, 0, 0, 74),
+                BackgroundTransparency = 1,
+                BorderSizePixel = 0,
+                ScrollBarThickness = 3,
+                ScrollBarImageColor3 = library.theme.accent,
+                AutomaticCanvasSize = Enum.AutomaticSize.Y,
+                Parent = invContainer,
+            })
+
+            create("UIPadding", {
+                PaddingTop = UDim.new(0, 10),
+                PaddingBottom = UDim.new(0, 10),
+                PaddingLeft = UDim.new(0, 10),
+                PaddingRight = UDim.new(0, 10),
+                Parent = gridScroll,
+            })
+
+            local gridLayout = create("UIGridLayout", {
+                CellSize = UDim2.new(0, 128, 0, 135),
+                CellPadding = UDim2.new(0, 10, 0, 10),
+                SortOrder = Enum.SortOrder.LayoutOrder,
+                Parent = gridScroll,
+            })
+
+            local activeItemCard = nil
+            local selectedItems = {}
+
+            local function refreshGrid(items)
+                for _, child in ipairs(gridScroll:GetChildren()) do
+                    if child:IsA("Frame") or child:IsA("TextButton") then
+                        child:Destroy()
+                    end
+                end
+
+                for idx, itemData in ipairs(items or {}) do
+                    local card = create("TextButton", {
+                        Size = UDim2.new(0, 128, 0, 135),
+                        BackgroundColor3 = Color3.fromRGB(24, 25, 30),
+                        BorderSizePixel = 0,
+                        Text = "",
+                        AutoButtonColor = false,
+                        LayoutOrder = idx,
+                        Parent = gridScroll,
+                    })
+                    makeCorner(card, 4)
+                    local stroke = makeStroke(card, Color3.fromRGB(38, 39, 46), 1)
+
+                    local imgLabel = create("ImageLabel", {
+                        Size = UDim2.new(1, -12, 1, -34),
+                        Position = UDim2.new(0, 6, 0, 6),
+                        BackgroundTransparency = 1,
+                        Image = itemData.icon or "rbxassetid://16010744953",
+                        ScaleType = Enum.ScaleType.Fit,
+                        Parent = card,
+                    })
+
+                    local nameLabel = create("TextLabel", {
+                        Size = UDim2.new(1, -8, 0, 20),
+                        Position = UDim2.new(0, 4, 1, -22),
+                        BackgroundTransparency = 1,
+                        Text = itemData.name or "Item",
+                        Font = library.theme.fontBold,
+                        TextSize = 11,
+                        TextColor3 = Color3.fromRGB(220, 220, 225),
+                        TextTruncate = Enum.TextTruncate.AtEnd,
+                        TextXAlignment = Enum.TextXAlignment.Center,
+                        Parent = card,
+                    })
+
+                    local selectBar = create("Frame", {
+                        Size = UDim2.new(1, 0, 0, 2),
+                        Position = UDim2.new(0, 0, 1, -2),
+                        BackgroundColor3 = library.theme.accent,
+                        BorderSizePixel = 0,
+                        Visible = false,
+                        Parent = card,
+                    })
+
+                    if itemData.selected then
+                        selectBar.Visible = true
+                        stroke.Color = library.theme.accent
+                    end
+
+                    card.MouseButton1Click:Connect(function()
+                        for _, sibling in ipairs(gridScroll:GetChildren()) do
+                            if sibling:IsA("TextButton") then
+                                sibling.UIStroke.Color = Color3.fromRGB(38, 39, 46)
+                                local sBar = sibling:FindFirstChild("Frame")
+                                if sBar then sBar.Visible = false end
+                            end
+                        end
+                        selectBar.Visible = true
+                        stroke.Color = library.theme.accent
+                        if config.onSelect then
+                            pcall(config.onSelect, itemData)
+                        end
+                    end)
+                end
+            end
+
+            for _, catName in ipairs(topCats) do
+                local catBtn = create("TextButton", {
+                    Size = UDim2.new(0, 0, 1, 0),
+                    AutomaticSize = Enum.AutomaticSize.X,
+                    BackgroundTransparency = 1,
+                    Text = catName,
+                    Font = library.theme.fontBold,
+                    TextSize = 13,
+                    TextColor3 = (catName == activeTopCat) and library.theme.textBright or Color3.fromRGB(120, 120, 130),
+                    Parent = topCategoriesFrame,
+                })
+            end
+
+            for _, subName in ipairs(subCats) do
+                local subBtn = create("TextButton", {
+                    Size = UDim2.new(0, 0, 1, 0),
+                    AutomaticSize = Enum.AutomaticSize.X,
+                    BackgroundTransparency = 1,
+                    Text = subName,
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = (subName == activeSubCat) and library.theme.textBright or Color3.fromRGB(110, 110, 120),
+                    Parent = subCategoriesFrame,
+                })
+
+                subBtn.MouseButton1Click:Connect(function()
+                    activeSubCat = subName
+                    for _, child in ipairs(subCategoriesFrame:GetChildren()) do
+                        if child:IsA("TextButton") then
+                            child.TextColor3 = (child.Text == activeSubCat) and library.theme.textBright or Color3.fromRGB(110, 110, 120)
+                        end
+                    end
+                    if config.onCategoryChange then
+                        local items = config.onCategoryChange(subName)
+                        refreshGrid(items)
+                    end
+                end)
+            end
+
+            return {
+                setItems = refreshGrid
+            }
+        end
+
+        function tab.createInventoryCustomizer(self, config)
+            config = config or {}
+
+            fullScroll.Visible = false
+            columnsFrame.Visible = false
+
+            local customContainer = create("Frame", {
+                Size = UDim2.new(1, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Parent = view,
+            })
+
+            local topCategoriesFrame = create("Frame", {
+                Size = UDim2.new(1, 0, 0, 32),
+                Position = UDim2.new(0, 0, 0, 0),
+                BackgroundTransparency = 1,
+                Parent = customContainer,
+            })
+
+            create("UIListLayout", {
+                FillDirection = Enum.FillDirection.Horizontal,
+                HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                VerticalAlignment = Enum.VerticalAlignment.Center,
+                Padding = UDim.new(0, 24),
+                Parent = topCategoriesFrame,
+            })
+
+            local topCats = { "Profile", "Equipment", "Containers", "Tools", "Graphic Art" }
+            for _, catName in ipairs(topCats) do
+                create("TextButton", {
+                    Size = UDim2.new(0, 0, 1, 0),
+                    AutomaticSize = Enum.AutomaticSize.X,
+                    BackgroundTransparency = 1,
+                    Text = catName,
+                    Font = library.theme.fontBold,
+                    TextSize = 13,
+                    TextColor3 = (catName == "Equipment") and library.theme.textBright or Color3.fromRGB(120, 120, 130),
+                    Parent = topCategoriesFrame,
+                })
+            end
+
+            local subCategoriesFrame = create("Frame", {
+                Size = UDim2.new(1, 0, 0, 28),
+                Position = UDim2.new(0, 0, 0, 36),
+                BackgroundTransparency = 1,
+                Parent = customContainer,
+            })
+
+            create("UIListLayout", {
+                FillDirection = Enum.FillDirection.Horizontal,
+                HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                VerticalAlignment = Enum.VerticalAlignment.Center,
+                Padding = UDim.new(0, 18),
+                Parent = subCategoriesFrame,
+            })
+
+            local subCats = { "Knives", "Pistols", "Mid-Tier", "Rifles", "Misc", "Agents", "Gloves" }
+            for _, subName in ipairs(subCats) do
+                create("TextButton", {
+                    Size = UDim2.new(0, 0, 1, 0),
+                    AutomaticSize = Enum.AutomaticSize.X,
+                    BackgroundTransparency = 1,
+                    Text = subName,
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = (subName == (config.category or "Rifles")) and library.theme.textBright or Color3.fromRGB(110, 110, 120),
+                    Parent = subCategoriesFrame,
+                })
+            end
+
+            create("Frame", {
+                Size = UDim2.new(1, 0, 0, 1),
+                Position = UDim2.new(0, 0, 0, 68),
+                BackgroundColor3 = Color3.fromRGB(35, 35, 42),
+                BorderSizePixel = 0,
+                Parent = customContainer,
+            })
+
+            local bodyFrame = create("Frame", {
+                Size = UDim2.new(1, 0, 1, -74),
+                Position = UDim2.new(0, 0, 0, 74),
+                BackgroundTransparency = 1,
+                Parent = bodyFrame,
+            })
+
+            local leftPanel = create("Frame", {
+                Size = UDim2.new(0.48, -10, 1, 0),
+                Position = UDim2.new(0, 0, 0, 0),
+                BackgroundTransparency = 1,
+                Parent = bodyFrame,
+            })
+
+            local previewCard = create("Frame", {
+                Size = UDim2.new(1, 0, 0, 210),
+                Position = UDim2.new(0, 0, 0, 10),
+                BackgroundColor3 = Color3.fromRGB(22, 23, 27),
+                BorderSizePixel = 0,
+                Parent = leftPanel,
+            })
+            makeCorner(previewCard, 4)
+
+            local prevImage = create("ImageLabel", {
+                Size = UDim2.new(1, -20, 1, -40),
+                Position = UDim2.new(0, 10, 0, 10),
+                BackgroundTransparency = 1,
+                Image = config.icon or "rbxassetid://15571370793",
+                ScaleType = Enum.ScaleType.Fit,
+                Parent = previewCard,
+            })
+
+            local prevName = create("TextLabel", {
+                Size = UDim2.new(1, -20, 0, 20),
+                Position = UDim2.new(0, 10, 1, -25),
+                BackgroundTransparency = 1,
+                Text = config.itemName or "Удар молнии",
+                Font = library.theme.fontBold,
+                TextSize = 14,
+                TextColor3 = Color3.fromRGB(255, 255, 255),
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = previewCard,
+            })
+
+            local redAccentLine = create("Frame", {
+                Size = UDim2.new(1, 0, 0, 2),
+                Position = UDim2.new(0, 0, 1, -2),
+                BackgroundColor3 = Color3.fromRGB(235, 42, 60),
+                BorderSizePixel = 0,
+                Parent = previewCard,
+            })
+
+            -- 5 Sticker slots
+            local stickerFrame = create("Frame", {
+                Size = UDim2.new(1, 0, 0, 36),
+                Position = UDim2.new(0, 0, 0, 230),
+                BackgroundTransparency = 1,
+                Parent = leftPanel,
+            })
+
+            create("UIListLayout", {
+                FillDirection = Enum.FillDirection.Horizontal,
+                Padding = UDim.new(0, 8),
+                Parent = stickerFrame,
+            })
+
+            for i = 1, 5 do
+                local slot = create("Frame", {
+                    Size = UDim2.new(0.2, -7, 1, 0),
+                    BackgroundColor3 = Color3.fromRGB(22, 23, 27),
+                    BorderSizePixel = 0,
+                    Parent = stickerFrame,
+                })
+                makeCorner(slot, 3)
+                makeStroke(slot, Color3.fromRGB(38, 39, 46))
+            end
+
+            -- Copy inspect link button
+            local copyBtn = create("TextButton", {
+                Size = UDim2.new(1, 0, 0, 32),
+                Position = UDim2.new(0, 0, 0, 276),
+                BackgroundColor3 = Color3.fromRGB(26, 27, 32),
+                Text = "Copy inspect link",
+                Font = library.theme.fontBold,
+                TextSize = 12,
+                TextColor3 = Color3.fromRGB(200, 200, 210),
+                Parent = leftPanel,
+            })
+            makeCorner(copyBtn, 4)
+
+            -- RIGHT CUSTOMIZATIONS PANEL
+            local rightPanel = create("ScrollingFrame", {
+                Size = UDim2.new(0.52, -10, 1, 0),
+                Position = UDim2.new(0.48, 10, 0, 0),
+                BackgroundTransparency = 1,
+                BorderSizePixel = 0,
+                ScrollBarThickness = 2,
+                ScrollBarImageColor3 = library.theme.accent,
+                AutomaticCanvasSize = Enum.AutomaticSize.Y,
+                Parent = bodyFrame,
+            })
+
+            local rightLayout = create("UIListLayout", {
+                Padding = UDim.new(0, 10),
+                Parent = rightPanel,
+            })
+
+            local titleLabel = create("TextLabel", {
+                Size = UDim2.new(1, 0, 0, 20),
+                BackgroundTransparency = 1,
+                Text = "Customizations",
+                Font = library.theme.fontBold,
+                TextSize = 13,
+                TextColor3 = Color3.fromRGB(180, 180, 190),
+                TextXAlignment = Enum.TextXAlignment.Right,
+                Parent = rightPanel,
+            })
+
+            -- 1. Paint kit (Dropdown)
+            local pkFrame = create("Frame", {
+                Size = UDim2.new(1, 0, 0, 28),
+                BackgroundTransparency = 1,
+                Parent = rightPanel,
+            })
+            create("TextLabel", {
+                Size = UDim2.new(0.4, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Text = "Paint kit",
+                Font = library.theme.fontBold,
+                TextSize = 12,
+                TextColor3 = Color3.fromRGB(220, 220, 230),
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = pkFrame,
+            })
+            local pkDrop = create("TextButton", {
+                Size = UDim2.new(0.6, 0, 1, 0),
+                Position = UDim2.new(0.4, 0, 0, 0),
+                BackgroundColor3 = Color3.fromRGB(26, 27, 32),
+                Text = (config.skinName or "Удар молнии") .. "  v",
+                Font = library.theme.fontBold,
+                TextSize = 12,
+                TextColor3 = Color3.fromRGB(255, 255, 255),
+                Parent = pkFrame,
+            })
+            makeCorner(pkDrop, 3)
+
+            -- 2. Seed (TextBox)
+            local seedFrame = create("Frame", {
+                Size = UDim2.new(1, 0, 0, 28),
+                BackgroundTransparency = 1,
+                Parent = rightPanel,
+            })
+            create("TextLabel", {
+                Size = UDim2.new(0.4, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Text = "Seed",
+                Font = library.theme.fontBold,
+                TextSize = 12,
+                TextColor3 = Color3.fromRGB(220, 220, 230),
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = seedFrame,
+            })
+            local seedInput = create("TextBox", {
+                Size = UDim2.new(0.6, 0, 1, 0),
+                Position = UDim2.new(0.4, 0, 0, 0),
+                BackgroundColor3 = Color3.fromRGB(26, 27, 32),
+                Text = "0",
+                Font = library.theme.fontBold,
+                TextSize = 12,
+                TextColor3 = Color3.fromRGB(255, 255, 255),
+                ClearTextOnFocus = false,
+                Parent = seedFrame,
+            })
+            makeCorner(seedInput, 3)
+
+            -- 3. Wear (Slider)
+            local wearFrame = create("Frame", {
+                Size = UDim2.new(1, 0, 0, 36),
+                BackgroundTransparency = 1,
+                Parent = rightPanel,
+            })
+            create("TextLabel", {
+                Size = UDim2.new(0.5, 0, 0, 18),
+                BackgroundTransparency = 1,
+                Text = "Wear (Factory New)",
+                Font = library.theme.fontBold,
+                TextSize = 12,
+                TextColor3 = Color3.fromRGB(220, 220, 230),
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = wearFrame,
+            })
+            local wearValLabel = create("TextLabel", {
+                Size = UDim2.new(0.5, 0, 0, 18),
+                Position = UDim2.new(0.5, 0, 0, 0),
+                BackgroundTransparency = 1,
+                Text = "0.00717895",
+                Font = library.theme.fontBold,
+                TextSize = 11,
+                TextColor3 = Color3.fromRGB(180, 180, 190),
+                TextXAlignment = Enum.TextXAlignment.Right,
+                Parent = wearFrame,
+            })
+            local wearTrack = create("Frame", {
+                Size = UDim2.new(1, 0, 0, 3),
+                Position = UDim2.new(0, 0, 0, 24),
+                BackgroundColor3 = Color3.fromRGB(38, 39, 46),
+                BorderSizePixel = 0,
+                Parent = wearFrame,
+            })
+            local wearFill = create("Frame", {
+                Size = UDim2.new(0.2, 0, 1, 0),
+                BackgroundColor3 = library.theme.accent,
+                BorderSizePixel = 0,
+                Parent = wearTrack,
+            })
+
+            -- 4. Override color
+            local overrideFrame = create("Frame", {
+                Size = UDim2.new(1, 0, 0, 24),
+                BackgroundTransparency = 1,
+                Parent = rightPanel,
+            })
+            local ovBox = create("Frame", {
+                Size = UDim2.new(0, 14, 0, 14),
+                Position = UDim2.new(0, 0, 0.5, -7),
+                BackgroundColor3 = Color3.fromRGB(200, 20, 20),
+                BorderSizePixel = 0,
+                Parent = overrideFrame,
+            })
+            makeCorner(ovBox, 2)
+            create("TextLabel", {
+                Size = UDim2.new(1, -24, 1, 0),
+                Position = UDim2.new(0, 24, 0, 0),
+                BackgroundTransparency = 1,
+                Text = "Override color",
+                Font = library.theme.fontBold,
+                TextSize = 12,
+                TextColor3 = Color3.fromRGB(220, 220, 230),
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = overrideFrame,
+            })
+
+            -- 5. Souvenir
+            local souvFrame = create("Frame", {
+                Size = UDim2.new(1, 0, 0, 24),
+                BackgroundTransparency = 1,
+                Parent = rightPanel,
+            })
+            local souvBox = create("Frame", {
+                Size = UDim2.new(0, 14, 0, 14),
+                Position = UDim2.new(0, 0, 0.5, -7),
+                BackgroundColor3 = Color3.fromRGB(26, 27, 32),
+                BorderSizePixel = 0,
+                Parent = souvFrame,
+            })
+            makeCorner(souvBox, 2)
+            makeStroke(souvBox, Color3.fromRGB(44, 45, 52))
+            create("TextLabel", {
+                Size = UDim2.new(1, -24, 1, 0),
+                Position = UDim2.new(0, 24, 0, 0),
+                BackgroundTransparency = 1,
+                Text = "Souvenir",
+                Font = library.theme.fontBold,
+                TextSize = 12,
+                TextColor3 = Color3.fromRGB(150, 150, 160),
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = souvFrame,
+            })
+
+            -- 6. StatTrak
+            local stFrame = create("Frame", {
+                Size = UDim2.new(1, 0, 0, 24),
+                BackgroundTransparency = 1,
+                Parent = rightPanel,
+            })
+            local stBox = create("Frame", {
+                Size = UDim2.new(0, 14, 0, 14),
+                Position = UDim2.new(0, 0, 0.5, -7),
+                BackgroundColor3 = Color3.fromRGB(235, 42, 60),
+                BorderSizePixel = 0,
+                Parent = stFrame,
+            })
+            makeCorner(stBox, 2)
+            create("ImageLabel", {
+                Size = UDim2.new(0, 10, 0, 10),
+                Position = UDim2.new(0.5, 0, 0.5, 0),
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                BackgroundTransparency = 1,
+                Image = "rbxassetid://14189590169",
+                ImageColor3 = Color3.fromRGB(255, 255, 255),
+                Parent = stBox,
+            })
+            create("TextLabel", {
+                Size = UDim2.new(1, -24, 1, 0),
+                Position = UDim2.new(0, 24, 0, 0),
+                BackgroundTransparency = 1,
+                Text = "StatTrak",
+                Font = library.theme.fontBold,
+                TextSize = 12,
+                TextColor3 = Color3.fromRGB(220, 220, 230),
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = stFrame,
+            })
+
+            -- 7. StatTrak counter (TextBox)
+            local stCountFrame = create("Frame", {
+                Size = UDim2.new(1, 0, 0, 28),
+                BackgroundTransparency = 1,
+                Parent = rightPanel,
+            })
+            create("TextLabel", {
+                Size = UDim2.new(0.4, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Text = "StatTrak counter",
+                Font = library.theme.fontBold,
+                TextSize = 12,
+                TextColor3 = Color3.fromRGB(220, 220, 230),
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = stCountFrame,
+            })
+            local stInput = create("TextBox", {
+                Size = UDim2.new(0.6, 0, 1, 0),
+                Position = UDim2.new(0.4, 0, 0, 0),
+                BackgroundColor3 = Color3.fromRGB(26, 27, 32),
+                Text = "1364",
+                Font = library.theme.fontBold,
+                TextSize = 12,
+                TextColor3 = Color3.fromRGB(255, 255, 255),
+                ClearTextOnFocus = false,
+                Parent = stCountFrame,
+            })
+            makeCorner(stInput, 3)
+
+            -- 8. Nametag (TextBox)
+            local nameInput = create("TextBox", {
+                Size = UDim2.new(1, 0, 0, 28),
+                BackgroundColor3 = Color3.fromRGB(26, 27, 32),
+                Text = "",
+                PlaceholderText = "Nametag",
+                PlaceholderColor3 = Color3.fromRGB(100, 100, 110),
+                Font = library.theme.fontBold,
+                TextSize = 12,
+                TextColor3 = Color3.fromRGB(255, 255, 255),
+                ClearTextOnFocus = false,
+                Parent = rightPanel,
+            })
+            makeCorner(nameInput, 3)
+
+            -- 9. Update & Remove buttons
+            local updateBtn = create("TextButton", {
+                Size = UDim2.new(1, 0, 0, 30),
+                BackgroundColor3 = Color3.fromRGB(30, 31, 38),
+                Text = "Update",
+                Font = library.theme.fontBold,
+                TextSize = 12,
+                TextColor3 = Color3.fromRGB(220, 220, 230),
+                Parent = rightPanel,
+            })
+            makeCorner(updateBtn, 3)
+
+            local removeBtn = create("TextButton", {
+                Size = UDim2.new(1, 0, 0, 30),
+                BackgroundColor3 = Color3.fromRGB(30, 31, 38),
+                Text = "Remove",
+                Font = library.theme.fontBold,
+                TextSize = 12,
+                TextColor3 = Color3.fromRGB(220, 220, 230),
+                Parent = rightPanel,
+            })
+            makeCorner(removeBtn, 3)
+
+            updateBtn.MouseButton1Click:Connect(function()
+                if config.onUpdate then
+                    pcall(config.onUpdate, {
+                        seed = tonumber(seedInput.Text) or 0,
+                        statTrak = tonumber(stInput.Text) or 0,
+                        nametag = nameInput.Text
+                    })
+                end
+            end)
+
+            return {
+                container = customContainer
+            }
+        end
+
         function tab.createHeaderToggle(self, config)
             config = config or {}
             local name = config.name or "Master switch"
