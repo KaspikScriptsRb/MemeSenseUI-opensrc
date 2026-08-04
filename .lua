@@ -161,15 +161,15 @@ end
 local defaultIcons = {
     Legitbot = "rbxassetid://10723415903",
     ["Aim Assist"] = "rbxassetid://10723416040",
-    Players = "rbxassetid://10723424180",
+    Players = "rbxassetid://117259180607823",
     Chams = "rbxassetid://10723424350",
-    Items = "rbxassetid://10723424505",
-    Visuals = "rbxassetid://10723424680",
-    World = "rbxassetid://10723424838",
+    Items = "rbxassetid://15571374043",
+    Visuals = "rbxassetid://13321848320",
+    World = "rbxassetid://133266534804969",
     View = "rbxassetid://10723425000",
     Indicators = "rbxassetid://10723425164",
     Miscellaneous = "rbxassetid://10723425316",
-    Inventory = "rbxassetid://10723425482",
+    Inventory = "rbxassetid://10910211661",
     Configs = "rbxassetid://10723425624",
 }
 
