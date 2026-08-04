@@ -961,8 +961,9 @@ function library.createWindow(options)
                 Parent = customOverlay,
             })
 
-            
-            local leftW = 205 
+
+
+            local leftW = 205
             local leftPanel = create("Frame", {
                 Size = UDim2.new(0, leftW, 1, -20),
                 Position = UDim2.new(0, 10, 0, 10),
@@ -1026,7 +1027,8 @@ function library.createWindow(options)
             })
             makeCorner(copyBtn, 4)
 
-            
+
+
             local rightPanel = create("ScrollingFrame", {
                 Size = UDim2.new(1, -(leftW + 30), 1, -20),
                 Position = UDim2.new(0, leftW + 20, 0, 10),
@@ -1044,7 +1046,8 @@ function library.createWindow(options)
                 Parent = rightPanel,
             })
 
-            
+
+
             create("TextLabel", {
                 Size = UDim2.new(1, 0, 0, 18),
                 BackgroundTransparency = 1,
@@ -1057,7 +1060,8 @@ function library.createWindow(options)
                 Parent = rightPanel,
             })
 
-            
+
+
             local function makeRow(h)
                 return create("Frame", {
                     Size = UDim2.new(1, 0, 0, h or 26),
@@ -1233,7 +1237,8 @@ function library.createWindow(options)
                 })
             end
 
-            
+
+
             local skinOptions = { "Stock" }
             if config.skins then
                 for _, s in config.skins do
@@ -1248,19 +1253,22 @@ function library.createWindow(options)
             local currentSkinName = config.skinName or "Stock"
             local currentWear = config.wear or 0.001
 
-            
+
+
             local paintRow = makeRow(26)
             makeRowLabel(paintRow, "Paint kit")
             local paintDropdown = makeRowDropdown(paintRow, skinOptions, currentSkinName, function(opt)
                 currentSkinName = opt
             end)
 
-            
+
+
             local seedRow = makeRow(26)
             makeRowLabel(seedRow, "Seed")
             local seedInput = makeRowInput(seedRow, tostring(config.seed or 0))
 
-            
+
+
             local wearRow = makeRow(22)
             makeRowLabel(wearRow, "Wear (Factory New)")
             create("TextLabel", {
@@ -1276,7 +1284,8 @@ function library.createWindow(options)
                 Parent = wearRow,
             })
 
-            
+
+
             local overrideColorState = false
             local overrideColorRow = create("Frame", { Size = UDim2.new(1, 0, 0, 22), BackgroundTransparency = 1, ZIndex = 10, Parent = rightPanel })
             local overrideCheckBtn = create("TextButton", { Size = UDim2.new(0.48, 0, 1, 0), BackgroundTransparency = 1, Text = "", ZIndex = 10, Parent = overrideColorRow })
@@ -1296,7 +1305,7 @@ function library.createWindow(options)
                 Font = library.theme.fontBold, TextSize = 12, TextColor3 = library.theme.textBright,
                 TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, ZIndex = 11, Parent = overrideCheckBtn,
             })
-            
+
             local swatchContainer = create("Frame", {
                 Size = UDim2.new(0.52, 0, 1, 0), Position = UDim2.new(0.48, 0, 0, 0),
                 BackgroundTransparency = 1, ZIndex = 10, Parent = overrideColorRow,
@@ -1314,24 +1323,29 @@ function library.createWindow(options)
                 overrideCheckmark.ImageTransparency = overrideColorState and 0 or 1
             end)
 
-            
+
+
             makeDividerLabel(rightPanel, "Souvenir")
 
-            
+
+
             create("Frame", { Size = UDim2.new(1, 0, 0, 1), BackgroundColor3 = Color3.fromRGB(35, 35, 42), BorderSizePixel = 0, ZIndex = 10, Parent = rightPanel })
 
-            
+
+
             local statTrakState = (config.statTrak or 0) > 0
             local statTrakCheck, _ = makeCheckRow(rightPanel, "StatTrak", statTrakState, function(val)
                 statTrakState = val
             end)
 
-            
+
+
             local stRow = makeRow(26)
             makeRowLabel(stRow, "StatTrak counter")
             local stInput = makeRowInput(stRow, tostring(config.statTrak or 1364))
 
-            
+
+
             local nameRow = makeRow(26)
             local nameInput = create("TextBox", {
                 Size = UDim2.new(1, 0, 1, 0),
@@ -1348,10 +1362,12 @@ function library.createWindow(options)
             })
             makeCorner(nameInput, 3)
 
-            
+
+
             create("Frame", { Size = UDim2.new(1, 0, 0, 4), BackgroundTransparency = 1, ZIndex = 10, Parent = rightPanel })
 
-            
+
+
             local updateBtn = create("TextButton", {
                 Size = UDim2.new(1, 0, 0, 28),
                 BackgroundColor3 = Color3.fromRGB(36, 37, 44),
@@ -1364,7 +1380,8 @@ function library.createWindow(options)
             })
             makeCorner(updateBtn, 3)
 
-            
+
+
             local removeBtn = create("TextButton", {
                 Size = UDim2.new(1, 0, 0, 28),
                 BackgroundColor3 = Color3.fromRGB(36, 37, 44),
