@@ -2812,8 +2812,6 @@ function library.createWindow(options)
                 }
             end
 
-            end
-
             function section.createKeybind(self, config, targetParent)
                 config = config or {}
                 local name = config.name or "Keybind"
@@ -4233,5 +4231,6 @@ function library.createWindow(options)
     end
 
     return window
+end
 
 return library
