@@ -1312,11 +1312,13 @@ function library.createWindow(options)
                 BackgroundTransparency = 1, ZIndex = 10, Parent = overrideColorRow,
             })
             create("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 4), Parent = swatchContainer })
-            
-            local activeColorPreview = create("Frame", {
+
+            local activeColorPreview = create("TextButton", {
                 Size = UDim2.new(0, 24, 0, 16),
                 BackgroundColor3 = currentColorVal,
                 BorderSizePixel = 0,
+                Text = "",
+                AutoButtonColor = false,
                 ZIndex = 11,
                 Parent = swatchContainer,
             })
@@ -1404,7 +1406,7 @@ function library.createWindow(options)
             local updateBtn = create("TextButton", {
                 Size = UDim2.new(1, 0, 0, 28),
                 BackgroundColor3 = Color3.fromRGB(36, 37, 44),
-                Text = "Update",
+                Text = "Apply",
                 Font = library.theme.fontBold,
                 TextSize = 13,
                 TextColor3 = library.theme.textBright,
