@@ -760,7 +760,7 @@ function library.createWindow(options)
             })
 
             local topCategoriesFrame = create("Frame", {
-                Size = UDim2.new(1, 0, 0, 32),
+                Size = UDim2.new(1, 0, 0, 26),
                 Position = UDim2.new(0, 0, 0, 0),
                 BackgroundTransparency = 1,
                 Parent = invContainer,
@@ -770,16 +770,29 @@ function library.createWindow(options)
                 FillDirection = Enum.FillDirection.Horizontal,
                 HorizontalAlignment = Enum.HorizontalAlignment.Center,
                 VerticalAlignment = Enum.VerticalAlignment.Center,
-                Padding = UDim.new(0, 24),
+                Padding = UDim.new(0, 20),
                 Parent = topCategoriesFrame,
             })
 
             local topCats = { "Profile", "Equipment", "Containers", "Tools", "Graphic Art" }
             local activeTopCat = "Equipment"
 
+            for _, catName in ipairs(topCats) do
+                create("TextButton", {
+                    Size = UDim2.new(0, 0, 1, 0),
+                    AutomaticSize = Enum.AutomaticSize.X,
+                    BackgroundTransparency = 1,
+                    Text = catName,
+                    Font = library.theme.fontBold,
+                    TextSize = 13,
+                    TextColor3 = (catName == activeTopCat) and Color3.fromRGB(240, 240, 245) or Color3.fromRGB(110, 110, 120),
+                    Parent = topCategoriesFrame,
+                })
+            end
+
             local subCategoriesFrame = create("Frame", {
-                Size = UDim2.new(1, 0, 0, 28),
-                Position = UDim2.new(0, 0, 0, 36),
+                Size = UDim2.new(1, 0, 0, 24),
+                Position = UDim2.new(0, 0, 0, 30),
                 BackgroundTransparency = 1,
                 Parent = invContainer,
             })
@@ -788,135 +801,12 @@ function library.createWindow(options)
                 FillDirection = Enum.FillDirection.Horizontal,
                 HorizontalAlignment = Enum.HorizontalAlignment.Center,
                 VerticalAlignment = Enum.VerticalAlignment.Center,
-                Padding = UDim.new(0, 18),
+                Padding = UDim.new(0, 16),
                 Parent = subCategoriesFrame,
             })
 
             local subCats = { "Knives", "Pistols", "Mid-Tier", "Rifles", "Misc", "Agents", "Gloves" }
-            local activeSubCat = "Knives"
-
-            create("Frame", {
-                Size = UDim2.new(1, 0, 0, 1),
-                Position = UDim2.new(0, 0, 0, 68),
-                BackgroundColor3 = Color3.fromRGB(35, 35, 42),
-                BorderSizePixel = 0,
-                Parent = invContainer,
-            })
-
-            local gridScroll = create("ScrollingFrame", {
-                Size = UDim2.new(1, 0, 1, -74),
-                Position = UDim2.new(0, 0, 0, 74),
-                BackgroundTransparency = 1,
-                BorderSizePixel = 0,
-                ScrollBarThickness = 3,
-                ScrollBarImageColor3 = library.theme.accent,
-                AutomaticCanvasSize = Enum.AutomaticSize.Y,
-                Parent = invContainer,
-            })
-
-            create("UIPadding", {
-                PaddingTop = UDim.new(0, 10),
-                PaddingBottom = UDim.new(0, 10),
-                PaddingLeft = UDim.new(0, 10),
-                PaddingRight = UDim.new(0, 10),
-                Parent = gridScroll,
-            })
-
-            local gridLayout = create("UIGridLayout", {
-                CellSize = UDim2.new(0, 128, 0, 135),
-                CellPadding = UDim2.new(0, 10, 0, 10),
-                SortOrder = Enum.SortOrder.LayoutOrder,
-                Parent = gridScroll,
-            })
-
-            local activeItemCard = nil
-            local selectedItems = {}
-
-            local function refreshGrid(items)
-                for _, child in ipairs(gridScroll:GetChildren()) do
-                    if child:IsA("Frame") or child:IsA("TextButton") then
-                        child:Destroy()
-                    end
-                end
-
-                for idx, itemData in ipairs(items or {}) do
-                    local card = create("TextButton", {
-                        Size = UDim2.new(0, 128, 0, 135),
-                        BackgroundColor3 = Color3.fromRGB(24, 25, 30),
-                        BorderSizePixel = 0,
-                        Text = "",
-                        AutoButtonColor = false,
-                        LayoutOrder = idx,
-                        Parent = gridScroll,
-                    })
-                    makeCorner(card, 4)
-                    local stroke = makeStroke(card, Color3.fromRGB(38, 39, 46), 1)
-
-                    local imgLabel = create("ImageLabel", {
-                        Size = UDim2.new(1, -12, 1, -34),
-                        Position = UDim2.new(0, 6, 0, 6),
-                        BackgroundTransparency = 1,
-                        Image = itemData.icon or "rbxassetid://16010744953",
-                        ScaleType = Enum.ScaleType.Fit,
-                        Parent = card,
-                    })
-
-                    local nameLabel = create("TextLabel", {
-                        Size = UDim2.new(1, -8, 0, 20),
-                        Position = UDim2.new(0, 4, 1, -22),
-                        BackgroundTransparency = 1,
-                        Text = itemData.name or "Item",
-                        Font = library.theme.fontBold,
-                        TextSize = 11,
-                        TextColor3 = Color3.fromRGB(220, 220, 225),
-                        TextTruncate = Enum.TextTruncate.AtEnd,
-                        TextXAlignment = Enum.TextXAlignment.Center,
-                        Parent = card,
-                    })
-
-                    local selectBar = create("Frame", {
-                        Size = UDim2.new(1, 0, 0, 2),
-                        Position = UDim2.new(0, 0, 1, -2),
-                        BackgroundColor3 = library.theme.accent,
-                        BorderSizePixel = 0,
-                        Visible = false,
-                        Parent = card,
-                    })
-
-                    if itemData.selected then
-                        selectBar.Visible = true
-                        stroke.Color = library.theme.accent
-                    end
-
-                    card.MouseButton1Click:Connect(function()
-                        for _, sibling in ipairs(gridScroll:GetChildren()) do
-                            if sibling:IsA("TextButton") then
-                                sibling.UIStroke.Color = Color3.fromRGB(38, 39, 46)
-                                local sBar = sibling:FindFirstChild("Frame")
-                                if sBar then sBar.Visible = false end
-                            end
-                        end
-                        selectBar.Visible = true
-                        stroke.Color = library.theme.accent
-                        if config.onSelect then
-                            pcall(config.onSelect, itemData)
-                        end
-                    end)
-                end
-            end
-
-            for _, catName in ipairs(topCats) do
-                local catBtn = create("TextButton", {
-                    Size = UDim2.new(0, 0, 1, 0),
-                    AutomaticSize = Enum.AutomaticSize.X,
-                    BackgroundTransparency = 1,
-                    Text = catName,
-                    Font = library.theme.fontBold,
-                    TextSize = 13,
-                    TextColor3 = (catName == activeTopCat) and library.theme.textBright or Color3.fromRGB(120, 120, 130),
-                    Parent = topCategoriesFrame,
-                })
-            end
+            local activeSubCat = "Misc"
 
             for _, subName in ipairs(subCats) do
                 local subBtn = create("TextButton", {
@@ -926,7 +816,7 @@ function library.createWindow(options)
                     Text = subName,
                     Font = library.theme.fontBold,
                     TextSize = 12,
-                    TextColor3 = (subName == activeSubCat) and library.theme.textBright or Color3.fromRGB(110, 110, 120),
+                    TextColor3 = (subName == activeSubCat) and Color3.fromRGB(240, 240, 245) or Color3.fromRGB(110, 110, 120),
                     Parent = subCategoriesFrame,
                 })
 
@@ -934,14 +824,131 @@ function library.createWindow(options)
                     activeSubCat = subName
                     for _, child in ipairs(subCategoriesFrame:GetChildren()) do
                         if child:IsA("TextButton") then
-                            child.TextColor3 = (child.Text == activeSubCat) and library.theme.textBright or Color3.fromRGB(110, 110, 120)
+                            child.TextColor3 = (child.Text == activeSubCat) and Color3.fromRGB(240, 240, 245) or Color3.fromRGB(110, 110, 120)
                         end
                     end
                     if config.onCategoryChange then
                         local items = config.onCategoryChange(subName)
-                        refreshGrid(items)
+                        if config.refreshGrid then config.refreshGrid(items) end
                     end
                 end)
+            end
+
+            -- Top Quick Items Row (Compact Horizontal Cards as on screenshot)
+            local quickRowScroll = create("ScrollingFrame", {
+                Size = UDim2.new(1, 0, 0, 42),
+                Position = UDim2.new(0, 0, 0, 60),
+                BackgroundTransparency = 1,
+                BorderSizePixel = 0,
+                ScrollBarThickness = 0,
+                AutomaticCanvasSize = Enum.AutomaticSize.X,
+                Parent = invContainer,
+            })
+
+            local quickLayout = create("UIListLayout", {
+                FillDirection = Enum.FillDirection.Horizontal,
+                Padding = UDim.new(0, 8),
+                Parent = quickRowScroll,
+            })
+
+            -- Main Grid Scroll Area
+            local gridScroll = create("ScrollingFrame", {
+                Size = UDim2.new(1, 0, 1, -110),
+                Position = UDim2.new(0, 0, 0, 110),
+                BackgroundTransparency = 1,
+                BorderSizePixel = 0,
+                ScrollBarThickness = 3,
+                ScrollBarImageColor3 = library.theme.accent,
+                AutomaticCanvasSize = Enum.AutomaticSize.Y,
+                Parent = invContainer,
+            })
+
+            local gridLayout = create("UIGridLayout", {
+                CellSize = UDim2.new(0, 142, 0, 148),
+                CellPadding = UDim2.new(0, 12, 0, 12),
+                SortOrder = Enum.SortOrder.LayoutOrder,
+                Parent = gridScroll,
+            })
+
+            local function refreshGrid(items)
+                for _, child in ipairs(gridScroll:GetChildren()) do
+                    if child:IsA("TextButton") then child:Destroy() end
+                end
+                for _, child in ipairs(quickRowScroll:GetChildren()) do
+                    if child:IsA("TextButton") then child:Destroy() end
+                end
+
+                -- Render top quick row (first 3-4 items)
+                for qIdx = 1, math.min(3, #(items or {})) do
+                    local qItem = items[qIdx]
+                    local qBtn = create("TextButton", {
+                        Size = UDim2.new(0, 142, 1, 0),
+                        BackgroundColor3 = Color3.fromRGB(18, 19, 23),
+                        BorderSizePixel = 0,
+                        Text = qItem.name or "Item",
+                        Font = library.theme.fontBold,
+                        TextSize = 11,
+                        TextColor3 = Color3.fromRGB(220, 220, 225),
+                        Parent = quickRowScroll,
+                    })
+                    makeCorner(qBtn, 4)
+                    makeStroke(qBtn, Color3.fromRGB(32, 33, 39), 1)
+
+                    qBtn.MouseButton1Click:Connect(function()
+                        if config.onSelect then pcall(config.onSelect, qItem) end
+                    end)
+                end
+
+                -- Render main cards grid
+                for idx, itemData in ipairs(items or {}) do
+                    local card = create("TextButton", {
+                        Size = UDim2.new(0, 142, 0, 148),
+                        BackgroundColor3 = Color3.fromRGB(18, 19, 23),
+                        BorderSizePixel = 0,
+                        Text = "",
+                        AutoButtonColor = false,
+                        LayoutOrder = idx,
+                        Parent = gridScroll,
+                    })
+                    makeCorner(card, 5)
+                    local stroke = makeStroke(card, itemData.selected and Color3.fromRGB(235, 42, 60) or Color3.fromRGB(32, 33, 39), itemData.selected and 1.5 or 1)
+
+                    local imgLabel = create("ImageLabel", {
+                        Size = UDim2.new(1, -16, 1, -38),
+                        Position = UDim2.new(0, 8, 0, 8),
+                        BackgroundTransparency = 1,
+                        Image = itemData.icon or "rbxassetid://16010744953",
+                        ScaleType = Enum.ScaleType.Fit,
+                        Parent = card,
+                    })
+
+                    local nameLabel = create("TextLabel", {
+                        Size = UDim2.new(1, -8, 0, 20),
+                        Position = UDim2.new(0, 4, 1, -24),
+                        BackgroundTransparency = 1,
+                        Text = itemData.name or "Item",
+                        Font = library.theme.fontBold,
+                        TextSize = 11,
+                        TextColor3 = Color3.fromRGB(230, 230, 235),
+                        TextTruncate = Enum.TextTruncate.AtEnd,
+                        TextXAlignment = Enum.TextXAlignment.Center,
+                        Parent = card,
+                    })
+
+                    card.MouseButton1Click:Connect(function()
+                        for _, sibling in ipairs(gridScroll:GetChildren()) do
+                            if sibling:IsA("TextButton") and sibling:FindFirstChildOfClass("UIStroke") then
+                                sibling.UIStroke.Color = Color3.fromRGB(32, 33, 39)
+                                sibling.UIStroke.Thickness = 1
+                            end
+                        end
+                        stroke.Color = Color3.fromRGB(235, 42, 60)
+                        stroke.Thickness = 1.5
+                        if config.onSelect then
+                            pcall(config.onSelect, itemData)
+                        end
+                    end)
+                end
             end
 
             return {
