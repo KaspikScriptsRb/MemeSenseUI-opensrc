@@ -760,7 +760,7 @@ function library.createWindow(options)
             })
 
             local topCategoriesFrame = create("Frame", {
-                Size = UDim2.new(1, 0, 0, 26),
+                Size = UDim2.new(1, 0, 0, 32),
                 Position = UDim2.new(0, 0, 0, 0),
                 BackgroundTransparency = 1,
                 Parent = invContainer,
@@ -770,7 +770,7 @@ function library.createWindow(options)
                 FillDirection = Enum.FillDirection.Horizontal,
                 HorizontalAlignment = Enum.HorizontalAlignment.Center,
                 VerticalAlignment = Enum.VerticalAlignment.Center,
-                Padding = UDim.new(0, 20),
+                Padding = UDim.new(0, 24),
                 Parent = topCategoriesFrame,
             })
 
@@ -791,8 +791,8 @@ function library.createWindow(options)
             end
 
             local subCategoriesFrame = create("Frame", {
-                Size = UDim2.new(1, 0, 0, 24),
-                Position = UDim2.new(0, 0, 0, 30),
+                Size = UDim2.new(1, 0, 0, 28),
+                Position = UDim2.new(0, 0, 0, 36),
                 BackgroundTransparency = 1,
                 Parent = invContainer,
             })
@@ -801,12 +801,12 @@ function library.createWindow(options)
                 FillDirection = Enum.FillDirection.Horizontal,
                 HorizontalAlignment = Enum.HorizontalAlignment.Center,
                 VerticalAlignment = Enum.VerticalAlignment.Center,
-                Padding = UDim.new(0, 16),
+                Padding = UDim.new(0, 18),
                 Parent = subCategoriesFrame,
             })
 
             local subCats = { "Knives", "Pistols", "Mid-Tier", "Rifles", "Misc", "Agents", "Gloves" }
-            local activeSubCat = "Misc"
+            local activeSubCat = "Knives"
 
             for _, subName in ipairs(subCats) do
                 local subBtn = create("TextButton", {
@@ -834,27 +834,17 @@ function library.createWindow(options)
                 end)
             end
 
-            -- Top Quick Items Row (Compact Horizontal Cards as on screenshot)
-            local quickRowScroll = create("ScrollingFrame", {
-                Size = UDim2.new(1, 0, 0, 42),
-                Position = UDim2.new(0, 0, 0, 60),
-                BackgroundTransparency = 1,
+            create("Frame", {
+                Size = UDim2.new(1, 0, 0, 1),
+                Position = UDim2.new(0, 0, 0, 68),
+                BackgroundColor3 = Color3.fromRGB(32, 33, 39),
                 BorderSizePixel = 0,
-                ScrollBarThickness = 0,
-                AutomaticCanvasSize = Enum.AutomaticSize.X,
                 Parent = invContainer,
             })
 
-            local quickLayout = create("UIListLayout", {
-                FillDirection = Enum.FillDirection.Horizontal,
-                Padding = UDim.new(0, 8),
-                Parent = quickRowScroll,
-            })
-
-            -- Main Grid Scroll Area
             local gridScroll = create("ScrollingFrame", {
-                Size = UDim2.new(1, 0, 1, -110),
-                Position = UDim2.new(0, 0, 0, 110),
+                Size = UDim2.new(1, 0, 1, -74),
+                Position = UDim2.new(0, 0, 0, 74),
                 BackgroundTransparency = 1,
                 BorderSizePixel = 0,
                 ScrollBarThickness = 3,
@@ -863,9 +853,17 @@ function library.createWindow(options)
                 Parent = invContainer,
             })
 
+            create("UIPadding", {
+                PaddingTop = UDim.new(0, 10),
+                PaddingBottom = UDim.new(0, 10),
+                PaddingLeft = UDim.new(0, 10),
+                PaddingRight = UDim.new(0, 10),
+                Parent = gridScroll,
+            })
+
             local gridLayout = create("UIGridLayout", {
-                CellSize = UDim2.new(0, 142, 0, 148),
-                CellPadding = UDim2.new(0, 12, 0, 12),
+                CellSize = UDim2.new(0, 122, 0, 128),
+                CellPadding = UDim2.new(0, 10, 0, 10),
                 SortOrder = Enum.SortOrder.LayoutOrder,
                 Parent = gridScroll,
             })
@@ -874,35 +872,42 @@ function library.createWindow(options)
                 for _, child in ipairs(gridScroll:GetChildren()) do
                     if child:IsA("TextButton") then child:Destroy() end
                 end
-                for _, child in ipairs(quickRowScroll:GetChildren()) do
-                    if child:IsA("TextButton") then child:Destroy() end
-                end
 
-                -- Render top quick row (first 3-4 items)
-                for qIdx = 1, math.min(3, #(items or {})) do
-                    local qItem = items[qIdx]
-                    local qBtn = create("TextButton", {
-                        Size = UDim2.new(0, 142, 1, 0),
-                        BackgroundColor3 = Color3.fromRGB(18, 19, 23),
-                        BorderSizePixel = 0,
-                        Text = qItem.name or "Item",
-                        Font = library.theme.fontBold,
-                        TextSize = 11,
-                        TextColor3 = Color3.fromRGB(220, 220, 225),
-                        Parent = quickRowScroll,
-                    })
-                    makeCorner(qBtn, 4)
-                    makeStroke(qBtn, Color3.fromRGB(32, 33, 39), 1)
+                -- 1. First Card: Big "+" Add Button (as on Screenshot 2)
+                local addCard = create("TextButton", {
+                    Size = UDim2.new(0, 122, 0, 128),
+                    BackgroundColor3 = Color3.fromRGB(18, 19, 23),
+                    BorderSizePixel = 0,
+                    Text = "",
+                    AutoButtonColor = false,
+                    LayoutOrder = 0,
+                    Parent = gridScroll,
+                })
+                makeCorner(addCard, 4)
+                makeStroke(addCard, Color3.fromRGB(32, 33, 39), 1)
 
-                    qBtn.MouseButton1Click:Connect(function()
-                        if config.onSelect then pcall(config.onSelect, qItem) end
-                    end)
-                end
+                local plusIcon = create("TextLabel", {
+                    Size = UDim2.new(1, 0, 1, 0),
+                    BackgroundTransparency = 1,
+                    Text = "+",
+                    Font = library.theme.fontBold,
+                    TextSize = 36,
+                    TextColor3 = Color3.fromRGB(140, 140, 150),
+                    TextXAlignment = Enum.TextXAlignment.Center,
+                    TextYAlignment = Enum.TextYAlignment.Center,
+                    Parent = addCard,
+                })
 
-                -- Render main cards grid
+                addCard.MouseButton1Click:Connect(function()
+                    if config.onAddClick then
+                        pcall(config.onAddClick)
+                    end
+                end)
+
+                -- 2. Items Grid with Red Bottom Accent Bar (as on Screenshot 2)
                 for idx, itemData in ipairs(items or {}) do
                     local card = create("TextButton", {
-                        Size = UDim2.new(0, 142, 0, 148),
+                        Size = UDim2.new(0, 122, 0, 128),
                         BackgroundColor3 = Color3.fromRGB(18, 19, 23),
                         BorderSizePixel = 0,
                         Text = "",
@@ -910,12 +915,12 @@ function library.createWindow(options)
                         LayoutOrder = idx,
                         Parent = gridScroll,
                     })
-                    makeCorner(card, 5)
-                    local stroke = makeStroke(card, itemData.selected and Color3.fromRGB(235, 42, 60) or Color3.fromRGB(32, 33, 39), itemData.selected and 1.5 or 1)
+                    makeCorner(card, 4)
+                    makeStroke(card, Color3.fromRGB(32, 33, 39), 1)
 
                     local imgLabel = create("ImageLabel", {
-                        Size = UDim2.new(1, -16, 1, -38),
-                        Position = UDim2.new(0, 8, 0, 8),
+                        Size = UDim2.new(1, -12, 1, -34),
+                        Position = UDim2.new(0, 6, 0, 6),
                         BackgroundTransparency = 1,
                         Image = itemData.icon or "rbxassetid://16010744953",
                         ScaleType = Enum.ScaleType.Fit,
@@ -924,7 +929,7 @@ function library.createWindow(options)
 
                     local nameLabel = create("TextLabel", {
                         Size = UDim2.new(1, -8, 0, 20),
-                        Position = UDim2.new(0, 4, 1, -24),
+                        Position = UDim2.new(0, 4, 1, -22),
                         BackgroundTransparency = 1,
                         Text = itemData.name or "Item",
                         Font = library.theme.fontBold,
@@ -935,15 +940,16 @@ function library.createWindow(options)
                         Parent = card,
                     })
 
+                    -- Red line at bottom of each card
+                    local redBar = create("Frame", {
+                        Size = UDim2.new(1, 0, 0, 2),
+                        Position = UDim2.new(0, 0, 1, -2),
+                        BackgroundColor3 = Color3.fromRGB(235, 42, 60),
+                        BorderSizePixel = 0,
+                        Parent = card,
+                    })
+
                     card.MouseButton1Click:Connect(function()
-                        for _, sibling in ipairs(gridScroll:GetChildren()) do
-                            if sibling:IsA("TextButton") and sibling:FindFirstChildOfClass("UIStroke") then
-                                sibling.UIStroke.Color = Color3.fromRGB(32, 33, 39)
-                                sibling.UIStroke.Thickness = 1
-                            end
-                        end
-                        stroke.Color = Color3.fromRGB(235, 42, 60)
-                        stroke.Thickness = 1.5
                         if config.onSelect then
                             pcall(config.onSelect, itemData)
                         end
