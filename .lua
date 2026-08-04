@@ -300,7 +300,6 @@ function library.createWindow(options)
         Parent = main,
     })
 
-
     create("Frame", {
         Size = UDim2.new(1, 0, 0, 2),
         Position = UDim2.new(0, 0, 1, -2),
@@ -750,8 +749,10 @@ function library.createWindow(options)
         function tab.createInventoryGrid(self, config)
             config = config or {}
 
-            fullScroll.Visible = false
-            columnsFrame.Visible = false
+            pcall(function()
+                if fullScroll then fullScroll.Visible = false end
+                if columnsFrame then columnsFrame.Visible = false end
+            end)
 
             local invContainer = create("Frame", {
                 Size = UDim2.new(1, 0, 1, 0),
@@ -777,7 +778,7 @@ function library.createWindow(options)
             local topCats = { "Profile", "Equipment", "Containers", "Tools", "Graphic Art" }
             local activeTopCat = "Equipment"
 
-            for _, catName in ipairs(topCats) do
+            for _, catName in topCats do
                 create("TextButton", {
                     Size = UDim2.new(0, 0, 1, 0),
                     AutomaticSize = Enum.AutomaticSize.X,
@@ -808,7 +809,7 @@ function library.createWindow(options)
             local subCats = { "Knives", "Pistols", "Mid-Tier", "Rifles", "Misc", "Agents", "Gloves" }
             local activeSubCat = "Knives"
 
-            for _, subName in ipairs(subCats) do
+            for _, subName in subCats do
                 local subBtn = create("TextButton", {
                     Size = UDim2.new(0, 0, 1, 0),
                     AutomaticSize = Enum.AutomaticSize.X,
@@ -822,7 +823,7 @@ function library.createWindow(options)
 
                 subBtn.MouseButton1Click:Connect(function()
                     activeSubCat = subName
-                    for _, child in ipairs(subCategoriesFrame:GetChildren()) do
+                    for _, child in subCategoriesFrame:GetChildren() do
                         if child:IsA("TextButton") then
                             child.TextColor3 = (child.Text == activeSubCat) and Color3.fromRGB(240, 240, 245) or Color3.fromRGB(110, 110, 120)
                         end
@@ -870,11 +871,11 @@ function library.createWindow(options)
             })
 
             local function refreshGrid(items)
-                for _, child in ipairs(gridScroll:GetChildren()) do
+                for _, child in gridScroll:GetChildren() do
                     if child:IsA("TextButton") then child:Destroy() end
                 end
 
-                for idx, itemData in ipairs(items or {}) do
+                for idx, itemData in items or {} do
                     local card = create("TextButton", {
                         Size = UDim2.new(0, 112, 0, 122),
                         BackgroundColor3 = Color3.fromRGB(18, 19, 23),
@@ -925,6 +926,8 @@ function library.createWindow(options)
                 end
             end
 
+            tab._invContainer = invContainer
+
             return {
                 setItems = refreshGrid
             }
@@ -933,8 +936,7 @@ function library.createWindow(options)
         function tab.createInventoryCustomizer(self, config)
             config = config or {}
 
-            if currentGridScroll then currentGridScroll.Visible = false end
-            if currentSubCategoriesFrame then currentSubCategoriesFrame.Visible = false end
+            if tab._invContainer then tab._invContainer.Visible = false end
 
             local customOverlay = create("Frame", {
                 Size = UDim2.new(1, 0, 1, -68),
@@ -946,9 +948,10 @@ function library.createWindow(options)
             })
 
             local function closeCustomizer()
-                if currentGridScroll then currentGridScroll.Visible = true end
-                if currentSubCategoriesFrame then currentSubCategoriesFrame.Visible = true end
-                customOverlay:Destroy()
+                pcall(function()
+                    if tab._invContainer then tab._invContainer.Visible = true end
+                    if customOverlay and customOverlay.Parent then customOverlay:Destroy() end
+                end)
             end
 
             local bodyFrame = create("Frame", {
@@ -958,18 +961,19 @@ function library.createWindow(options)
                 Parent = customOverlay,
             })
 
-            -- LEFT PREVIEW PANEL
+            
+            local leftW = 205 
             local leftPanel = create("Frame", {
-                Size = UDim2.new(0.46, 0, 1, 0),
-                Position = UDim2.new(0, 0, 0, 0),
+                Size = UDim2.new(0, leftW, 1, -20),
+                Position = UDim2.new(0, 10, 0, 10),
                 BackgroundTransparency = 1,
                 ZIndex = 10,
                 Parent = bodyFrame,
             })
 
             local previewCard = create("Frame", {
-                Size = UDim2.new(1, 0, 0, 200),
-                Position = UDim2.new(0, 0, 0, 10),
+                Size = UDim2.new(1, 0, 0, 188),
+                Position = UDim2.new(0, 0, 0, 0),
                 BackgroundColor3 = Color3.fromRGB(22, 23, 27),
                 BorderSizePixel = 0,
                 ZIndex = 10,
@@ -977,9 +981,9 @@ function library.createWindow(options)
             })
             makeCorner(previewCard, 4)
 
-            local prevImage = create("ImageLabel", {
-                Size = UDim2.new(1, -20, 1, -40),
-                Position = UDim2.new(0, 10, 0, 10),
+            create("ImageLabel", {
+                Size = UDim2.new(1, -20, 1, -44),
+                Position = UDim2.new(0, 10, 0, 8),
                 BackgroundTransparency = 1,
                 Image = config.icon or "rbxassetid://16010744953",
                 ScaleType = Enum.ScaleType.Fit,
@@ -987,9 +991,9 @@ function library.createWindow(options)
                 Parent = previewCard,
             })
 
-            local prevName = create("TextLabel", {
-                Size = UDim2.new(1, -20, 0, 20),
-                Position = UDim2.new(0, 10, 1, -25),
+            create("TextLabel", {
+                Size = UDim2.new(1, -16, 0, 20),
+                Position = UDim2.new(0, 8, 1, -26),
                 BackgroundTransparency = 1,
                 Text = config.itemName or "Skin",
                 Font = library.theme.fontBold,
@@ -1000,7 +1004,7 @@ function library.createWindow(options)
                 Parent = previewCard,
             })
 
-            local redAccentLine = create("Frame", {
+            create("Frame", {
                 Size = UDim2.new(1, 0, 0, 2),
                 Position = UDim2.new(0, 0, 1, -2),
                 BackgroundColor3 = library.theme.accent,
@@ -1010,8 +1014,8 @@ function library.createWindow(options)
             })
 
             local copyBtn = create("TextButton", {
-                Size = UDim2.new(1, 0, 0, 32),
-                Position = UDim2.new(0, 0, 0, 220),
+                Size = UDim2.new(1, 0, 0, 28),
+                Position = UDim2.new(0, 0, 0, 198),
                 BackgroundColor3 = Color3.fromRGB(26, 27, 32),
                 Text = "Copy inspect link",
                 Font = library.theme.fontBold,
@@ -1022,27 +1026,10 @@ function library.createWindow(options)
             })
             makeCorner(copyBtn, 4)
 
-            local backBtn = create("TextButton", {
-                Size = UDim2.new(1, 0, 0, 30),
-                Position = UDim2.new(0, 0, 0, 260),
-                BackgroundColor3 = Color3.fromRGB(36, 37, 44),
-                Text = "< Back to Inventory",
-                Font = library.theme.fontBold,
-                TextSize = 12,
-                TextColor3 = library.theme.textBright,
-                ZIndex = 10,
-                Parent = leftPanel,
-            })
-            makeCorner(backBtn, 4)
-
-            backBtn.MouseButton1Click:Connect(function()
-                closeCustomizer()
-            end)
-
-            -- RIGHT CUSTOMIZATIONS PANEL
+            
             local rightPanel = create("ScrollingFrame", {
-                Size = UDim2.new(0.52, 0, 1, 0),
-                Position = UDim2.new(0.48, 0, 0, 0),
+                Size = UDim2.new(1, -(leftW + 30), 1, -20),
+                Position = UDim2.new(0, leftW + 20, 0, 10),
                 BackgroundTransparency = 1,
                 BorderSizePixel = 0,
                 ScrollBarThickness = 2,
@@ -1053,46 +1040,359 @@ function library.createWindow(options)
             })
 
             create("UIListLayout", {
-                Padding = UDim.new(0, 10),
+                Padding = UDim.new(0, 6),
                 Parent = rightPanel,
             })
 
+            
             create("TextLabel", {
-                Size = UDim2.new(1, 0, 0, 20),
+                Size = UDim2.new(1, 0, 0, 18),
                 BackgroundTransparency = 1,
                 Text = "Customizations",
                 Font = library.theme.fontBold,
-                TextSize = 13,
-                TextColor3 = library.theme.textDim,
+                TextSize = 12,
+                TextColor3 = library.theme.textMuted,
                 TextXAlignment = Enum.TextXAlignment.Right,
                 ZIndex = 10,
                 Parent = rightPanel,
             })
 
-            local seedFrame = create("Frame", { Size = UDim2.new(1, 0, 0, 28), BackgroundTransparency = 1, ZIndex = 10, Parent = rightPanel })
-            create("TextLabel", { Size = UDim2.new(0.4, 0, 1, 0), BackgroundTransparency = 1, Text = "Seed", Font = library.theme.fontBold, TextSize = 12, TextColor3 = library.theme.textBright, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 10, Parent = seedFrame })
-            local seedInput = create("TextBox", { Size = UDim2.new(0.6, 0, 1, 0), Position = UDim2.new(0.4, 0, 0, 0), BackgroundColor3 = Color3.fromRGB(26, 27, 32), Text = "0", Font = library.theme.fontBold, TextSize = 12, TextColor3 = library.theme.textBright, ClearTextOnFocus = false, ZIndex = 10, Parent = seedFrame })
-            makeCorner(seedInput, 3)
+            
+            local function makeRow(h)
+                return create("Frame", {
+                    Size = UDim2.new(1, 0, 0, h or 26),
+                    BackgroundTransparency = 1,
+                    ZIndex = 10,
+                    Parent = rightPanel,
+                })
+            end
 
-            local stFrame = create("Frame", { Size = UDim2.new(1, 0, 0, 28), BackgroundTransparency = 1, ZIndex = 10, Parent = rightPanel })
-            create("TextLabel", { Size = UDim2.new(0.4, 0, 1, 0), BackgroundTransparency = 1, Text = "StatTrak counter", Font = library.theme.fontBold, TextSize = 12, TextColor3 = library.theme.textBright, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 10, Parent = stFrame })
-            local stInput = create("TextBox", { Size = UDim2.new(0.6, 0, 1, 0), Position = UDim2.new(0.4, 0, 0, 0), BackgroundColor3 = Color3.fromRGB(26, 27, 32), Text = "1364", Font = library.theme.fontBold, TextSize = 12, TextColor3 = library.theme.textBright, ClearTextOnFocus = false, ZIndex = 10, Parent = stFrame })
-            makeCorner(stInput, 3)
+            local function makeRowLabel(parent, text)
+                return create("TextLabel", {
+                    Size = UDim2.new(0.48, 0, 1, 0),
+                    BackgroundTransparency = 1,
+                    Text = text,
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = library.theme.textBright,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    ZIndex = 10,
+                    Parent = parent,
+                })
+            end
 
-            local nameInput = create("TextBox", { Size = UDim2.new(1, 0, 0, 28), BackgroundColor3 = Color3.fromRGB(26, 27, 32), Text = "", PlaceholderText = "Nametag", PlaceholderColor3 = Color3.fromRGB(100, 100, 110), Font = library.theme.fontBold, TextSize = 12, TextColor3 = library.theme.textBright, ClearTextOnFocus = false, ZIndex = 10, Parent = rightPanel })
+            local function makeRowInput(parent, defaultText, readOnly)
+                local box = create("TextBox", {
+                    Size = UDim2.new(0.52, 0, 1, 0),
+                    Position = UDim2.new(0.48, 0, 0, 0),
+                    BackgroundColor3 = Color3.fromRGB(26, 27, 32),
+                    Text = defaultText or "",
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = library.theme.textBright,
+                    TextEditable = not readOnly,
+                    ClearTextOnFocus = false,
+                    ZIndex = 10,
+                    Parent = parent,
+                })
+                makeCorner(box, 3)
+                return box
+            end
+
+            local function makeRowDropdown(parent, options, defaultOpt, onChanged)
+                local selected = defaultOpt or (options and options[1]) or ""
+                local dropBtn = create("TextButton", {
+                    Size = UDim2.new(0.52, 0, 1, 0),
+                    Position = UDim2.new(0.48, 0, 0, 0),
+                    BackgroundColor3 = Color3.fromRGB(26, 27, 32),
+                    Text = "",
+                    AutoButtonColor = false,
+                    BorderSizePixel = 0,
+                    ZIndex = 10,
+                    Parent = parent,
+                })
+                makeCorner(dropBtn, 3)
+                local dropLabel = create("TextLabel", {
+                    Size = UDim2.new(1, -18, 1, 0),
+                    Position = UDim2.new(0, 6, 0, 0),
+                    BackgroundTransparency = 1,
+                    Text = tostring(selected),
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = library.theme.textBright,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextTruncate = Enum.TextTruncate.AtEnd,
+                    ZIndex = 11,
+                    Parent = dropBtn,
+                })
+                create("ImageLabel", {
+                    Size = UDim2.new(0, 8, 0, 8),
+                    Position = UDim2.new(1, -6, 0.5, 0),
+                    AnchorPoint = Vector2.new(1, 0.5),
+                    BackgroundTransparency = 1,
+                    Image = "rbxassetid://10709791523",
+                    ImageColor3 = Color3.fromRGB(255, 255, 255),
+                    Rotation = 180,
+                    ZIndex = 11,
+                    Parent = dropBtn,
+                })
+                local listOpen = false
+                local listFrame = nil
+                local function closeList()
+                    if listFrame and listFrame.Parent then listFrame:Destroy() listFrame = nil end
+                    listOpen = false
+                end
+                dropBtn.MouseButton1Click:Connect(function()
+                    if listOpen then closeList() return end
+                    listOpen = true
+                    listFrame = create("ScrollingFrame", {
+                        Size = UDim2.new(1, 0, 0, math.min(#options * 22 + 6, 130)),
+                        Position = UDim2.new(0, 0, 1, 2),
+                        BackgroundColor3 = Color3.fromRGB(24, 25, 30),
+                        BorderSizePixel = 0,
+                        ScrollBarThickness = 2,
+                        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+                        ClipsDescendants = true,
+                        ZIndex = 200,
+                        Parent = dropBtn,
+                    })
+                    makeCorner(listFrame, 3)
+                    makeStroke(listFrame, Color3.fromRGB(40, 40, 50), 1)
+                    create("UIListLayout", { Padding = UDim.new(0, 0), Parent = listFrame })
+                    create("UIPadding", { PaddingTop = UDim.new(0, 3), PaddingBottom = UDim.new(0, 3), Parent = listFrame })
+                    for _, opt in options do
+                        local isSel = (opt == selected)
+                        local optBtn = create("TextButton", {
+                            Size = UDim2.new(1, -12, 0, 22),
+                            Position = UDim2.new(0, 6, 0, 0),
+                            BackgroundTransparency = 1,
+                            Text = opt,
+                            Font = library.theme.fontBold,
+                            TextSize = 12,
+                            TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145),
+                            TextXAlignment = Enum.TextXAlignment.Left,
+                            ZIndex = 201,
+                            Parent = listFrame,
+                        })
+                        optBtn.MouseEnter:Connect(function() optBtn.TextColor3 = Color3.fromRGB(255, 255, 255) end)
+                        optBtn.MouseLeave:Connect(function() optBtn.TextColor3 = (opt == selected) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145) end)
+                        optBtn.MouseButton1Click:Connect(function()
+                            selected = opt
+                            dropLabel.Text = tostring(opt)
+                            closeList()
+                            if onChanged then pcall(onChanged, opt) end
+                        end)
+                    end
+                end)
+                return { get = function() return selected end, set = function(v) selected = v dropLabel.Text = tostring(v) end }
+            end
+
+            local function makeCheckRow(parent, text, defaultState, onChanged)
+                local state = defaultState or false
+                local row = create("Frame", { Size = UDim2.new(1, 0, 0, 22), BackgroundTransparency = 1, ZIndex = 10, Parent = parent })
+                local checkBtn = create("TextButton", { Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Text = "", ZIndex = 10, Parent = row })
+                local box = create("Frame", {
+                    Size = UDim2.new(0, 14, 0, 14), Position = UDim2.new(0, 0, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5),
+                    BackgroundColor3 = state and library.theme.accent or library.theme.inputBg, BorderSizePixel = 0, ZIndex = 11, Parent = checkBtn,
+                })
+                makeCorner(box, 3)
+                makeStroke(box, state and library.theme.accent or library.theme.inputBorder)
+                local checkmark = create("ImageLabel", {
+                    Size = UDim2.new(0, 10, 0, 10), Position = UDim2.new(0.5, 0, 0.5, 0), AnchorPoint = Vector2.new(0.5, 0.5),
+                    BackgroundTransparency = 1, Image = "rbxassetid://14189590169", ImageColor3 = Color3.fromRGB(255, 255, 255),
+                    ImageTransparency = state and 0 or 1, ZIndex = 12, Parent = box,
+                })
+                create("TextLabel", {
+                    Position = UDim2.new(0, 20, 0, 0), Size = UDim2.new(1, -20, 1, 0), Text = text,
+                    Font = library.theme.fontBold, TextSize = 12, TextColor3 = library.theme.textBright,
+                    TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, ZIndex = 11, Parent = checkBtn,
+                })
+                local checkObj = {
+                    get = function() return state end,
+                    set = function(v)
+                        state = v
+                        box.BackgroundColor3 = state and library.theme.accent or library.theme.inputBg
+                        box.UIStroke.Color = state and library.theme.accent or library.theme.inputBorder
+                        checkmark.ImageTransparency = state and 0 or 1
+                    end
+                }
+                checkBtn.MouseButton1Click:Connect(function()
+                    state = not state
+                    checkObj.set(state)
+                    if onChanged then pcall(onChanged, state) end
+                end)
+                return checkObj, row
+            end
+
+            local function makeDividerLabel(parent, text)
+                local f = create("Frame", { Size = UDim2.new(1, 0, 0, 16), BackgroundTransparency = 1, ZIndex = 10, Parent = parent })
+                create("TextLabel", {
+                    Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Text = text or "",
+                    Font = library.theme.fontBold, TextSize = 11, TextColor3 = library.theme.textMuted,
+                    TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 11, Parent = f,
+                })
+            end
+
+            
+            local skinOptions = { "Stock" }
+            if config.skins then
+                for _, s in config.skins do
+                    if s.skin and s.skin ~= "Stock" then
+                        table.insert(skinOptions, s.name or s.skin)
+                    end
+                end
+            elseif config.skinName and config.skinName ~= "Stock" then
+                table.insert(skinOptions, config.skinName)
+            end
+
+            local currentSkinName = config.skinName or "Stock"
+            local currentWear = config.wear or 0.001
+
+            
+            local paintRow = makeRow(26)
+            makeRowLabel(paintRow, "Paint kit")
+            local paintDropdown = makeRowDropdown(paintRow, skinOptions, currentSkinName, function(opt)
+                currentSkinName = opt
+            end)
+
+            
+            local seedRow = makeRow(26)
+            makeRowLabel(seedRow, "Seed")
+            local seedInput = makeRowInput(seedRow, tostring(config.seed or 0))
+
+            
+            local wearRow = makeRow(22)
+            makeRowLabel(wearRow, "Wear (Factory New)")
+            create("TextLabel", {
+                Size = UDim2.new(0.52, 0, 1, 0),
+                Position = UDim2.new(0.48, 0, 0, 0),
+                BackgroundTransparency = 1,
+                Text = string.format("%.8f", currentWear),
+                Font = library.theme.fontMedium,
+                TextSize = 11,
+                TextColor3 = library.theme.textDim,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                ZIndex = 10,
+                Parent = wearRow,
+            })
+
+            
+            local overrideColorState = false
+            local overrideColorRow = create("Frame", { Size = UDim2.new(1, 0, 0, 22), BackgroundTransparency = 1, ZIndex = 10, Parent = rightPanel })
+            local overrideCheckBtn = create("TextButton", { Size = UDim2.new(0.48, 0, 1, 0), BackgroundTransparency = 1, Text = "", ZIndex = 10, Parent = overrideColorRow })
+            local overrideBox = create("Frame", {
+                Size = UDim2.new(0, 14, 0, 14), Position = UDim2.new(0, 0, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5),
+                BackgroundColor3 = library.theme.inputBg, BorderSizePixel = 0, ZIndex = 11, Parent = overrideCheckBtn,
+            })
+            makeCorner(overrideBox, 3)
+            makeStroke(overrideBox, library.theme.inputBorder)
+            local overrideCheckmark = create("ImageLabel", {
+                Size = UDim2.new(0, 10, 0, 10), Position = UDim2.new(0.5, 0, 0.5, 0), AnchorPoint = Vector2.new(0.5, 0.5),
+                BackgroundTransparency = 1, Image = "rbxassetid://14189590169", ImageColor3 = Color3.fromRGB(255, 255, 255),
+                ImageTransparency = 1, ZIndex = 12, Parent = overrideBox,
+            })
+            create("TextLabel", {
+                Position = UDim2.new(0, 20, 0, 0), Size = UDim2.new(1, -20, 1, 0), Text = "Override color",
+                Font = library.theme.fontBold, TextSize = 12, TextColor3 = library.theme.textBright,
+                TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, ZIndex = 11, Parent = overrideCheckBtn,
+            })
+            
+            local swatchContainer = create("Frame", {
+                Size = UDim2.new(0.52, 0, 1, 0), Position = UDim2.new(0.48, 0, 0, 0),
+                BackgroundTransparency = 1, ZIndex = 10, Parent = overrideColorRow,
+            })
+            create("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 3), Parent = swatchContainer })
+            local swatchColors = { Color3.fromRGB(160, 160, 160), Color3.fromRGB(50, 50, 50), Color3.fromRGB(80, 80, 80), Color3.fromRGB(30, 30, 30) }
+            for _, col in swatchColors do
+                local sw = create("Frame", { Size = UDim2.new(0, 14, 0, 14), BackgroundColor3 = col, BorderSizePixel = 0, ZIndex = 11, Parent = swatchContainer })
+                makeCorner(sw, 2)
+            end
+            overrideCheckBtn.MouseButton1Click:Connect(function()
+                overrideColorState = not overrideColorState
+                overrideBox.BackgroundColor3 = overrideColorState and library.theme.accent or library.theme.inputBg
+                overrideBox.UIStroke.Color = overrideColorState and library.theme.accent or library.theme.inputBorder
+                overrideCheckmark.ImageTransparency = overrideColorState and 0 or 1
+            end)
+
+            
+            makeDividerLabel(rightPanel, "Souvenir")
+
+            
+            create("Frame", { Size = UDim2.new(1, 0, 0, 1), BackgroundColor3 = Color3.fromRGB(35, 35, 42), BorderSizePixel = 0, ZIndex = 10, Parent = rightPanel })
+
+            
+            local statTrakState = (config.statTrak or 0) > 0
+            local statTrakCheck, _ = makeCheckRow(rightPanel, "StatTrak", statTrakState, function(val)
+                statTrakState = val
+            end)
+
+            
+            local stRow = makeRow(26)
+            makeRowLabel(stRow, "StatTrak counter")
+            local stInput = makeRowInput(stRow, tostring(config.statTrak or 1364))
+
+            
+            local nameRow = makeRow(26)
+            local nameInput = create("TextBox", {
+                Size = UDim2.new(1, 0, 1, 0),
+                BackgroundColor3 = Color3.fromRGB(26, 27, 32),
+                Text = config.nametag or "",
+                PlaceholderText = "Nametag",
+                PlaceholderColor3 = Color3.fromRGB(90, 90, 100),
+                Font = library.theme.fontBold,
+                TextSize = 12,
+                TextColor3 = library.theme.textBright,
+                ClearTextOnFocus = false,
+                ZIndex = 10,
+                Parent = nameRow,
+            })
             makeCorner(nameInput, 3)
 
-            local updateBtn = create("TextButton", { Size = UDim2.new(1, 0, 0, 30), BackgroundColor3 = Color3.fromRGB(30, 31, 38), Text = "Update", Font = library.theme.fontBold, TextSize = 12, TextColor3 = library.theme.textBright, ZIndex = 10, Parent = rightPanel })
+            
+            create("Frame", { Size = UDim2.new(1, 0, 0, 4), BackgroundTransparency = 1, ZIndex = 10, Parent = rightPanel })
+
+            
+            local updateBtn = create("TextButton", {
+                Size = UDim2.new(1, 0, 0, 28),
+                BackgroundColor3 = Color3.fromRGB(36, 37, 44),
+                Text = "Update",
+                Font = library.theme.fontBold,
+                TextSize = 13,
+                TextColor3 = library.theme.textBright,
+                ZIndex = 10,
+                Parent = rightPanel,
+            })
             makeCorner(updateBtn, 3)
+
+            
+            local removeBtn = create("TextButton", {
+                Size = UDim2.new(1, 0, 0, 28),
+                BackgroundColor3 = Color3.fromRGB(36, 37, 44),
+                Text = "Remove",
+                Font = library.theme.fontBold,
+                TextSize = 13,
+                TextColor3 = Color3.fromRGB(235, 80, 80),
+                ZIndex = 10,
+                Parent = rightPanel,
+            })
+            makeCorner(removeBtn, 3)
 
             updateBtn.MouseButton1Click:Connect(function()
                 if config.onUpdate then
                     pcall(config.onUpdate, {
+                        skin = paintDropdown.get(),
                         seed = tonumber(seedInput.Text) or 0,
-                        statTrak = tonumber(stInput.Text) or 0,
-                        nametag = nameInput.Text
+                        wear = currentWear,
+                        statTrak = statTrakCheck.get() and (tonumber(stInput.Text) or 0) or 0,
+                        nametag = nameInput.Text,
+                        overrideColor = overrideColorState and swatchColors[1] or nil,
                     })
                 end
+                closeCustomizer()
+            end)
+
+            removeBtn.MouseButton1Click:Connect(function()
+                if config.onRemove then pcall(config.onRemove) end
                 closeCustomizer()
             end)
 
