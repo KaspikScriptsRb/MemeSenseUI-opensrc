@@ -873,38 +873,6 @@ function library.createWindow(options)
                     if child:IsA("TextButton") then child:Destroy() end
                 end
 
-                -- 1. First Card: Big "+" Add Button (as on Screenshot 2)
-                local addCard = create("TextButton", {
-                    Size = UDim2.new(0, 122, 0, 128),
-                    BackgroundColor3 = Color3.fromRGB(18, 19, 23),
-                    BorderSizePixel = 0,
-                    Text = "",
-                    AutoButtonColor = false,
-                    LayoutOrder = 0,
-                    Parent = gridScroll,
-                })
-                makeCorner(addCard, 4)
-                makeStroke(addCard, Color3.fromRGB(32, 33, 39), 1)
-
-                local plusIcon = create("TextLabel", {
-                    Size = UDim2.new(1, 0, 1, 0),
-                    BackgroundTransparency = 1,
-                    Text = "+",
-                    Font = library.theme.fontBold,
-                    TextSize = 36,
-                    TextColor3 = Color3.fromRGB(140, 140, 150),
-                    TextXAlignment = Enum.TextXAlignment.Center,
-                    TextYAlignment = Enum.TextYAlignment.Center,
-                    Parent = addCard,
-                })
-
-                addCard.MouseButton1Click:Connect(function()
-                    if config.onAddClick then
-                        pcall(config.onAddClick)
-                    end
-                end)
-
-                -- 2. Items Grid with Red Bottom Accent Bar (as on Screenshot 2)
                 for idx, itemData in ipairs(items or {}) do
                     local card = create("TextButton", {
                         Size = UDim2.new(0, 122, 0, 128),
@@ -940,7 +908,6 @@ function library.createWindow(options)
                         Parent = card,
                     })
 
-                    -- Red line at bottom of each card
                     local redBar = create("Frame", {
                         Size = UDim2.new(1, 0, 0, 2),
                         Position = UDim2.new(0, 0, 1, -2),
