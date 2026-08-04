@@ -862,9 +862,10 @@ function library.createWindow(options)
             })
 
             local gridLayout = create("UIGridLayout", {
-                CellSize = UDim2.new(0, 122, 0, 128),
-                CellPadding = UDim2.new(0, 10, 0, 10),
+                CellSize = UDim2.new(0, 112, 0, 122),
+                CellPadding = UDim2.new(0, 8, 0, 8),
                 SortOrder = Enum.SortOrder.LayoutOrder,
+                HorizontalAlignment = Enum.HorizontalAlignment.Center,
                 Parent = gridScroll,
             })
 
@@ -875,7 +876,7 @@ function library.createWindow(options)
 
                 for idx, itemData in ipairs(items or {}) do
                     local card = create("TextButton", {
-                        Size = UDim2.new(0, 122, 0, 128),
+                        Size = UDim2.new(0, 112, 0, 122),
                         BackgroundColor3 = Color3.fromRGB(18, 19, 23),
                         BorderSizePixel = 0,
                         Text = "",
@@ -887,7 +888,7 @@ function library.createWindow(options)
                     makeStroke(card, Color3.fromRGB(32, 33, 39), 1)
 
                     local imgLabel = create("ImageLabel", {
-                        Size = UDim2.new(1, -12, 1, -34),
+                        Size = UDim2.new(1, -12, 1, -30),
                         Position = UDim2.new(0, 6, 0, 6),
                         BackgroundTransparency = 1,
                         Image = itemData.icon or "rbxassetid://16010744953",
@@ -896,12 +897,12 @@ function library.createWindow(options)
                     })
 
                     local nameLabel = create("TextLabel", {
-                        Size = UDim2.new(1, -8, 0, 20),
-                        Position = UDim2.new(0, 4, 1, -22),
+                        Size = UDim2.new(1, -6, 0, 18),
+                        Position = UDim2.new(0, 3, 1, -20),
                         BackgroundTransparency = 1,
                         Text = itemData.name or "Item",
-                        Font = library.theme.fontBold,
-                        TextSize = 11,
+                        Font = library.theme.fontMedium,
+                        TextSize = 10,
                         TextColor3 = library.theme.textBright,
                         TextTruncate = Enum.TextTruncate.AtEnd,
                         TextXAlignment = Enum.TextXAlignment.Center,
@@ -932,6 +933,9 @@ function library.createWindow(options)
         function tab.createInventoryCustomizer(self, config)
             config = config or {}
 
+            if currentGridScroll then currentGridScroll.Visible = false end
+            if currentSubCategoriesFrame then currentSubCategoriesFrame.Visible = false end
+
             local customOverlay = create("Frame", {
                 Size = UDim2.new(1, 0, 1, -68),
                 Position = UDim2.new(0, 0, 0, 68),
@@ -940,6 +944,12 @@ function library.createWindow(options)
                 ZIndex = 10,
                 Parent = view,
             })
+
+            local function closeCustomizer()
+                if currentGridScroll then currentGridScroll.Visible = true end
+                if currentSubCategoriesFrame then currentSubCategoriesFrame.Visible = true end
+                customOverlay:Destroy()
+            end
 
             local bodyFrame = create("Frame", {
                 Size = UDim2.new(1, 0, 1, 0),
@@ -1026,7 +1036,7 @@ function library.createWindow(options)
             makeCorner(backBtn, 4)
 
             backBtn.MouseButton1Click:Connect(function()
-                customOverlay:Destroy()
+                closeCustomizer()
             end)
 
             -- RIGHT CUSTOMIZATIONS PANEL
@@ -1083,7 +1093,7 @@ function library.createWindow(options)
                         nametag = nameInput.Text
                     })
                 end
-                customOverlay:Destroy()
+                closeCustomizer()
             end)
 
             return customOverlay
