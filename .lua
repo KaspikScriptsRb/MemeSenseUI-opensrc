@@ -162,6 +162,7 @@ local defaultIcons = {
     Legitbot = "rbxassetid://10723415903",
     ["Aim Assist"] = "rbxassetid://10723416040",
     Players = "rbxassetid://117259180607823",
+    Movement = "rbxassetid://10723424680",
     Chams = "rbxassetid://10723424350",
     Items = "rbxassetid://15571374043",
     Visuals = "rbxassetid://13321848320",
@@ -1158,7 +1159,7 @@ function library.createWindow(options)
                         AutomaticCanvasSize = Enum.AutomaticSize.Y,
                         ClipsDescendants = true,
                         ZIndex = 200,
-                        Parent = dropBtn,
+                        Parent = dropBtn
                     })
                     makeCorner(listFrame, 3)
                     makeStroke(listFrame, Color3.fromRGB(40, 40, 50), 1)
@@ -1176,7 +1177,7 @@ function library.createWindow(options)
                             TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145),
                             TextXAlignment = Enum.TextXAlignment.Left,
                             ZIndex = 201,
-                            Parent = listFrame,
+                            Parent = listFrame
                         })
                         optBtn.MouseEnter:Connect(function() optBtn.TextColor3 = Color3.fromRGB(255, 255, 255) end)
                         optBtn.MouseLeave:Connect(function() optBtn.TextColor3 = (opt == selected) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145) end)
@@ -1189,6 +1190,46 @@ function library.createWindow(options)
                     end
                 end)
                 return { get = function() return selected end, set = function(v) selected = v dropLabel.Text = tostring(v) end }
+            end
+
+            local function makeRowKeybind(parent, name, defaultKey, mode, flag, onChanged)
+                local key = defaultKey or Enum.KeyCode.Unknown
+                local modeVal = mode or "Toggle"
+                local row = makeRow(26)
+                makeRowLabel(row, name or "Keybind")
+
+                local keyBtn = create("TextButton", {
+                    Size = UDim2.new(0.52, 0, 1, 0),
+                    Position = UDim2.new(0.48, 0, 0, 0),
+                    BackgroundColor3 = Color3.fromRGB(26, 27, 32),
+                    Text = (key and key.Name) or "None",
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = library.theme.textBright,
+                    ZIndex = 10,
+                    Parent = row,
+                })
+                makeCorner(keyBtn, 3)
+
+                local binding = false
+                keyBtn.MouseButton1Click:Connect(function()
+                    binding = true
+                    keyBtn.Text = "..."
+                    local conn
+                    conn = userInputService.InputBegan:Connect(function(input)
+                        if input.UserInputType == Enum.UserInputType.Keyboard then
+                            key = input.KeyCode
+                            keyBtn.Text = key.Name
+                            binding = false
+                            if flag then library.flags[flag] = key end
+                            if onChanged then pcall(onChanged, key, modeVal) end
+                            conn:Disconnect()
+                        end
+                    end)
+                end)
+
+                if flag then library.flags[flag] = key end
+                return { get = function() return key end, set = function(k) key = k keyBtn.Text = k.Name if flag then library.flags[flag] = k end end }
             end
 
             local function makeCheckRow(parent, text, defaultState, onChanged)
@@ -1804,6 +1845,67 @@ function library.createWindow(options)
                 close = function() popoverFrame.Visible = false end,
                 toggle = function() popoverFrame.Visible = not popoverFrame.Visible end,
             }
+
+            function popObj.addKeybind(self, kConfig)
+                kConfig = kConfig or {}
+                local name = kConfig.name or "Keybind"
+                local key = kConfig.default or Enum.KeyCode.Unknown
+                local mode = kConfig.mode or "Toggle"
+                local flag = kConfig.flag
+                local callback = kConfig.callback or function() end
+
+                local row = create("Frame", {
+                    Size = UDim2.new(1, 0, 0, 24),
+                    BackgroundTransparency = 1,
+                    ZIndex = 100001,
+                    Parent = popoverFrame,
+                })
+
+                create("TextLabel", {
+                    Size = UDim2.new(0.5, 0, 1, 0),
+                    BackgroundTransparency = 1,
+                    Text = name,
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = library.theme.textBright,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    ZIndex = 100001,
+                    Parent = row,
+                })
+
+                local keyBtn = create("TextButton", {
+                    Size = UDim2.new(0.48, 0, 1, 0),
+                    Position = UDim2.new(0.52, 0, 0, 0),
+                    BackgroundColor3 = Color3.fromRGB(28, 29, 36),
+                    Text = (key and key.Name) or "None",
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = library.theme.textBright,
+                    ZIndex = 100001,
+                    Parent = row,
+                })
+                makeCorner(keyBtn, 3)
+
+                keyBtn.MouseButton1Click:Connect(function()
+                    keyBtn.Text = "..."
+                    local conn
+                    conn = userInputService.InputBegan:Connect(function(input)
+                        if input.UserInputType == Enum.UserInputType.Keyboard then
+                            key = input.KeyCode
+                            keyBtn.Text = key.Name
+                            if flag then library.flags[flag] = key end
+                            pcall(callback, key, mode)
+                            conn:Disconnect()
+                        end
+                    end)
+                end)
+
+                if flag then library.flags[flag] = key end
+                return {
+                    get = function() return key end,
+                    set = function(k) key = k keyBtn.Text = k.Name if flag then library.flags[flag] = k end end
+                }
+            end
 
             function popObj.addInput(self, iConfig)
                 iConfig = iConfig or {}
@@ -2689,6 +2791,7 @@ function library.createWindow(options)
                     function popObj.createSlider(self, cfg) return section:createSlider(cfg, popup) end
                     function popObj.createDropdown(self, cfg) return section:createDropdown(cfg, popup) end
                     function popObj.createColorpicker(self, cfg) return section:createColorpicker(cfg, popup) end
+                    function popObj.createKeybind(self, cfg) return section:createKeybind(cfg, popup) end
 
                     if typeof(builder) == "function" then
                         builder(popObj)
@@ -2698,6 +2801,65 @@ function library.createWindow(options)
                 end
 
                 return toggleObj
+            end
+
+            function section.createKeybind(self, config, targetParent)
+                config = config or {}
+                local name = config.name or "Keybind"
+                local key = config.default or Enum.KeyCode.Unknown
+                local mode = config.mode or "Toggle"
+                local flag = config.flag
+                local callback = config.callback or function() end
+                local parentCard = targetParent or card
+
+                local row = create("Frame", {
+                    Size = UDim2.new(1, 0, 0, 24),
+                    BackgroundTransparency = 1,
+                    Parent = parentCard,
+                })
+
+                create("TextLabel", {
+                    Size = UDim2.new(0.5, 0, 1, 0),
+                    BackgroundTransparency = 1,
+                    Text = name,
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = library.theme.textBright,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    Parent = row,
+                })
+
+                local keyBtn = create("TextButton", {
+                    Size = UDim2.new(0.48, 0, 1, 0),
+                    Position = UDim2.new(0.52, 0, 0, 0),
+                    BackgroundColor3 = Color3.fromRGB(26, 27, 32),
+                    Text = (key and key.Name) or "None",
+                    Font = library.theme.fontBold,
+                    TextSize = 12,
+                    TextColor3 = library.theme.textBright,
+                    Parent = row,
+                })
+                makeCorner(keyBtn, 3)
+
+                keyBtn.MouseButton1Click:Connect(function()
+                    keyBtn.Text = "..."
+                    local conn
+                    conn = userInputService.InputBegan:Connect(function(input)
+                        if input.UserInputType == Enum.UserInputType.Keyboard then
+                            key = input.KeyCode
+                            keyBtn.Text = key.Name
+                            if flag then library.flags[flag] = key end
+                            pcall(callback, key, mode)
+                            conn:Disconnect()
+                        end
+                    end)
+                end)
+
+                if flag then library.flags[flag] = key end
+                return {
+                    get = function() return key end,
+                    set = function(k) key = k keyBtn.Text = k.Name if flag then library.flags[flag] = k end end
+                }
             end
 
             function section.createSlider(self, config, targetParent)
