@@ -1324,7 +1324,8 @@ function library.createWindow(options)
             makeStroke(activeColorPreview, library.theme.accent, 1)
 
             local swatchColors = { Color3.fromRGB(160, 160, 160), Color3.fromRGB(50, 50, 50), Color3.fromRGB(80, 80, 80), Color3.fromRGB(30, 30, 30) }
-            for _, col in swatchColors do
+            local swatchButtons = {}
+            for idx, col in swatchColors do
                 local sw = create("TextButton", {
                     Size = UDim2.new(0, 16, 0, 16),
                     BackgroundColor3 = col,
@@ -1335,11 +1336,16 @@ function library.createWindow(options)
                     Parent = swatchContainer
                 })
                 makeCorner(sw, 3)
-                makeStroke(sw, library.theme.inputBorder, 1)
+                local strk = makeStroke(sw, (col == currentColorVal or (idx == 1 and not config.overrideColor)) and library.theme.accent or library.theme.inputBorder, (col == currentColorVal or (idx == 1 and not config.overrideColor)) and 2 or 1)
+                table.insert(swatchButtons, { btn = sw, stroke = strk, col = col })
 
                 sw.MouseButton1Click:Connect(function()
                     currentColorVal = col
                     activeColorPreview.BackgroundColor3 = col
+                    for _, item in swatchButtons do
+                        item.stroke.Color = (item.col == col) and library.theme.accent or library.theme.inputBorder
+                        item.stroke.Thickness = (item.col == col) and 2 or 1
+                    end
                 end)
             end
 
