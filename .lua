@@ -2446,6 +2446,8 @@ function library.createWindow(options)
                     pcall(callback, state)
                 end)
 
+                local addKeybindFn, addSettingsFn
+
                 local toggleObj = {
                     set = function(val)
                         state = val
@@ -2454,11 +2456,11 @@ function library.createWindow(options)
                         pcall(callback, state)
                     end,
                     get = function() return state end,
-                    rightControls = rightControls
+                    rightControls = rightControls,
                 }
                 if flag then library.elements[flag] = toggleObj end
 
-                function toggleObj.addKeybind(self, kConfig)
+                addKeybindFn = function(self, kConfig)
                     kConfig = kConfig or {}
                     local currentKey = kConfig.default or Enum.KeyCode.Unknown
                     local keyMode = kConfig.mode or "On key down"
@@ -2472,7 +2474,7 @@ function library.createWindow(options)
                         ImageColor3 = Color3.fromRGB(255, 255, 255),
                         ImageTransparency = 0,
                         BorderSizePixel = 0,
-                        Parent = rightControls,
+                        Parent = self.rightControls or rightControls,
                     })
 
                     local popup = create("Frame", {
@@ -2632,9 +2634,9 @@ function library.createWindow(options)
                             modeDropContainer.Visible = false
                             modeArrow.Rotation = 180
                             if keyMode == "Always on" then
-                                toggleObj.set(true)
+                                if self.set then self.set(true) end
                             elseif keyMode == "Disabled" or keyMode == "On key down" then
-                                toggleObj.set(false)
+                                if self.set then self.set(false) end
                             end
                             pcall(keyCallback, currentKey, keyMode)
                         end)
@@ -2670,11 +2672,11 @@ function library.createWindow(options)
                             end
                         elseif not gpe and input.KeyCode == currentKey and currentKey ~= Enum.KeyCode.Unknown then
                             if keyMode == "Toggle" then
-                                toggleObj.set(not state)
+                                if self.get and self.set then self.set(not self.get()) end
                             elseif keyMode == "On key down" then
-                                toggleObj.set(true)
+                                if self.set then self.set(true) end
                             elseif keyMode == "Always on" then
-                                toggleObj.set(true)
+                                if self.set then self.set(true) end
                             end
                         end
                     end)
@@ -2682,15 +2684,15 @@ function library.createWindow(options)
                     userInputService.InputEnded:Connect(function(input, gpe)
                         if not gpe and input.KeyCode == currentKey and currentKey ~= Enum.KeyCode.Unknown then
                             if keyMode == "On key down" then
-                                toggleObj.set(false)
+                                if self.set then self.set(false) end
                             end
                         end
                     end)
 
-                    return toggleObj
+                    return self
                 end
 
-                function toggleObj.addSettings(self, sConfig)
+                addSettingsFn = function(self, sConfig)
                     sConfig = typeof(sConfig) == "function" and { builder = sConfig } or (sConfig or {})
                     local builder = sConfig.builder or sConfig.callback
 
@@ -2701,7 +2703,7 @@ function library.createWindow(options)
                         ImageColor3 = Color3.fromRGB(255, 255, 255),
                         ImageTransparency = 0,
                         BorderSizePixel = 0,
-                        Parent = rightControls,
+                        Parent = self.rightControls or rightControls,
                     })
 
                     local popup = create("Frame", {
@@ -2800,6 +2802,9 @@ function library.createWindow(options)
 
                     return popObj
                 end
+
+                toggleObj.addKeybind = addKeybindFn
+                toggleObj.addSettings = addSettingsFn
 
                 return toggleObj
             end
@@ -3032,8 +3037,8 @@ function library.createWindow(options)
                     set = applyValue,
                     get = function() return value end,
                     rightControls = rightGroup,
-                    addKeybind = toggleObj.addKeybind,
-                    addSettings = toggleObj.addSettings,
+                    addKeybind = addKeybindFn,
+                    addSettings = addSettingsFn,
                 }
                 if flag then library.elements[flag] = sliderObj end
                 return sliderObj
@@ -3311,8 +3316,8 @@ function library.createWindow(options)
                     end,
                     get = function() return selected end,
                     rightControls = rightGroup,
-                    addKeybind = toggleObj.addKeybind,
-                    addSettings = toggleObj.addSettings,
+                    addKeybind = addKeybindFn,
+                    addSettings = addSettingsFn,
                 }
                 if flag then library.elements[flag] = dropObj end
                 return dropObj
@@ -3713,8 +3718,8 @@ function library.createWindow(options)
                     end,
                     get = function() return color, alpha end,
                     rightControls = rightControls,
-                    addKeybind = toggleObj.addKeybind,
-                    addSettings = toggleObj.addSettings,
+                    addKeybind = addKeybindFn,
+                    addSettings = addSettingsFn,
                 }
                 if flag then library.elements[flag] = colorPickerObj end
                 return colorPickerObj
