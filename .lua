@@ -902,7 +902,7 @@ function library.createWindow(options)
                         Text = itemData.name or "Item",
                         Font = library.theme.fontBold,
                         TextSize = 11,
-                        TextColor3 = Color3.fromRGB(230, 230, 235),
+                        TextColor3 = library.theme.textBright,
                         TextTruncate = Enum.TextTruncate.AtEnd,
                         TextXAlignment = Enum.TextXAlignment.Center,
                         Parent = card,
@@ -911,14 +911,14 @@ function library.createWindow(options)
                     local redBar = create("Frame", {
                         Size = UDim2.new(1, 0, 0, 2),
                         Position = UDim2.new(0, 0, 1, -2),
-                        BackgroundColor3 = Color3.fromRGB(235, 42, 60),
+                        BackgroundColor3 = library.theme.accent,
                         BorderSizePixel = 0,
                         Parent = card,
                     })
 
                     card.MouseButton1Click:Connect(function()
                         if config.onSelect then
-                            pcall(config.onSelect, itemData)
+                            config.onSelect(itemData)
                         end
                     end)
                 end
