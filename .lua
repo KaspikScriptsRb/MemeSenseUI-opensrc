@@ -4233,6 +4233,5 @@ function library.createWindow(options)
     end
 
     return window
-end
 
 return library
