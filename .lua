@@ -932,89 +932,162 @@ function library.createWindow(options)
         function tab.createInventoryCustomizer(self, config)
             config = config or {}
 
-            fullScroll.Visible = false
-            columnsFrame.Visible = false
-
-            local customContainer = create("Frame", {
-                Size = UDim2.new(1, 0, 1, 0),
-                BackgroundTransparency = 1,
+            local customOverlay = create("Frame", {
+                Size = UDim2.new(1, 0, 1, -68),
+                Position = UDim2.new(0, 0, 0, 68),
+                BackgroundColor3 = library.theme.mainBg,
+                BorderSizePixel = 0,
+                ZIndex = 10,
                 Parent = view,
             })
 
-            local topCategoriesFrame = create("Frame", {
-                Size = UDim2.new(1, 0, 0, 32),
+            local bodyFrame = create("Frame", {
+                Size = UDim2.new(1, 0, 1, 0),
+                BackgroundTransparency = 1,
+                ZIndex = 10,
+                Parent = customOverlay,
+            })
+
+            -- LEFT PREVIEW PANEL
+            local leftPanel = create("Frame", {
+                Size = UDim2.new(0.46, 0, 1, 0),
                 Position = UDim2.new(0, 0, 0, 0),
                 BackgroundTransparency = 1,
-                Parent = customContainer,
-            })
-
-            create("UIListLayout", {
-                FillDirection = Enum.FillDirection.Horizontal,
-                HorizontalAlignment = Enum.HorizontalAlignment.Center,
-                VerticalAlignment = Enum.VerticalAlignment.Center,
-                Padding = UDim.new(0, 24),
-                Parent = topCategoriesFrame,
-            })
-
-            local topCats = { "Profile", "Equipment", "Containers", "Tools", "Graphic Art" }
-            for _, catName in ipairs(topCats) do
-                create("TextButton", {
-                    Size = UDim2.new(0, 0, 1, 0),
-                    AutomaticSize = Enum.AutomaticSize.X,
-                    BackgroundTransparency = 1,
-                    Text = catName,
-                    Font = library.theme.fontBold,
-                    TextSize = 13,
-                    TextColor3 = (catName == "Equipment") and library.theme.textBright or Color3.fromRGB(120, 120, 130),
-                    Parent = topCategoriesFrame,
-                })
-            end
-
-            local subCategoriesFrame = create("Frame", {
-                Size = UDim2.new(1, 0, 0, 28),
-                Position = UDim2.new(0, 0, 0, 36),
-                BackgroundTransparency = 1,
-                Parent = customContainer,
-            })
-
-            create("UIListLayout", {
-                FillDirection = Enum.FillDirection.Horizontal,
-                HorizontalAlignment = Enum.HorizontalAlignment.Center,
-                VerticalAlignment = Enum.VerticalAlignment.Center,
-                Padding = UDim.new(0, 18),
-                Parent = subCategoriesFrame,
-            })
-
-            local subCats = { "Knives", "Pistols", "Mid-Tier", "Rifles", "Misc", "Agents", "Gloves" }
-            for _, subName in ipairs(subCats) do
-                create("TextButton", {
-                    Size = UDim2.new(0, 0, 1, 0),
-                    AutomaticSize = Enum.AutomaticSize.X,
-                    BackgroundTransparency = 1,
-                    Text = subName,
-                    Font = library.theme.fontBold,
-                    TextSize = 12,
-                    TextColor3 = (subName == (config.category or "Rifles")) and library.theme.textBright or Color3.fromRGB(110, 110, 120),
-                    Parent = subCategoriesFrame,
-                })
-            end
-
-            create("Frame", {
-                Size = UDim2.new(1, 0, 0, 1),
-                Position = UDim2.new(0, 0, 0, 68),
-                BackgroundColor3 = Color3.fromRGB(35, 35, 42),
-                BorderSizePixel = 0,
-                Parent = customContainer,
-            })
-
-            local bodyFrame = create("Frame", {
-                Size = UDim2.new(1, 0, 1, -74),
-                Position = UDim2.new(0, 0, 0, 74),
-                BackgroundTransparency = 1,
+                ZIndex = 10,
                 Parent = bodyFrame,
             })
 
-            local leftPanel = create("Frame", {
+            local previewCard = create("Frame", {
+                Size = UDim2.new(1, 0, 0, 200),
+                Position = UDim2.new(0, 0, 0, 10),
+                BackgroundColor3 = Color3.fromRGB(22, 23, 27),
+                BorderSizePixel = 0,
+                ZIndex = 10,
+                Parent = leftPanel,
+            })
+            makeCorner(previewCard, 4)
+
+            local prevImage = create("ImageLabel", {
+                Size = UDim2.new(1, -20, 1, -40),
+                Position = UDim2.new(0, 10, 0, 10),
+                BackgroundTransparency = 1,
+                Image = config.icon or "rbxassetid://16010744953",
+                ScaleType = Enum.ScaleType.Fit,
+                ZIndex = 11,
+                Parent = previewCard,
+            })
+
+            local prevName = create("TextLabel", {
+                Size = UDim2.new(1, -20, 0, 20),
+                Position = UDim2.new(0, 10, 1, -25),
+                BackgroundTransparency = 1,
+                Text = config.itemName or "Skin",
+                Font = library.theme.fontBold,
+                TextSize = 13,
+                TextColor3 = library.theme.textBright,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                ZIndex = 11,
+                Parent = previewCard,
+            })
+
+            local redAccentLine = create("Frame", {
+                Size = UDim2.new(1, 0, 0, 2),
+                Position = UDim2.new(0, 0, 1, -2),
+                BackgroundColor3 = library.theme.accent,
+                BorderSizePixel = 0,
+                ZIndex = 11,
+                Parent = previewCard,
+            })
+
+            local copyBtn = create("TextButton", {
+                Size = UDim2.new(1, 0, 0, 32),
+                Position = UDim2.new(0, 0, 0, 220),
+                BackgroundColor3 = Color3.fromRGB(26, 27, 32),
+                Text = "Copy inspect link",
+                Font = library.theme.fontBold,
+                TextSize = 12,
+                TextColor3 = library.theme.textBright,
+                ZIndex = 10,
+                Parent = leftPanel,
+            })
+            makeCorner(copyBtn, 4)
+
+            local backBtn = create("TextButton", {
+                Size = UDim2.new(1, 0, 0, 30),
+                Position = UDim2.new(0, 0, 0, 260),
+                BackgroundColor3 = Color3.fromRGB(36, 37, 44),
+                Text = "< Back to Inventory",
+                Font = library.theme.fontBold,
+                TextSize = 12,
+                TextColor3 = library.theme.textBright,
+                ZIndex = 10,
+                Parent = leftPanel,
+            })
+            makeCorner(backBtn, 4)
+
+            backBtn.MouseButton1Click:Connect(function()
+                customOverlay:Destroy()
+            end)
+
+            -- RIGHT CUSTOMIZATIONS PANEL
+            local rightPanel = create("ScrollingFrame", {
+                Size = UDim2.new(0.52, 0, 1, 0),
+                Position = UDim2.new(0.48, 0, 0, 0),
+                BackgroundTransparency = 1,
+                BorderSizePixel = 0,
+                ScrollBarThickness = 2,
+                ScrollBarImageColor3 = library.theme.accent,
+                AutomaticCanvasSize = Enum.AutomaticSize.Y,
+                ZIndex = 10,
+                Parent = bodyFrame,
+            })
+
+            create("UIListLayout", {
+                Padding = UDim.new(0, 10),
+                Parent = rightPanel,
+            })
+
+            create("TextLabel", {
+                Size = UDim2.new(1, 0, 0, 20),
+                BackgroundTransparency = 1,
+                Text = "Customizations",
+                Font = library.theme.fontBold,
+                TextSize = 13,
+                TextColor3 = library.theme.textDim,
+                TextXAlignment = Enum.TextXAlignment.Right,
+                ZIndex = 10,
+                Parent = rightPanel,
+            })
+
+            local seedFrame = create("Frame", { Size = UDim2.new(1, 0, 0, 28), BackgroundTransparency = 1, ZIndex = 10, Parent = rightPanel })
+            create("TextLabel", { Size = UDim2.new(0.4, 0, 1, 0), BackgroundTransparency = 1, Text = "Seed", Font = library.theme.fontBold, TextSize = 12, TextColor3 = library.theme.textBright, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 10, Parent = seedFrame })
+            local seedInput = create("TextBox", { Size = UDim2.new(0.6, 0, 1, 0), Position = UDim2.new(0.4, 0, 0, 0), BackgroundColor3 = Color3.fromRGB(26, 27, 32), Text = "0", Font = library.theme.fontBold, TextSize = 12, TextColor3 = library.theme.textBright, ClearTextOnFocus = false, ZIndex = 10, Parent = seedFrame })
+            makeCorner(seedInput, 3)
+
+            local stFrame = create("Frame", { Size = UDim2.new(1, 0, 0, 28), BackgroundTransparency = 1, ZIndex = 10, Parent = rightPanel })
+            create("TextLabel", { Size = UDim2.new(0.4, 0, 1, 0), BackgroundTransparency = 1, Text = "StatTrak counter", Font = library.theme.fontBold, TextSize = 12, TextColor3 = library.theme.textBright, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 10, Parent = stFrame })
+            local stInput = create("TextBox", { Size = UDim2.new(0.6, 0, 1, 0), Position = UDim2.new(0.4, 0, 0, 0), BackgroundColor3 = Color3.fromRGB(26, 27, 32), Text = "1364", Font = library.theme.fontBold, TextSize = 12, TextColor3 = library.theme.textBright, ClearTextOnFocus = false, ZIndex = 10, Parent = stFrame })
+            makeCorner(stInput, 3)
+
+            local nameInput = create("TextBox", { Size = UDim2.new(1, 0, 0, 28), BackgroundColor3 = Color3.fromRGB(26, 27, 32), Text = "", PlaceholderText = "Nametag", PlaceholderColor3 = Color3.fromRGB(100, 100, 110), Font = library.theme.fontBold, TextSize = 12, TextColor3 = library.theme.textBright, ClearTextOnFocus = false, ZIndex = 10, Parent = rightPanel })
+            makeCorner(nameInput, 3)
+
+            local updateBtn = create("TextButton", { Size = UDim2.new(1, 0, 0, 30), BackgroundColor3 = Color3.fromRGB(30, 31, 38), Text = "Update", Font = library.theme.fontBold, TextSize = 12, TextColor3 = library.theme.textBright, ZIndex = 10, Parent = rightPanel })
+            makeCorner(updateBtn, 3)
+
+            updateBtn.MouseButton1Click:Connect(function()
+                if config.onUpdate then
+                    pcall(config.onUpdate, {
+                        seed = tonumber(seedInput.Text) or 0,
+                        statTrak = tonumber(stInput.Text) or 0,
+                        nametag = nameInput.Text
+                    })
+                end
+                customOverlay:Destroy()
+            end)
+
+            return customOverlay
+        end
                 Size = UDim2.new(0.48, -10, 1, 0),
                 Position = UDim2.new(0, 0, 0, 0),
                 BackgroundTransparency = 1,
