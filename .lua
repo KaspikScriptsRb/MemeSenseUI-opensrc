@@ -1105,91 +1105,17 @@ function library.createWindow(options)
             end
 
             local function makeRowDropdown(parent, options, defaultOpt, onChanged)
-                local selected = defaultOpt or (options and options[1]) or ""
-                local dropBtn = create("TextButton", {
-                    Size = UDim2.new(0.52, 0, 1, 0),
-                    Position = UDim2.new(0.48, 0, 0, 0),
-                    BackgroundColor3 = Color3.fromRGB(26, 27, 32),
-                    Text = "",
-                    AutoButtonColor = false,
-                    BorderSizePixel = 0,
-                    ZIndex = 10,
-                    Parent = parent,
-                })
-                makeCorner(dropBtn, 3)
-                local dropLabel = create("TextLabel", {
-                    Size = UDim2.new(1, -18, 1, 0),
-                    Position = UDim2.new(0, 6, 0, 0),
-                    BackgroundTransparency = 1,
-                    Text = tostring(selected),
-                    Font = library.theme.fontBold,
-                    TextSize = 12,
-                    TextColor3 = library.theme.textBright,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    TextTruncate = Enum.TextTruncate.AtEnd,
-                    ZIndex = 11,
-                    Parent = dropBtn,
-                })
-                create("ImageLabel", {
-                    Size = UDim2.new(0, 8, 0, 8),
-                    Position = UDim2.new(1, -6, 0.5, 0),
-                    AnchorPoint = Vector2.new(1, 0.5),
-                    BackgroundTransparency = 1,
-                    Image = "rbxassetid://10709791523",
-                    ImageColor3 = Color3.fromRGB(255, 255, 255),
-                    Rotation = 180,
-                    ZIndex = 11,
-                    Parent = dropBtn,
-                })
-                local listOpen = false
-                local listFrame = nil
-                local function closeList()
-                    if listFrame and listFrame.Parent then listFrame:Destroy() listFrame = nil end
-                    listOpen = false
-                end
-                dropBtn.MouseButton1Click:Connect(function()
-                    if listOpen then closeList() return end
-                    listOpen = true
-                    listFrame = create("ScrollingFrame", {
-                        Size = UDim2.new(1, 0, 0, math.min(#options * 22 + 6, 130)),
-                        Position = UDim2.new(0, 0, 1, 2),
-                        BackgroundColor3 = Color3.fromRGB(24, 25, 30),
-                        BorderSizePixel = 0,
-                        ScrollBarThickness = 2,
-                        AutomaticCanvasSize = Enum.AutomaticSize.Y,
-                        ClipsDescendants = true,
-                        ZIndex = 200,
-                        Parent = dropBtn
-                    })
-                    makeCorner(listFrame, 3)
-                    makeStroke(listFrame, Color3.fromRGB(40, 40, 50), 1)
-                    create("UIListLayout", { Padding = UDim.new(0, 0), Parent = listFrame })
-                    create("UIPadding", { PaddingTop = UDim.new(0, 3), PaddingBottom = UDim.new(0, 3), Parent = listFrame })
-                    for _, opt in options do
-                        local isSel = (opt == selected)
-                        local optBtn = create("TextButton", {
-                            Size = UDim2.new(1, -12, 0, 22),
-                            Position = UDim2.new(0, 6, 0, 0),
-                            BackgroundTransparency = 1,
-                            Text = opt,
-                            Font = library.theme.fontBold,
-                            TextSize = 12,
-                            TextColor3 = isSel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145),
-                            TextXAlignment = Enum.TextXAlignment.Left,
-                            ZIndex = 201,
-                            Parent = listFrame
-                        })
-                        optBtn.MouseEnter:Connect(function() optBtn.TextColor3 = Color3.fromRGB(255, 255, 255) end)
-                        optBtn.MouseLeave:Connect(function() optBtn.TextColor3 = (opt == selected) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 135, 145) end)
-                        optBtn.MouseButton1Click:Connect(function()
-                            selected = opt
-                            dropLabel.Text = tostring(opt)
-                            closeList()
-                            if onChanged then pcall(onChanged, opt) end
-                        end)
-                    end
-                end)
-                return { get = function() return selected end, set = function(v) selected = v dropLabel.Text = tostring(v) end }
+                local drop = section:createDropdown({
+                    name = "",
+                    options = options,
+                    default = defaultOpt,
+                    callback = onChanged,
+                    width = 135,
+                }, parent)
+                return {
+                    get = function() return drop.get() end,
+                    set = function(v) drop.set(v) end
+                }
             end
 
             local function makeRowKeybind(parent, name, defaultKey, mode, flag, onChanged)
