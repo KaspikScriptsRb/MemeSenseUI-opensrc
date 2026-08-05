@@ -1105,16 +1105,76 @@ function library.createWindow(options)
             end
 
             local function makeRowDropdown(parent, options, defaultOpt, onChanged)
-                local drop = section:createDropdown({
-                    name = "",
-                    options = options,
-                    default = defaultOpt,
-                    callback = onChanged,
-                    width = 135,
-                }, parent)
+                local curSelected = defaultOpt or (options and options[1]) or ""
+                local btn = create("TextButton", {
+                    Size = UDim2.new(0.52, 0, 1, 0),
+                    Position = UDim2.new(0.48, 0, 0, 0),
+                    BackgroundColor3 = Color3.fromRGB(26, 27, 32),
+                    Text = curSelected .. " ▼",
+                    Font = library.theme.fontBold,
+                    TextSize = 11,
+                    TextColor3 = library.theme.textBright,
+                    ZIndex = 10,
+                    Parent = parent,
+                })
+                makeCorner(btn, 3)
+
+                local dropContainer = create("ScrollingFrame", {
+                    Size = UDim2.new(0.52, 0, 0, math.min(#options * 22, 110)),
+                    Position = UDim2.new(0.48, 0, 1, 2),
+                    BackgroundColor3 = Color3.fromRGB(20, 21, 25),
+                    BorderSizePixel = 0,
+                    Visible = false,
+                    ZIndex = 30,
+                    ScrollBarThickness = 2,
+                    ScrollBarImageColor3 = library.theme.accent,
+                    AutomaticCanvasSize = Enum.AutomaticSize.Y,
+                    Parent = parent,
+                })
+                makeCorner(dropContainer, 3)
+
+                create("UIListLayout", {
+                    Padding = UDim.new(0, 1),
+                    Parent = dropContainer,
+                })
+
+                local function rebuildOpts()
+                    for _, c in dropContainer:GetChildren() do
+                        if c:IsA("TextButton") then c:Destroy() end
+                    end
+                    for _, opt in options do
+                        local itemBtn = create("TextButton", {
+                            Size = UDim2.new(1, 0, 0, 20),
+                            BackgroundTransparency = 1,
+                            Text = opt,
+                            Font = library.theme.fontMedium,
+                            TextSize = 11,
+                            TextColor3 = (opt == curSelected) and library.theme.accent or library.theme.textDim,
+                            ZIndex = 31,
+                            Parent = dropContainer,
+                        })
+                        itemBtn.MouseButton1Click:Connect(function()
+                            curSelected = opt
+                            btn.Text = curSelected .. " ▼"
+                            dropContainer.Visible = false
+                            if onChanged then pcall(onChanged, opt) end
+                            rebuildOpts()
+                        end)
+                    end
+                end
+                rebuildOpts()
+
+                btn.MouseButton1Click:Connect(function()
+                    dropContainer.Visible = not dropContainer.Visible
+                end)
+
                 return {
-                    get = function() return drop.get() end,
-                    set = function(v) drop.set(v) end
+                    get = function() return curSelected end,
+                    set = function(v)
+                        curSelected = v
+                        btn.Text = curSelected .. " ▼"
+                        rebuildOpts()
+                    end
                 }
             end
 
