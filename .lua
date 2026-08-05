@@ -1327,87 +1327,9 @@ function library.createWindow(options)
 
 
 
-            local overrideColorState = (config.overrideColor ~= nil)
-            local currentColorVal = config.overrideColor or Color3.fromRGB(160, 160, 160)
-            local overrideColorRow = create("Frame", { Size = UDim2.new(1, 0, 0, 22), BackgroundTransparency = 1, ZIndex = 10, Parent = rightPanel })
-            local overrideCheckBtn = create("TextButton", { Size = UDim2.new(0.48, 0, 1, 0), BackgroundTransparency = 1, Text = "", ZIndex = 10, Parent = overrideColorRow })
-            local overrideBox = create("Frame", {
-                Size = UDim2.new(0, 14, 0, 14), Position = UDim2.new(0, 0, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5),
-                BackgroundColor3 = overrideColorState and library.theme.accent or library.theme.inputBg, BorderSizePixel = 0, ZIndex = 11, Parent = overrideCheckBtn,
-            })
-            makeCorner(overrideBox, 3)
-            makeStroke(overrideBox, overrideColorState and library.theme.accent or library.theme.inputBorder)
-            local overrideCheckmark = create("ImageLabel", {
-                Size = UDim2.new(0, 10, 0, 10), Position = UDim2.new(0.5, 0, 0.5, 0), AnchorPoint = Vector2.new(0.5, 0.5),
-                BackgroundTransparency = 1, Image = "rbxassetid://14189590169", ImageColor3 = Color3.fromRGB(255, 255, 255),
-                ImageTransparency = overrideColorState and 0 or 1, ZIndex = 12, Parent = overrideBox,
-            })
-            create("TextLabel", {
-                Position = UDim2.new(0, 20, 0, 0), Size = UDim2.new(1, -20, 1, 0), Text = "Override color",
-                Font = library.theme.fontBold, TextSize = 12, TextColor3 = library.theme.textBright,
-                TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, ZIndex = 11, Parent = overrideCheckBtn,
-            })
-
-            local swatchContainer = create("Frame", {
-                Size = UDim2.new(0.52, 0, 1, 0), Position = UDim2.new(0.48, 0, 0, 0),
-                BackgroundTransparency = 1, ZIndex = 10, Parent = overrideColorRow,
-            })
-            create("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 4), Parent = swatchContainer })
-
-            local activeColorPreview = create("TextButton", {
-                Size = UDim2.new(0, 24, 0, 16),
-                BackgroundColor3 = currentColorVal,
-                BorderSizePixel = 0,
-                Text = "",
-                AutoButtonColor = false,
-                ZIndex = 11,
-                Parent = swatchContainer,
-            })
-            makeCorner(activeColorPreview, 3)
-            makeStroke(activeColorPreview, library.theme.accent, 1)
-
-            local swatchColors = { Color3.fromRGB(160, 160, 160), Color3.fromRGB(50, 50, 50), Color3.fromRGB(80, 80, 80), Color3.fromRGB(30, 30, 30) }
-            local swatchButtons = {}
-            for idx, col in swatchColors do
-                local sw = create("TextButton", {
-                    Size = UDim2.new(0, 16, 0, 16),
-                    BackgroundColor3 = col,
-                    BorderSizePixel = 0,
-                    Text = "",
-                    AutoButtonColor = false,
-                    ZIndex = 11,
-                    Parent = swatchContainer
-                })
-                makeCorner(sw, 3)
-                local strk = makeStroke(sw, (col == currentColorVal or (idx == 1 and not config.overrideColor)) and library.theme.accent or library.theme.inputBorder, (col == currentColorVal or (idx == 1 and not config.overrideColor)) and 2 or 1)
-                table.insert(swatchButtons, { btn = sw, stroke = strk, col = col })
-
-                sw.MouseButton1Click:Connect(function()
-                    currentColorVal = col
-                    activeColorPreview.BackgroundColor3 = col
-                    for _, item in swatchButtons do
-                        item.stroke.Color = (item.col == col) and library.theme.accent or library.theme.inputBorder
-                        item.stroke.Thickness = (item.col == col) and 2 or 1
-                    end
-                end)
-            end
-
-            overrideCheckBtn.MouseButton1Click:Connect(function()
-                overrideColorState = not overrideColorState
-                overrideBox.BackgroundColor3 = overrideColorState and library.theme.accent or library.theme.inputBg
-                overrideBox.UIStroke.Color = overrideColorState and library.theme.accent or library.theme.inputBorder
-                overrideCheckmark.ImageTransparency = overrideColorState and 0 or 1
-            end)
-
-
-
             makeDividerLabel(rightPanel, "Souvenir")
 
-
-
             create("Frame", { Size = UDim2.new(1, 0, 0, 1), BackgroundColor3 = Color3.fromRGB(35, 35, 42), BorderSizePixel = 0, ZIndex = 10, Parent = rightPanel })
-
-
 
             local statTrakState = (config.statTrak or 0) > 0
             local statTrakCheck, _ = makeCheckRow(rightPanel, "StatTrak", statTrakState, function(val)
@@ -1478,7 +1400,6 @@ function library.createWindow(options)
                         wear = currentWear,
                         statTrak = statTrakCheck.get() and (tonumber(stInput.Text) or 0) or 0,
                         nametag = nameInput.Text,
-                        overrideColor = overrideColorState and currentColorVal or nil,
                     })
                 end
                 closeCustomizer()
